@@ -16,13 +16,18 @@ import logging
 import sys
 from pathlib import Path
 
+import psycopg
+
 from app.bootstrap import DEFAULT_JSON, DEFAULT_PDF, ensure_data
 from app.db.actuators_repo import delete_all, upsert_catalog
-from app.db.connection import connect, database_url
+from app.db.connection import apply_schema, connect, database_url
+from app.ingestion.crops import CropError
 from app.ingestion.escalate import EscalationError, make_vision_escalator
+from app.ingestion.ocr import OcrError
 from app.ingestion.pipeline import Escalator, ExtractionError, extract_with_report
 from app.ingestion.store_json import CatalogFileError, write_catalog
 from app.ingestion.validate import ValidationFailed
+from app.llm import LLMConfigError
 
 logger = logging.getLogger("ingest")
 
@@ -64,6 +69,7 @@ def _run_ensure(args: argparse.Namespace, escalator: Escalator | None) -> int:
     conn = connect(args.database_url or database_url())
     try:
         if args.reset:
+            apply_schema(conn)  # a brand-new database has no tables to clear yet
             delete_all(conn)
         status = ensure_data(conn, json_path=args.json, pdf_path=args.pdf, escalator=escalator)
     finally:
@@ -84,7 +90,12 @@ def _run_from_pdf(args: argparse.Namespace, escalator: Escalator | None) -> int:
     write_catalog(catalog, args.json, force=args.force)
     conn = connect(args.database_url or database_url())
     try:
-        upsert_catalog(conn, catalog)
+        apply_schema(conn)
+        # Replace, not merge: a part number dropped by the new extraction must not
+        # linger. One transaction, so a failure keeps the previous rows.
+        with conn.transaction():
+            delete_all(conn)
+            upsert_catalog(conn, catalog)
     finally:
         conn.close()
     print(f"source=pdf rows={len(catalog.rows)}")
@@ -99,8 +110,13 @@ def main(argv: list[str] | None = None) -> int:
         if args.from_pdf:
             return _run_from_pdf(args, escalator)
         return _run_ensure(args, escalator)
-    except (ExtractionError, ValidationFailed, CatalogFileError, EscalationError) as exc:
+    except (ExtractionError, ValidationFailed, CatalogFileError, EscalationError, CropError,
+            OcrError, LLMConfigError, FileExistsError) as exc:
         print(f"error: {exc}", file=sys.stderr)
+        return EXIT_FAILED
+    except psycopg.OperationalError as exc:
+        print(f"error: cannot reach Postgres ({exc}). Is it running? "
+              "Try: docker compose up -d db", file=sys.stderr)
         return EXIT_FAILED
 
 

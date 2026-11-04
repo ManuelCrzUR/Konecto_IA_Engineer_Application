@@ -7,6 +7,8 @@ A cell that does not parse keeps value None and `parse_error` set, so
 flags.py marks it and its table is escalated (never loaded unverified).
 
 Contract:
+- Every expected field (incl. motor_power_w) yields an OcrCell; a cell neither pass
+  read has raw="" and parse_error="missing".
 - OcrCell: one cell as read (table_id, part_number, field, raw, conf, parse_error).
 - OcrResult: rows (normalized Actuators; unparsable cells left None) + cells.
 - ocr_table(table_id, png) -> OcrResult for one table.
@@ -33,35 +35,14 @@ from app.ingestion.normalize import (
     parse_number,
     split_part_number,
 )
+from app.ingestion.table_meta import TABLE_FIELDS
 
 
-def _cols(names: str) -> list[str]:
-    return names.split()
+def _data_fields(table_id: str) -> tuple[str, ...]:
+    """Printed columns between the part number and Motor Power (Motor Power is last)."""
+    return TABLE_FIELDS[table_id][:-1]
 
 
-_STD = _cols(
-    "onoff_torque_in_lbs onoff_torque_nm onoff_duty_cycle_pct cycles_per_hour "
-    "mod_torque_in_lbs mod_torque_nm mod_duty_cycle_pct starts_per_hour speed_sec_60hz "
-    "speed_sec_50hz fla_60hz_a fla_50hz_a lra_60hz_a lra_50hz_a"
-)
-# Column order (left to right, after the part number, before Motor Power) per table.
-TABLE_FIELDS: dict[str, list[str]] = {
-    "T1_wp_110v_1ph": _STD,
-    "T2_wp_220v_1ph": _STD,
-    "T3_wp_220v_3ph": _cols(
-        "output_torque_in_lbs output_torque_nm duty_cycle_pct cycles_per_hour starts_per_hour "
-        "speed_sec_60hz speed_sec_50hz fla_60hz_a fla_50hz_a lra_60hz_a lra_50hz_a"
-    ),
-    "T4_xp_24v_onoff": _cols(
-        "onoff_torque_in_lbs onoff_torque_nm onoff_duty_cycle_pct cycles_per_hour "
-        "speed_sec fla_a lra_a"
-    ),
-    "T5_xp_24vdc_mod": _cols(
-        "mod_torque_in_lbs mod_torque_nm mod_duty_cycle_pct starts_per_hour speed_sec fla_a lra_a"
-    ),
-    "T6_xp_110v_1ph": _STD,
-    "T7_xp_220v_1ph": _STD,
-}
 _PN_RE = re.compile(r"\d{3}[A-Z0-9]{3}-[A-Z0-9]{6,9}/?[A-Z]?\*?$")
 _NUM_OR_NA = re.compile(r"\d|N/?A")
 # The PDF prints thousands with a comma and never uses 3 decimals: 'd.ddd' is a comma
@@ -170,7 +151,7 @@ def _layout(table_id: str, boxes: list[_Box], gray: np.ndarray) -> _Layout:
         raise OcrError(f"{table_id}: cannot estimate row pitch")
     top = pns[0].cy
     data = [b for b in boxes if b.x0 > pn_right and b.cy > top - 25 and b.cx < mx0 - 10]
-    n_cols = len(TABLE_FIELDS[table_id])
+    n_cols = len(_data_fields(table_id))
     xs = [b.cx for b in data if _NUM_OR_NA.search(b.t)]
     if len(xs) < n_cols:
         raise OcrError(f"{table_id}: too few numeric cells to find {n_cols} columns")
@@ -198,7 +179,7 @@ def _row_cells(
     table_id: str, gray: np.ndarray, lay: _Layout, pn: _Box
 ) -> list[tuple[str, str, float]]:
     """(field, raw text, min confidence) for each cell of the row, incl. Motor Power."""
-    fields = TABLE_FIELDS[table_id]
+    fields = _data_fields(table_id)
 
     def col(b: _Box) -> int:
         return sum(b.cx > c for c in lay.cuts)
@@ -211,22 +192,29 @@ def _row_cells(
         if abs(b.cy - pn.cy) <= lay.pitch * 0.5 and not b.t.endswith("/A") and b is not pn:
             by_col.setdefault(col(b), []).append(b)
     out: list[tuple[str, str, float]] = []
-    if by_col:  # no cells at all = whole row is an N/A block
-        for ci, field in enumerate(fields):
-            bs = sorted(by_col.get(ci, []), key=lambda b: b.x0) or None
-            if bs is None:
-                filled = _refill(gray, lay, pn, ci)
-                bs = [filled] if filled else None
-            if bs:
-                out.append((field, " ".join(b.t for b in bs), min(b.c for b in bs)))
+    # Every expected field yields a cell: one missed by both passes gets raw="" and
+    # conf 0 (-> parse_error "missing" -> flagged). No "whole row is N/A" guess.
+    for ci, field in enumerate(fields):
+        bs = sorted(by_col.get(ci, []), key=lambda b: b.x0) or None
+        if bs is None:
+            filled = _refill(gray, lay, pn, ci)
+            bs = [filled] if filled else None
+        if bs:
+            out.append((field, " ".join(b.t for b in bs), min(b.c for b in bs)))
+        else:
+            out.append((field, "", 0.0))
     power = [b for b in lay.power if group(b.cy) == group(pn.cy)]
     if power:
         out.append(("motor_power_w", " ".join(b.t for b in power), min(b.c for b in power)))
+    else:
+        out.append(("motor_power_w", "", 0.0))
     return out
 
 
 def _parse_error(raw: str) -> str | None:
     """None if `raw` is a strictly valid cell, else why not."""
+    if not raw.strip():
+        return "missing"
     if _DOT_THOUSANDS.match(raw.strip()):
         return f"thousands separator read as a dot: {raw!r}"
     try:

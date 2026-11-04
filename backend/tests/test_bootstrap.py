@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import re
 import shutil
 from pathlib import Path
 
@@ -63,9 +64,9 @@ def test_stale_extra_row_is_removed(pg, json_path: Path, no_extract: None) -> No
     ensure_data(pg, json_path, PDF)
     pg.execute(
         "INSERT INTO actuators (table_id, part_number, enclosure, certifications, voltage, "
-        "current_type, service, csa_certified, has_data) "
+        "current_type, service, csa_certified) "
         "SELECT table_id, '999Z99-99999999/A', enclosure, certifications, voltage, "
-        "current_type, service, csa_certified, has_data FROM actuators LIMIT 1"
+        "current_type, service, csa_certified FROM actuators LIMIT 1"
     )
     assert actuators_repo.count(pg) == 69
     s = ensure_data(pg, json_path, PDF)
@@ -119,3 +120,64 @@ def test_extraction_failure_raises_and_db_untouched(
         ensure_data(pg, json_path, PDF)
     assert actuators_repo.count(pg) == 0
     assert json_path.read_text() == "{ not json"
+
+
+def _corrupt_files(path: Path) -> list[Path]:
+    return sorted(path.parent.glob("actuators.json.corrupt-*"))
+
+
+def test_corrupt_json_is_moved_aside_not_overwritten(
+    pg, json_path: Path, golden_catalog: Catalog, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    bad = json_path.read_text()[:500]
+    json_path.write_text(bad)
+    monkeypatch.setattr(pipeline, "extract_catalog", lambda pdf, esc=None: golden_catalog)
+    s = ensure_data(pg, json_path, PDF)
+    assert s.source == "pdf"
+    moved = _corrupt_files(json_path)
+    assert len(moved) == 1
+    assert re.fullmatch(r"actuators\.json\.corrupt-\d{8}T\d{6}Z", moved[0].name)
+    assert moved[0].read_text() == bad
+    assert read_catalog(json_path) == golden_catalog
+
+
+def test_corrupt_json_untouched_when_extraction_fails(
+    pg, json_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    json_path.write_text("{ not json")
+
+    def fail(pdf: Path, esc: object = None) -> Catalog:
+        raise pipeline.ExtractionError("doubtful cells")
+
+    monkeypatch.setattr(pipeline, "extract_catalog", fail)
+    with pytest.raises(pipeline.ExtractionError):
+        ensure_data(pg, json_path, PDF)
+    assert json_path.read_text() == "{ not json"
+    assert _corrupt_files(json_path) == []
+
+
+def test_missing_json_with_full_db_rebuilds_from_db(
+    pg, json_path: Path, golden_catalog: Catalog, no_extract: None
+) -> None:
+    ensure_data(pg, json_path, PDF)
+    json_path.unlink()
+    s = ensure_data(pg, json_path, PDF)
+    assert (s.source, s.rows) == ("db", 68)
+    assert read_catalog(json_path) == golden_catalog
+    assert json.loads(json_path.read_text()) == json.loads(REAL_JSON.read_text())
+    assert _corrupt_files(json_path) == []
+
+
+def test_missing_json_with_partial_db_falls_back_to_extraction(
+    pg, json_path: Path, golden_catalog: Catalog, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ensure_data(pg, json_path, PDF)
+    pg.execute(
+        "DELETE FROM actuators WHERE part_number IN "
+        "(SELECT part_number FROM actuators ORDER BY part_number LIMIT 3)"
+    )
+    json_path.unlink()
+    monkeypatch.setattr(pipeline, "extract_catalog", lambda pdf, esc=None: golden_catalog)
+    s = ensure_data(pg, json_path, PDF)
+    assert (s.source, s.rows) == ("pdf", 68)
+    assert actuators_repo.count(pg) == 68

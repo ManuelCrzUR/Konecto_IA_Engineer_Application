@@ -13,7 +13,8 @@ from pydantic import Field
 
 import app.llm as llm_mod
 from app.domain.models import NUMERIC_FIELDS, TABLE_IDS, Actuator
-from app.ingestion.escalate import TABLE_FIELDS, EscalationError, make_vision_escalator
+from app.ingestion.escalate import EscalationError, make_vision_escalator, parse_response
+from app.ingestion.table_meta import TABLE_FIELDS
 from app.llm import LLMConfigError
 
 GOLDEN = json.loads((Path(__file__).parent / "fixtures" / "golden_draft.json").read_text())["rows"]
@@ -57,7 +58,8 @@ def test_table_fields_match_golden():
     for tid, fields in TABLE_FIELDS.items():
         rows = [g for g in GOLDEN if g["table_id"] == tid]
         implied = tuple(f for f in NUMERIC_FIELDS if any(r[f] is not None for r in rows))
-        assert fields == implied, tid
+        assert set(fields) == set(implied), tid  # field SET only; order is the printed one
+        assert fields[-1] == "motor_power_w", tid
 
 
 def test_happy_path_equals_golden():
@@ -95,7 +97,17 @@ def test_fenced_json_accepted():
 
 def test_csa_asterisk():
     reply = json.dumps(
-        {"rows": [{"part_number": "766A00-11320000/A*", "cells": {"onoff_torque_in_lbs": "1,000"}}]}
+        {
+            "rows": [
+                {
+                    "part_number": "766A00-11320000/A*",
+                    "cells": {
+                        **dict.fromkeys(TABLE_FIELDS["T2_wp_220v_1ph"], "N/A"),
+                        "onoff_torque_in_lbs": "1,000",
+                    },
+                }
+            ]
+        }
     )
     (a,) = make_vision_escalator(fake(reply))("T2_wp_220v_1ph", PNG)
     assert a.csa_certified is False
@@ -130,3 +142,27 @@ def test_lazy_llm_needs_key_only_when_called(monkeypatch):
     esc = make_vision_escalator()  # fine without env
     with pytest.raises(LLMConfigError, match="LLM_API_KEY"):
         esc("T4_xp_24v_onoff", PNG)
+
+
+def test_missing_field_in_cells_raises():
+    tid = "T4_xp_24v_onoff"
+    data = json.loads(golden_reply(tid))
+    del data["rows"][0]["cells"]["fla_a"]
+    with pytest.raises(EscalationError, match="fla_a"):
+        parse_response(tid, json.dumps(data))
+
+
+def test_unknown_extra_field_raises():
+    tid = "T4_xp_24v_onoff"
+    data = json.loads(golden_reply(tid))
+    data["rows"][0]["cells"]["bogus"] = "1"
+    with pytest.raises(EscalationError, match="bogus"):
+        parse_response(tid, json.dumps(data))
+
+
+def test_non_string_cell_value_raises_escalation_error():
+    tid = "T4_xp_24v_onoff"
+    data = json.loads(golden_reply(tid))
+    data["rows"][0]["cells"]["fla_a"] = 113
+    with pytest.raises(EscalationError, match="expected text"):
+        parse_response(tid, json.dumps(data))

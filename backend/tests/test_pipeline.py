@@ -62,7 +62,7 @@ def fake_flags(cells: list[OcrCell], issues: list) -> list[Flag]:
     ]
 
 
-def fake_tables(flags: list[Flag]) -> list[str]:
+def fake_tables(flags: list[Flag], *_: object) -> list[str]:
     return sorted({f.table_id for f in flags})
 
 
@@ -121,6 +121,24 @@ def test_catalog_tables_are_table_meta(fakes: None) -> None:
 def test_table_meta_matches_seed_json() -> None:
     tables = json.loads(SEED.read_text())["tables"]
     assert [t.model_dump() for t in TABLE_META] == tables
+
+
+def test_row_count_error_escalates_table_without_flags(
+    monkeypatch: pytest.MonkeyPatch, fakes: None
+) -> None:
+    from app.ingestion import flags as flags_mod
+
+    monkeypatch.setattr(pipeline, "tables_to_escalate", flags_mod.tables_to_escalate)
+    monkeypatch.setattr(pipeline, "flag_cells", lambda cells, issues: [])
+    short = [r for r in golden() if r.part_number != BAD_PN]  # T7 loses a row
+    monkeypatch.setattr(
+        pipeline, "ocr_tables", lambda crops: OcrResult(rows=short, cells=fake_cells()[1:])
+    )
+    escalator = Mock(side_effect=golden_escalator)
+    catalog, report = extract_with_report(PDF, escalator)
+    escalator.assert_called_once()
+    assert report.escalated == [BAD_TABLE]
+    assert catalog.rows == golden()
 
 
 @pytest.mark.slow

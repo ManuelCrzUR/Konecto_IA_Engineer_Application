@@ -15,7 +15,14 @@ from __future__ import annotations
 import uuid
 from typing import Annotated, Any, Literal
 
-from pydantic import BaseModel, ConfigDict, Field, StringConstraints, computed_field
+from pydantic import (
+    BaseModel,
+    ConfigDict,
+    Field,
+    StringConstraints,
+    computed_field,
+    model_validator,
+)
 
 TABLE_IDS = (
     "T1_wp_110v_1ph",
@@ -113,6 +120,16 @@ class Actuator(BaseModel):
 
     row_index: int | None = None
 
+    @model_validator(mode="before")
+    @classmethod
+    def _drop_computed(cls, data: Any) -> Any:
+        """`has_data` is computed, so it appears in every dump; accept it back on
+        input (and ignore it) so `model_validate(x.model_dump())` round-trips
+        despite extra="forbid"."""
+        if isinstance(data, dict) and "has_data" in data:
+            data = {k: v for k, v in data.items() if k != "has_data"}
+        return data
+
     @computed_field  # type: ignore[prop-decorator]
     @property
     def has_data(self) -> bool:
@@ -126,7 +143,6 @@ class Actuator(BaseModel):
         unparsed = data.pop("unparsed", None)
         if unparsed:
             raise ValueError(f"row has unparsed cells: {unparsed}")
-        data.pop("has_data", None)  # computed field, tolerated when round-tripping
         return cls.model_validate(data)
 
 

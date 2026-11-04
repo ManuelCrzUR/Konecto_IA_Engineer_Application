@@ -129,7 +129,7 @@ docker-compose.yml  Dockerfile  Makefile  .env.example  README.md
 - Guardia opcional: verificar que cada número del texto aparezca en los resultados de las tools.
 - Capturar la traza de cada ejecución (tool, parámetros, resultado) para la pantalla Debug.
 
-**LLM:** `get_llm()` lee `LLM_BASE_URL`, `LLM_API_KEY`, `LLM_MODEL` (y modelos separados por tarea si hace falta). OpenRouter es el valor por defecto; como usa el formato de OpenAI, se puede cambiar a otra key para desarrollo. Nunca commitear keys.
+**LLM:** `get_llm(task)` en `app/llm.py` (D-19) lee `LLM_BASE_URL`, `LLM_API_KEY` y un modelo por tarea: `AGENT_MODEL` (agente) y `EXTRACT_LLM_MODEL` (escalado a visión). OpenRouter es el valor por defecto; como usa el formato de OpenAI, se puede cambiar a otra key para desarrollo. Nunca commitear keys.
 
 ## 7. Orden de construcción y paralelización
 

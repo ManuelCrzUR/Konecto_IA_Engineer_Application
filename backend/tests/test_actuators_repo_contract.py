@@ -42,33 +42,44 @@ def _service_ok(row: Actuator, service: str | None) -> bool:
     return row.service in ("modulating", "on_off_and_modulating", "unspecified")
 
 
-def _family(row: Actuator, service: str | None, onoff: str, mod: str, out: str) -> list[float]:
-    """Candidate values of the column family selected by `service`."""
-    o, m, p = getattr(row, onoff), getattr(row, mod), getattr(row, out)
+def _family_values(
+    row: Actuator, service: str | None, unit: str
+) -> list[tuple[float | None, float | None]]:
+    """(torque, duty) pairs per operating family selected by `service`.
+
+    service set: one pair, COALESCE(family, output). service None: three pairs
+    (on/off, modulating, output); a constraint must hold within ONE pair."""
+    ot, mt, pt = (getattr(row, f"{p}_torque_{unit}") for p in ("onoff", "mod", "output"))
+    od, md, pd = row.onoff_duty_cycle_pct, row.mod_duty_cycle_pct, row.duty_cycle_pct
     if service == "on_off":
-        cands = [_first(o, p)]
-    elif service == "modulating":
-        cands = [_first(m, p)]
-    else:
-        cands = [o, m, p]
-    return [v for v in cands if v is not None]
+        return [(_first(ot, pt), _first(od, pd))]
+    if service == "modulating":
+        return [(_first(mt, pt), _first(md, pd))]
+    return [(ot, od), (mt, md), (pt, pd)]
+
+
+def _qualifying_pairs(row: Actuator, f: SearchFilters) -> list[tuple[float | None, float | None]]:
+    """Pairs that meet every SET family constraint (torque and duty together)."""
+    unit = "nm" if f.torque_unit == "nm" else "in_lbs"
+    out = []
+    for t, d in _family_values(row, f.service, unit):
+        if f.min_torque is not None and (t is None or t < f.min_torque):
+            continue
+        if f.min_duty_cycle_pct is not None and (d is None or d < f.min_duty_cycle_pct):
+            continue
+        out.append((t, d))
+    return out
 
 
 def torque_candidates(row: Actuator, f: SearchFilters) -> list[float]:
-    suffix = "nm" if f.torque_unit == "nm" else "in_lbs"
-    return _family(
-        row,
-        f.service,
-        f"onoff_torque_{suffix}",
-        f"mod_torque_{suffix}",
-        f"output_torque_{suffix}",
-    )
+    unit = "nm" if f.torque_unit == "nm" else "in_lbs"
+    return [t for t, _ in _family_values(row, f.service, unit) if t is not None]
 
 
 def qualifying_torque(row: Actuator, f: SearchFilters) -> float:
-    """Smallest candidate torque that meets min_torque."""
+    """Smallest torque among the families that satisfy ALL family constraints."""
     assert f.min_torque is not None
-    return min(v for v in torque_candidates(row, f) if v >= f.min_torque)
+    return min(t for t, _ in _qualifying_pairs(row, f) if t is not None)
 
 
 def oracle_rows(f: SearchFilters) -> list[Actuator]:
@@ -89,18 +100,14 @@ def oracle_rows(f: SearchFilters) -> list[Actuator]:
             continue
         if not _service_ok(r, f.service):
             continue
-        if f.min_torque is not None and not any(v >= f.min_torque for v in torque_candidates(r, f)):
+        if (f.min_torque is not None or f.min_duty_cycle_pct is not None) and not _qualifying_pairs(
+            r, f
+        ):
             continue
         if f.max_speed_sec is not None:
             hz = getattr(r, f"speed_sec_{f.speed_hz}hz")
             speed = _first(hz, r.speed_sec)
             if speed is None or speed > f.max_speed_sec:
-                continue
-        if f.min_duty_cycle_pct is not None:
-            duty = _family(
-                r, f.service, "onoff_duty_cycle_pct", "mod_duty_cycle_pct", "duty_cycle_pct"
-            )
-            if not any(v >= f.min_duty_cycle_pct for v in duty):
                 continue
         out.append(r)
     return out
@@ -163,6 +170,10 @@ FILTER_CASES = {
     "speed_50_220v": dict(max_speed_sec=30, speed_hz=50, voltage_v=220),
     "speed_24v": dict(max_speed_sec=40, voltage_v=24),
     "duty": dict(min_duty_cycle_pct=50),
+    "torque_and_duty_no_service": dict(min_torque=50, min_duty_cycle_pct=50),
+    "torque_and_duty_high": dict(min_torque=100, min_duty_cycle_pct=70),
+    "torque_and_duty_in_lbs": dict(min_torque=1000, min_duty_cycle_pct=40, torque_unit="in_lbs"),
+    "torque_and_duty_modulating": dict(min_torque=50, min_duty_cycle_pct=50, service="modulating"),
     "duty_service_modulating": dict(min_duty_cycle_pct=50, service="modulating"),
     "combo_110_wp_on_off": dict(
         voltage_v=110, enclosure="weatherproof", service="on_off", min_torque=50, max_speed_sec=40
@@ -232,6 +243,7 @@ ORDER_CASES = {
     "on_off_in_lbs": dict(service="on_off", min_torque=500, torque_unit="in_lbs"),
     "three_phase": dict(phase=3, min_torque=1),
     "torque_only": dict(min_torque=200),
+    "torque_and_duty": dict(min_torque=50, min_duty_cycle_pct=50),
 }
 
 
@@ -589,3 +601,59 @@ def test_catalog_summary_empty_db(pg):
     s = actuators_repo.catalog_summary(pg)
     assert s.total_rows == 0
     assert s.combinations == []
+
+
+# --------------------------------------------------------------------------- one-family rule
+def _synthetic(pn: str, **cols: float | None) -> Actuator:
+    base = BY_PN[next(r.part_number for r in ROWS if r.has_data and r.voltage == "110V")]
+    data = {k: None for k in Actuator.model_fields if k.startswith(("onoff_", "mod_", "output_"))}
+    data.update(base.model_dump())
+    for k in list(data):
+        if k.startswith(("onoff_", "mod_", "output_")) or k == "duty_cycle_pct":
+            data[k] = None
+    data.update(part_number=pn, **cols)
+    return Actuator.model_construct(**data)
+
+
+def test_torque_and_duty_must_come_from_the_same_family(pg):
+    """Regression: on/off meets torque only, modulating meets duty only -> no match."""
+    split = _synthetic(
+        "769A00-11300000/A",
+        onoff_torque_nm=500.0,
+        onoff_torque_in_lbs=4425.0,
+        onoff_duty_cycle_pct=10.0,
+        mod_torque_nm=50.0,
+        mod_torque_in_lbs=442.0,
+        mod_duty_cycle_pct=90.0,
+    )
+    same = _synthetic(
+        "769B00-11300000/A",
+        onoff_torque_nm=500.0,
+        onoff_torque_in_lbs=4425.0,
+        onoff_duty_cycle_pct=80.0,
+        mod_torque_nm=50.0,
+        mod_torque_in_lbs=442.0,
+        mod_duty_cycle_pct=90.0,
+    )
+    tables = [t for t in CATALOG.tables if t.table_id == split.table_id]
+    actuators_repo.upsert_catalog(pg, Catalog.model_construct(tables=tables, rows=[split, same]))
+    f = SearchFilters(min_torque=400, min_duty_cycle_pct=70)
+    got = [r.part_number for r in actuators_repo.search(pg, f, limit=BIG)]
+    assert got == ["769B00-11300000/A"]
+    assert actuators_repo.count_matches(pg, f) == 1
+    # Either constraint alone still matches both rows.
+    assert actuators_repo.count_matches(pg, SearchFilters(min_torque=400)) == 2
+    assert actuators_repo.count_matches(pg, SearchFilters(min_duty_cycle_pct=70)) == 2
+    # With service set, the chosen family alone decides.
+    on = SearchFilters(min_torque=400, min_duty_cycle_pct=70, service="on_off")
+    assert [r.part_number for r in actuators_repo.search(pg, on)] == ["769B00-11300000/A"]
+    mod = SearchFilters(min_torque=40, min_duty_cycle_pct=70, service="modulating")
+    assert {r.part_number for r in actuators_repo.search(pg, mod)} == {
+        "769A00-11300000/A",
+        "769B00-11300000/A",
+    }
+    # Closest torque honours the duty requirement within the same family.
+    rep = actuators_repo.diagnose_no_match(pg, SearchFilters(min_torque=600, min_duty_cycle_pct=70))
+    assert rep.closest["min_torque"] == 500.0  # 769B00-11300000/A on/off (duty 80 >= 70)
+    rep = actuators_repo.diagnose_no_match(pg, SearchFilters(min_torque=400, min_duty_cycle_pct=95))
+    assert rep.closest["min_duty_cycle_pct"] == 80.0  # on/off families with torque >= 400

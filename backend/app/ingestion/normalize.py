@@ -23,27 +23,62 @@ class NormalizationError(ValueError):
 
 # Section/table title metadata per table_id (source of enclosure/voltage/phase/service).
 SECTION_META: dict[str, dict[str, Any]] = {
-    "T1_wp_110v_1ph": {"enclosure": "weatherproof", "certifications": "CSA, CE, & UKCA",
-                       "voltage": "110V", "current_type": "AC", "phase": 1,
-                       "service": "on_off_and_modulating"},
-    "T2_wp_220v_1ph": {"enclosure": "weatherproof", "certifications": "CSA, CE, & UKCA",
-                       "voltage": "220V", "current_type": "AC", "phase": 1,
-                       "service": "on_off_and_modulating"},
-    "T3_wp_220v_3ph": {"enclosure": "weatherproof", "certifications": "CSA, CE, & UKCA",
-                       "voltage": "220V", "current_type": "AC", "phase": 3,
-                       "service": "unspecified"},
-    "T4_xp_24v_onoff": {"enclosure": "explosionproof", "certifications": "CSA",
-                        "voltage": "24V AC/DC", "current_type": "AC/DC", "phase": None,
-                        "service": "on_off"},
-    "T5_xp_24vdc_mod": {"enclosure": "explosionproof", "certifications": "CSA",
-                        "voltage": "24V DC", "current_type": "DC", "phase": None,
-                        "service": "modulating"},
-    "T6_xp_110v_1ph": {"enclosure": "explosionproof", "certifications": "CSA",
-                       "voltage": "110V", "current_type": "AC", "phase": 1,
-                       "service": "on_off_and_modulating"},
-    "T7_xp_220v_1ph": {"enclosure": "explosionproof", "certifications": "CSA",
-                       "voltage": "220V", "current_type": "AC", "phase": 1,
-                       "service": "on_off_and_modulating"},
+    "T1_wp_110v_1ph": {
+        "enclosure": "weatherproof",
+        "certifications": "CSA, CE, & UKCA",
+        "voltage": "110V",
+        "current_type": "AC",
+        "phase": 1,
+        "service": "on_off_and_modulating",
+    },
+    "T2_wp_220v_1ph": {
+        "enclosure": "weatherproof",
+        "certifications": "CSA, CE, & UKCA",
+        "voltage": "220V",
+        "current_type": "AC",
+        "phase": 1,
+        "service": "on_off_and_modulating",
+    },
+    "T3_wp_220v_3ph": {
+        "enclosure": "weatherproof",
+        "certifications": "CSA, CE, & UKCA",
+        "voltage": "220V",
+        "current_type": "AC",
+        "phase": 3,
+        "service": "unspecified",
+    },
+    "T4_xp_24v_onoff": {
+        "enclosure": "explosionproof",
+        "certifications": "CSA",
+        "voltage": "24V AC/DC",
+        "current_type": "AC/DC",
+        "phase": None,
+        "service": "on_off",
+    },
+    "T5_xp_24vdc_mod": {
+        "enclosure": "explosionproof",
+        "certifications": "CSA",
+        "voltage": "24V DC",
+        "current_type": "DC",
+        "phase": None,
+        "service": "modulating",
+    },
+    "T6_xp_110v_1ph": {
+        "enclosure": "explosionproof",
+        "certifications": "CSA",
+        "voltage": "110V",
+        "current_type": "AC",
+        "phase": 1,
+        "service": "on_off_and_modulating",
+    },
+    "T7_xp_220v_1ph": {
+        "enclosure": "explosionproof",
+        "certifications": "CSA",
+        "voltage": "220V",
+        "current_type": "AC",
+        "phase": 1,
+        "service": "on_off_and_modulating",
+    },
 }
 
 # Expected PN voltage suffix per table (cross-check only).
@@ -72,6 +107,8 @@ def parse_number(raw: str | None) -> float | None:
     """
     if raw is None:
         return None
+    if not isinstance(raw, str):
+        raise NormalizationError(f"expected text as printed, got {type(raw).__name__}: {raw!r}")
     text = raw.strip()
     if not text or _NA_RE.match(text):
         return None

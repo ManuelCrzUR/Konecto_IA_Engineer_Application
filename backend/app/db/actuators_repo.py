@@ -17,108 +17,20 @@ from psycopg import sql
 from psycopg.rows import dict_row
 from psycopg.types.json import Jsonb
 
+from app.db.search_sql import (
+    FILTERS,
+    NUMERIC,
+    TORQUE,
+    closest_query,
+    ident,
+    order_by,
+    where,
+)
 from app.domain.models import Actuator, Catalog
 from app.domain.search import CatalogSummary, NoMatchReport, SearchFilters
 
-Cond = tuple[sql.Composable, list[Any]]  # SQL fragment + its bound params
-
 _COLS = list(Actuator.model_fields)  # static column list, same names as the table
 _COLS_SQL = sql.SQL(", ").join(sql.Identifier(c) for c in _COLS)
-# Column families: (on/off, modulating, 3-phase output).
-_TORQUE = {
-    "nm": ("onoff_torque_nm", "mod_torque_nm", "output_torque_nm"),
-    "in_lbs": ("onoff_torque_in_lbs", "mod_torque_in_lbs", "output_torque_in_lbs"),
-}
-_DUTY = ("onoff_duty_cycle_pct", "mod_duty_cycle_pct", "duty_cycle_pct")
-_SPEED = {60: "speed_sec_60hz", 50: "speed_sec_50hz"}
-_SERVICES = {
-    "on_off": ["on_off_and_modulating", "on_off", "unspecified"],
-    "modulating": ["on_off_and_modulating", "modulating", "unspecified"],
-}
-_FILTERS = (
-    "voltage_v",
-    "phase",
-    "enclosure",
-    "service",
-    "min_torque",
-    "max_speed_sec",
-    "min_duty_cycle_pct",
-)
-_NUMERIC = ("min_torque", "max_speed_sec", "min_duty_cycle_pct")
-
-
-# ---- SQL fragment helpers ---------------------------------------------------
-def _ident(col: str) -> sql.Identifier:
-    return sql.Identifier(col)
-
-
-def _family(cols: tuple[str, str, str], service: str | None) -> sql.Composable | None:
-    """The column that applies to `service` (falling back to output_*), or None."""
-    if service == "on_off":
-        return sql.SQL("COALESCE({}, {})").format(_ident(cols[0]), _ident(cols[2]))
-    if service == "modulating":
-        return sql.SQL("COALESCE({}, {})").format(_ident(cols[1]), _ident(cols[2]))
-    return None
-
-
-def _speed(f: SearchFilters) -> sql.Composable:
-    return sql.SQL("COALESCE({}, {})").format(_ident(_SPEED[f.speed_hz]), _ident("speed_sec"))
-
-
-def _at_least(cols: tuple[str, str, str], f: SearchFilters, value: float) -> Cond:
-    expr = _family(cols, f.service)
-    if expr is not None:
-        return sql.SQL("{} >= %s").format(expr), [value]
-    ors = sql.SQL(" OR ").join(sql.SQL("{} >= %s").format(_ident(c)) for c in cols)
-    return sql.SQL("({})").format(ors), [value] * 3
-
-
-def _best(cols: tuple[str, str, str], f: SearchFilters) -> sql.Composable:
-    """Highest value across the applicable family (GREATEST ignores NULLs)."""
-    expr = _family(cols, f.service)
-    return expr or sql.SQL("GREATEST({}, {}, {})").format(*(_ident(c) for c in cols))
-
-
-def _fit(cols: tuple[str, str, str], f: SearchFilters, value: float) -> Cond:
-    """The torque value that satisfied the minimum (smallest qualifying one)."""
-    expr = _family(cols, f.service)
-    if expr is not None:
-        return expr, []
-    parts = [sql.SQL("CASE WHEN {c} >= %s THEN {c} END").format(c=_ident(c)) for c in cols]
-    return sql.SQL("LEAST({})").format(sql.SQL(", ").join(parts)), [value] * 3
-
-
-def _condition(name: str, f: SearchFilters) -> Cond:
-    v = getattr(f, name)
-    if name == "voltage_v":
-        return sql.SQL("voltage LIKE %s"), [f"{v}V%"]
-    if name in ("phase", "enclosure"):
-        return sql.SQL("{} = %s").format(_ident(name)), [v]
-    if name == "service":
-        return sql.SQL("service = ANY(%s)"), [_SERVICES[v]]
-    if name == "min_torque":
-        return _at_least(_TORQUE[f.torque_unit], f, v)
-    if name == "min_duty_cycle_pct":
-        return _at_least(_DUTY, f, v)
-    return sql.SQL("{} <= %s").format(_speed(f)), [v]  # max_speed_sec
-
-
-def _where(
-    f: SearchFilters, skip: set[str] | None = None, only: tuple[str, ...] = _FILTERS
-) -> Cond:
-    """WHERE clause for the active filters (minus `skip`, limited to `only`)."""
-    names = [n for n in only if getattr(f, n) is not None and n not in (skip or set())]
-    parts: list[sql.Composable] = []
-    params: list[Any] = []
-    for n in names:
-        frag, p = _condition(n, f)
-        parts.append(frag)
-        params += p
-    if any(n in _NUMERIC for n in names):
-        parts.append(sql.SQL("has_data"))  # N/A rows never match numeric filters
-    if not parts:
-        return sql.SQL("TRUE"), []
-    return sql.SQL(" AND ").join(parts), params
 
 
 def _rows(cur: psycopg.Cursor[Any]) -> list[Actuator]:
@@ -130,9 +42,16 @@ def _cur(conn: psycopg.Connection) -> psycopg.Cursor[Any]:
     return conn.cursor(row_factory=dict_row)
 
 
-def _scalar(conn: psycopg.Connection, query: sql.Composed | sql.SQL | str, params: list[Any]) -> Any:
+def _scalar(
+    conn: psycopg.Connection, query: sql.Composed | sql.SQL | str, params: list[Any]
+) -> Any:
     row = _cur(conn).execute(query, params).fetchone()
     return next(iter(row.values())) if row else None
+
+
+def _count_where(conn: psycopg.Connection, cond: sql.Composable, params: list[Any]) -> int:
+    query = sql.SQL("SELECT count(*) FROM actuators WHERE {}").format(cond)
+    return int(_scalar(conn, query, params))
 
 
 # ---- public API -------------------------------------------------------------
@@ -143,17 +62,18 @@ def count(conn: psycopg.Connection) -> int:
 
 def upsert_catalog(conn: psycopg.Connection, catalog: Catalog) -> int:
     """Upsert catalog_tables then actuators in ONE transaction
-    (INSERT ... ON CONFLICT (part_number) DO UPDATE). Writes has_data.
-    Idempotent: running it twice leaves the same rows. Returns rows written."""
-    cols = [*_COLS, "has_data"]
+    (INSERT ... ON CONFLICT (part_number) DO UPDATE). has_data is a generated
+    column, so Postgres derives it. Idempotent: running it twice leaves the
+    same rows. Returns rows written."""
+    cols = _COLS
     updates = sql.SQL(", ").join(
-        sql.SQL("{c} = EXCLUDED.{c}").format(c=_ident(c)) for c in cols if c != "part_number"
+        sql.SQL("{c} = EXCLUDED.{c}").format(c=ident(c)) for c in cols if c != "part_number"
     )
     insert = sql.SQL(
         "INSERT INTO actuators ({cols}) VALUES ({ph}) "
         "ON CONFLICT (part_number) DO UPDATE SET {upd}, updated_at = now()"
     ).format(
-        cols=sql.SQL(", ").join(_ident(c) for c in cols),
+        cols=sql.SQL(", ").join(ident(c) for c in cols),
         ph=sql.SQL(", ").join(sql.Placeholder() * len(cols)),
         upd=updates,
     )
@@ -196,39 +116,21 @@ def find_like(conn: psycopg.Connection, fragment: str, limit: int = 10) -> list[
 def search(conn: psycopg.Connection, filters: SearchFilters, limit: int = 10) -> list[Actuator]:
     """Rows meeting every filter (semantics in SearchFilters docstring),
     tightest fit first. Empty list when nothing matches."""
-    where, params = _where(filters)
-    order: list[sql.Composable] = []
-    if filters.min_torque is not None:
-        expr, p = _fit(_TORQUE[filters.torque_unit], filters, filters.min_torque)
-        order.append(expr)
-        params += p
-    order += [_speed(filters), _ident("part_number")]
+    cond, params = where(filters)
+    order, order_params = order_by(filters)
     query = sql.SQL("SELECT {} FROM actuators WHERE {} ORDER BY {} LIMIT %s").format(
-        _COLS_SQL, where, sql.SQL(", ").join(order)
+        _COLS_SQL, cond, order
     )
-    return _rows(_cur(conn).execute(query, [*params, limit]))
+    return _rows(_cur(conn).execute(query, [*params, *order_params, limit]))
 
 
 def count_matches(conn: psycopg.Connection, filters: SearchFilters) -> int:
     """Total rows meeting the filters (no limit)."""
-    where, params = _where(filters)
-    return int(
-        _scalar(conn, sql.SQL("SELECT count(*) FROM actuators WHERE {}").format(where), params)
-    )
+    return _count_where(conn, *where(filters))
 
 
 def _closest(conn: psycopg.Connection, f: SearchFilters, name: str) -> float | None:
-    """Best available value for numeric filter `name` among rows meeting the others."""
-    where, params = _where(f, skip={name})
-    if name == "min_torque":
-        agg = sql.SQL("MAX({})").format(_best(_TORQUE[f.torque_unit], f))
-    elif name == "min_duty_cycle_pct":
-        agg = sql.SQL("MAX({})").format(_best(_DUTY, f))
-    else:
-        agg = sql.SQL("MIN({})").format(_speed(f))
-    value = _scalar(
-        conn, sql.SQL("SELECT {} FROM actuators WHERE has_data AND {}").format(agg, where), params
-    )
+    value = _scalar(conn, *closest_query(f, name))
     return None if value is None else float(value)
 
 
@@ -253,21 +155,23 @@ def _message(f: SearchFilters, blocking: list[str], oob: bool, closest: dict[str
 def diagnose_no_match(conn: psycopg.Connection, filters: SearchFilters) -> NoMatchReport:
     """Called when search() is empty: which filters block, whether the
     combination exists in the catalog at all, and the closest available value
-    per blocking numeric filter (max torque, min speed, max duty)."""
-    active = [n for n in _FILTERS if getattr(filters, n) is not None]
+    per blocking numeric filter (max torque, min speed, max duty).
+
+    Closest values follow the one-family rule of search(): with `service` unset,
+    the closest torque is the largest torque among families that also meet the
+    duty requirement (if given), and vice versa for duty. Rows considered are
+    those meeting all other (non-skipped) filters."""
+    active = [n for n in FILTERS if getattr(filters, n) is not None]
     blocking = []
     for n in active:
-        where, params = _where(filters, skip={n})
-        if _scalar(conn, sql.SQL("SELECT count(*) FROM actuators WHERE {}").format(where), params):
+        if _count_where(conn, *where(filters, skip={n})):
             blocking.append(n)
-    where, params = _where(filters, only=tuple(n for n in _FILTERS if n not in _NUMERIC))
-    has_static = any(n not in _NUMERIC for n in active)
-    out = has_static and not _scalar(
-        conn, sql.SQL("SELECT count(*) FROM actuators WHERE {}").format(where), params
-    )
+    static = where(filters, only=tuple(n for n in FILTERS if n not in NUMERIC))
+    has_static = any(n not in NUMERIC for n in active)
+    out = has_static and not _count_where(conn, *static)
     closest = {}
     for n in blocking:
-        if n in _NUMERIC and (v := _closest(conn, filters, n)) is not None:
+        if n in NUMERIC and (v := _closest(conn, filters, n)) is not None:
             closest[n] = v
     return NoMatchReport(
         blocking=blocking,
@@ -288,10 +192,10 @@ def catalog_summary(conn: psycopg.Connection) -> CatalogSummary:
 
     def span(cols: tuple[str, str, str]) -> tuple[float, float] | None:
         lo = sql.SQL("LEAST({})").format(
-            sql.SQL(", ").join(sql.SQL("MIN({})").format(_ident(c)) for c in cols)
+            sql.SQL(", ").join(sql.SQL("MIN({})").format(ident(c)) for c in cols)
         )
         hi = sql.SQL("GREATEST({})").format(
-            sql.SQL(", ").join(sql.SQL("MAX({})").format(_ident(c)) for c in cols)
+            sql.SQL(", ").join(sql.SQL("MAX({})").format(ident(c)) for c in cols)
         )
         row = cur.execute(
             sql.SQL("SELECT {} AS lo, {} AS hi FROM actuators").format(lo, hi)
@@ -304,8 +208,8 @@ def catalog_summary(conn: psycopg.Connection) -> CatalogSummary:
     assert totals is not None
     return CatalogSummary(
         combinations=[dict(c) for c in combos],
-        torque_nm_range=span(_TORQUE["nm"]),
-        torque_in_lbs_range=span(_TORQUE["in_lbs"]),
+        torque_nm_range=span(TORQUE["nm"]),
+        torque_in_lbs_range=span(TORQUE["in_lbs"]),
         total_rows=totals["total"],
         rows_without_data=totals["missing"],
     )

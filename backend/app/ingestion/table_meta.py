@@ -9,6 +9,39 @@ from __future__ import annotations
 
 from app.domain.models import TableMeta
 
+
+def _cols(names: str) -> tuple[str, ...]:
+    return tuple(names.split())
+
+
+_STD = _cols(
+    "onoff_torque_in_lbs onoff_torque_nm onoff_duty_cycle_pct cycles_per_hour "
+    "mod_torque_in_lbs mod_torque_nm mod_duty_cycle_pct starts_per_hour speed_sec_60hz "
+    "speed_sec_50hz fla_60hz_a fla_50hz_a lra_60hz_a lra_50hz_a motor_power_w"
+)
+# Single source of truth for the column layout: fields printed in each table, left to
+# right after the part number, Motor Power (merged cell) LAST. Used by ocr.py (geometry)
+# and escalate.py (vision prompt/parsing). Verified against the OCR geometry (for T3 the
+# output torque columns come first).
+TABLE_FIELDS: dict[str, tuple[str, ...]] = {
+    "T1_wp_110v_1ph": _STD,
+    "T2_wp_220v_1ph": _STD,
+    "T3_wp_220v_3ph": _cols(
+        "output_torque_in_lbs output_torque_nm duty_cycle_pct cycles_per_hour starts_per_hour "
+        "speed_sec_60hz speed_sec_50hz fla_60hz_a fla_50hz_a lra_60hz_a lra_50hz_a motor_power_w"
+    ),
+    "T4_xp_24v_onoff": _cols(
+        "onoff_torque_in_lbs onoff_torque_nm onoff_duty_cycle_pct cycles_per_hour "
+        "speed_sec fla_a lra_a motor_power_w"
+    ),
+    "T5_xp_24vdc_mod": _cols(
+        "mod_torque_in_lbs mod_torque_nm mod_duty_cycle_pct starts_per_hour speed_sec fla_a "
+        "lra_a motor_power_w"
+    ),
+    "T6_xp_110v_1ph": _STD,
+    "T7_xp_220v_1ph": _STD,
+}
+
 # Table titles and printed notes, transcribed from the page images of
 # series_76_electric_data.pdf. Notes are stored as printed. A notes block is
 # attached to every table in the same section on the same page (the block is

@@ -42,7 +42,6 @@ def insert_actuator(conn: psycopg.Connection, part_number: str = "764A", **overr
         "current_type": "AC",
         "phase": 1,
         "service": "on_off",
-        "has_data": True,
     }
     row.update(overrides)
     cols = ", ".join(row)
@@ -93,8 +92,8 @@ def test_upsert_updates_in_place(conn: psycopg.Connection) -> None:
     conn.execute(
         """
         INSERT INTO actuators (part_number, table_id, enclosure, certifications, voltage,
-                               current_type, service, has_data, onoff_torque_nm)
-        VALUES ('764A', 't1', 'weatherproof', 'CSA', '110V', 'AC', 'on_off', true, 250.5)
+                               current_type, service, onoff_torque_nm)
+        VALUES ('764A', 't1', 'weatherproof', 'CSA', '110V', 'AC', 'on_off', 250.5)
         ON CONFLICT (part_number) DO UPDATE
             SET onoff_torque_nm = EXCLUDED.onoff_torque_nm, updated_at = now()
         """
@@ -103,6 +102,18 @@ def test_upsert_updates_in_place(conn: psycopg.Connection) -> None:
     row = conn.execute("SELECT onoff_torque_nm FROM actuators").fetchone()
     assert row is not None
     assert str(row[0]) == "250.5"
+
+
+def test_has_data_is_derived_by_postgres(conn: psycopg.Connection) -> None:
+    insert_actuator(conn, "761A")  # all measurements NULL -> an N/A row
+    insert_actuator(conn, "764A", onoff_torque_nm=100)
+    rows = dict(conn.execute("SELECT part_number, has_data FROM actuators").fetchall())
+    assert rows == {"761A": False, "764A": True}
+    conn.execute("UPDATE actuators SET onoff_torque_nm = NULL WHERE part_number = '764A'")
+    row = conn.execute("SELECT has_data FROM actuators WHERE part_number = '764A'").fetchone()
+    assert row is not None and row[0] is False  # recomputed, cannot drift
+    with pytest.raises(errors.GeneratedAlways):
+        conn.execute("UPDATE actuators SET has_data = true")
 
 
 def test_session_delete_cascades_messages(conn: psycopg.Connection) -> None:

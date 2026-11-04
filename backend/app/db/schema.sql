@@ -49,7 +49,15 @@ CREATE TABLE IF NOT EXISTS actuators (
     motor_power_w        numeric,
 
     row_index  integer,                  -- position within the source table
-    has_data   boolean NOT NULL,         -- false for N/A rows; written by the loader, not derived
+    -- false for the N/A rows. Derived by Postgres from the 21 measurement columns,
+    -- so it can never drift from them (a partial UPDATE recomputes it).
+    has_data   boolean GENERATED ALWAYS AS (num_nonnulls(
+                   onoff_torque_in_lbs, onoff_torque_nm, onoff_duty_cycle_pct, cycles_per_hour,
+                   mod_torque_in_lbs, mod_torque_nm, mod_duty_cycle_pct, starts_per_hour,
+                   output_torque_in_lbs, output_torque_nm, duty_cycle_pct,
+                   speed_sec_60hz, speed_sec_50hz, speed_sec,
+                   fla_60hz_a, fla_50hz_a, fla_a, lra_60hz_a, lra_50hz_a, lra_a,
+                   motor_power_w) > 0) STORED,
     updated_at timestamptz NOT NULL DEFAULT now()
 );
 

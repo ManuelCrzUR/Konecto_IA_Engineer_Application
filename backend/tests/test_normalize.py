@@ -139,3 +139,9 @@ def test_golden_round_trip() -> None:
         got = normalize_row(str(row["table_id"]), raw_pn, cells, row["row_index"])  # type: ignore[arg-type]
         expected = Actuator.from_bench_row(row)
         assert got == expected, row["part_number"]
+
+
+@pytest.mark.parametrize("raw", [113, 1.5, True, ["1"]])
+def test_parse_number_rejects_non_text(raw: object) -> None:
+    with pytest.raises(NormalizationError, match="expected text as printed"):
+        parse_number(raw)  # type: ignore[arg-type]

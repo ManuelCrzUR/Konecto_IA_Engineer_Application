@@ -42,6 +42,19 @@ def torque_of(r: Actuator, service: str | None, unit: str = "nm") -> float | Non
     return max(vals) if vals else None
 
 
+def families(r: Actuator, unit: str = "nm") -> list[tuple[float | None, float | None]]:
+    """(torque, duty) per operating family: on/off, modulating, output."""
+    t = [getattr(r, f"{p}_torque_{unit}") for p in ("onoff", "mod", "output")]
+    d = [r.onoff_duty_cycle_pct, r.mod_duty_cycle_pct, r.duty_cycle_pct]
+    return list(zip(t, d, strict=True))
+
+
+def meets_one_family(r: Actuator, torque: float, duty: float, unit: str = "nm") -> bool:
+    return any(
+        t is not None and d is not None and t >= torque and d >= duty for t, d in families(r, unit)
+    )
+
+
 def test_upsert_is_idempotent(pg):
     assert repo.upsert_catalog(pg, CATALOG) == len(ROWS) == 68
     assert repo.upsert_catalog(pg, CATALOG) == 68
@@ -191,6 +204,69 @@ def test_min_duty_cycle_family(db):
         >= 50
     }
     assert set(run(db, min_duty_cycle_pct=50, service="on_off")) == expected
+
+
+@pytest.mark.parametrize("unit", ["nm", "in_lbs"])
+def test_torque_and_duty_must_hold_in_one_family_catalog(db, unit):
+    torques = sorted({v for r in ROWS for v, _ in families(r, unit) if v is not None})
+    torque = torques[len(torques) // 3]
+    duty = 50.0
+    expected = {r.part_number for r in ROWS if meets_one_family(r, torque, duty, unit)}
+    got = run(db, min_torque=torque, min_duty_cycle_pct=duty, torque_unit=unit)
+    assert set(got) == expected and expected
+    # Tightest fit: smallest torque among the families meeting BOTH constraints.
+    f = SearchFilters(min_torque=torque, min_duty_cycle_pct=duty, torque_unit=unit)
+    quals = [
+        min(t for t, d in families(a, unit) if t is not None and t >= torque and (d or -1) >= duty)
+        for a in repo.search(db, f, limit=1000)
+    ]
+    assert quals == sorted(quals)
+
+
+def _synthetic(pn: str, **cols: float | None) -> Actuator:
+    """Catalog-shaped row with only the given family columns set."""
+    base = next(r for r in ROWS if r.has_data and r.voltage == "110V").model_dump()
+    for k in base:
+        if k.startswith(("onoff_", "mod_", "output_")) or k == "duty_cycle_pct":
+            base[k] = None
+    return Actuator.model_construct(**{**base, "part_number": pn, **cols})
+
+
+def test_split_families_do_not_combine_regression(pg):
+    """on/off meets torque but not duty; modulating meets duty but not torque -> no match.
+    A row where one family meets both does match."""
+    split = _synthetic(
+        "769A00-11300000/A",
+        onoff_torque_nm=500.0,
+        onoff_duty_cycle_pct=10.0,
+        mod_torque_nm=50.0,
+        mod_duty_cycle_pct=90.0,
+    )
+    both = _synthetic(
+        "769B00-11300000/A",
+        onoff_torque_nm=500.0,
+        onoff_duty_cycle_pct=80.0,
+        mod_torque_nm=700.0,
+        mod_duty_cycle_pct=20.0,
+    )
+    tables = [t for t in CATALOG.tables if t.table_id == split.table_id]
+    repo.upsert_catalog(pg, Catalog.model_construct(tables=tables, rows=[split, both]))
+    f = SearchFilters(min_torque=400, min_duty_cycle_pct=70)
+    assert pns(repo.search(pg, f)) == ["769B00-11300000/A"]
+    assert repo.count_matches(pg, f) == 1
+    # Each constraint alone matches both rows.
+    assert repo.count_matches(pg, SearchFilters(min_torque=400)) == 2
+    assert repo.count_matches(pg, SearchFilters(min_duty_cycle_pct=70)) == 2
+    # With service set, only that family counts.
+    assert run(pg, min_torque=400, min_duty_cycle_pct=70, service="on_off") == ["769B00-11300000/A"]
+    assert run(pg, min_torque=400, min_duty_cycle_pct=15, service="modulating") == [
+        "769B00-11300000/A"
+    ]
+    # Closest values keep the same-family rule (torque 700 is only on a 20% family).
+    rep = repo.diagnose_no_match(pg, SearchFilters(min_torque=900, min_duty_cycle_pct=70))
+    assert rep.closest["min_torque"] == 500.0
+    rep = repo.diagnose_no_match(pg, SearchFilters(min_torque=600, min_duty_cycle_pct=70))
+    assert rep.closest["min_duty_cycle_pct"] == 20.0
 
 
 def test_na_rows_excluded_from_numeric_filters(db):

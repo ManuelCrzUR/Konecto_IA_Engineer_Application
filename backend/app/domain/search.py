@@ -29,7 +29,10 @@ class SearchFilters(BaseModel):
     Semantics (implemented in actuators_repo.search):
     - min_torque + torque_unit: compares against the column family of `service`
       (onoff_* or mod_*), falling back to output_* for the 3-phase table
-      (COALESCE). Without `service`, any family that meets the minimum counts.
+      (COALESCE). Without `service`, a row matches when ONE family (on/off,
+      modulating or output) meets every given family constraint at once
+      (torque_k >= min_torque AND duty_k >= min_duty_cycle_pct, only those set);
+      torque from one mode and duty from another never combine.
       The unit picks the printed column (`*_nm` or `*_in_lbs`); no conversion.
     - voltage_v: 24 matches '24V AC/DC' and '24V DC'; 110/220 match '110V'/'220V'.
     - phase: 1 or 3. 24V tables have phase NULL and never match a phase filter.
@@ -37,7 +40,7 @@ class SearchFilters(BaseModel):
       3-phase 'unspecified' table); 'modulating' likewise.
     - max_speed_sec + speed_hz: compares speed_sec_60hz / speed_sec_50hz, or
       speed_sec for 24V tables.
-    - min_duty_cycle_pct: same family rule as torque.
+    - min_duty_cycle_pct: same family rule as torque (jointly with it).
     - Rows with has_data = false never match a numeric filter.
     """
 
@@ -89,7 +92,8 @@ class NoMatchReport(BaseModel):
 
 class SearchResult(BaseModel):
     """Result of search_actuators(filters). Matches are ordered tightest-fit
-    first (smallest torque that meets min_torque, then fastest speed)."""
+    first (smallest torque, among the families meeting all constraints, that
+    meets min_torque; then fastest speed)."""
 
     status: Literal["ok", "no_match"]
     filters: SearchFilters

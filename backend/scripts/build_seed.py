@@ -23,7 +23,10 @@ BACKEND_DIR = Path(__file__).resolve().parents[1]
 if str(BACKEND_DIR) not in sys.path:
     sys.path.insert(0, str(BACKEND_DIR))
 
+from app.domain.models import Actuator, Catalog
+from app.ingestion.store_json import write_catalog
 from app.ingestion.table_meta import TABLE_META
+from app.ingestion.validate import ValidationFailed, assert_valid
 
 DEFAULT_GOLDEN = BACKEND_DIR / "tests" / "fixtures" / "golden_draft.json"
 DEFAULT_OUT = BACKEND_DIR / "data" / "processed" / "actuators.json"
@@ -69,12 +72,17 @@ def main() -> None:
     if args.out.exists() and not args.force:
         fail(f"{args.out} already exists; refusing to overwrite. Pass --force to replace it.")
 
-    rows = load_rows(args.golden)
-    payload = {"tables": [t.model_dump() for t in TABLE_META], "rows": rows}
-
-    args.out.parent.mkdir(parents=True, exist_ok=True)
-    args.out.write_text(json.dumps(payload, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-    print(f"wrote {len(rows)} rows and {len(TABLE_META)} tables to {args.out}")
+    # Same gate as any extractor: schema, then the shared invariants, then the
+    # same atomic writer the pipeline uses (CLAUDE.md §9: never load doubtful data).
+    catalog = Catalog(
+        tables=TABLE_META, rows=[Actuator.from_bench_row(r) for r in load_rows(args.golden)]
+    )
+    try:
+        assert_valid(catalog.rows)
+    except ValidationFailed as exc:
+        fail(f"golden rows fail validation: {exc}")
+    write_catalog(catalog, args.out, force=args.force)
+    print(f"wrote {len(catalog.rows)} rows and {len(catalog.tables)} tables to {args.out}")
 
 
 if __name__ == "__main__":

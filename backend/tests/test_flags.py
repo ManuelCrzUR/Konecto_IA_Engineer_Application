@@ -97,3 +97,27 @@ def test_benchmark_regression() -> None:
         assert t in tables
     for t in ("T4_xp_24v_onoff", "T5_xp_24vdc_mod", "T6_xp_110v_1ph"):
         assert t not in tables
+
+
+def table_issue(check: str, table: str, pn: str | None = None, field: str | None = None) -> Issue:
+    return Issue(
+        level="error", check=check, table_id=table, part_number=pn, field=field, message="m"
+    )
+
+
+def test_table_level_errors_escalate_without_flags() -> None:
+    cells = [cell()]
+    issues = [
+        table_issue("row_count", "T5_xp_24vdc_mod"),
+        table_issue("unique_pn", "T3_wp_220v_3ph", "764A00-11330C00/A", "part_number"),
+    ]
+    assert tables_to_escalate([], issues, cells) == ["T3_wp_220v_3ph", "T5_xp_24vdc_mod"]
+
+
+def test_cell_mapped_or_warning_issues_do_not_add_tables() -> None:
+    cells = [cell()]
+    mapped = table_issue(
+        "duty_range", "T1_wp_110v_1ph", "761A00-11300000/A", "onoff_duty_cycle_pct"
+    )
+    warn = Issue(level="warning", check="row_count", table_id="T4_xp_24v_onoff", message="m")
+    assert tables_to_escalate([], [mapped, warn], cells) == []

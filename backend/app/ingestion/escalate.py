@@ -9,6 +9,8 @@ Contract:
   TRANSCRIBES text; every value then goes through normalize.normalize_row
   (strict rules) so the LLM never decides a number's format. Bad JSON or a
   normalize error -> EscalationError.
+- parse_response requires every TABLE_FIELDS[table_id] key in each row's cells and
+  rejects unknown keys (EscalationError).
 - llm=None -> app.llm.get_llm("extract") (EXTRACT_LLM_MODEL). Tests inject a
   fake chat model; the real call costs money and needs explicit approval.
 """
@@ -26,67 +28,8 @@ from langchain_core.messages import HumanMessage
 from app.domain.models import Actuator
 from app.ingestion.normalize import NormalizationError, normalize_row
 from app.ingestion.pipeline import Escalator
+from app.ingestion.table_meta import TABLE_FIELDS
 from app.llm import get_llm
-
-# Columns printed in each table, in reading order (Motor Power last).
-# Hard-coded on purpose; tests check it against the verified golden rows.
-_WP_DUAL: tuple[str, ...] = (
-    "onoff_torque_in_lbs",
-    "onoff_torque_nm",
-    "onoff_duty_cycle_pct",
-    "cycles_per_hour",
-    "mod_torque_in_lbs",
-    "mod_torque_nm",
-    "mod_duty_cycle_pct",
-    "starts_per_hour",
-    "speed_sec_60hz",
-    "speed_sec_50hz",
-    "fla_60hz_a",
-    "fla_50hz_a",
-    "lra_60hz_a",
-    "lra_50hz_a",
-    "motor_power_w",
-)
-TABLE_FIELDS: dict[str, tuple[str, ...]] = {
-    "T1_wp_110v_1ph": _WP_DUAL,
-    "T2_wp_220v_1ph": _WP_DUAL,
-    "T3_wp_220v_3ph": (
-        "cycles_per_hour",
-        "starts_per_hour",
-        "output_torque_in_lbs",
-        "output_torque_nm",
-        "duty_cycle_pct",
-        "speed_sec_60hz",
-        "speed_sec_50hz",
-        "fla_60hz_a",
-        "fla_50hz_a",
-        "lra_60hz_a",
-        "lra_50hz_a",
-        "motor_power_w",
-    ),
-    "T4_xp_24v_onoff": (
-        "onoff_torque_in_lbs",
-        "onoff_torque_nm",
-        "onoff_duty_cycle_pct",
-        "cycles_per_hour",
-        "speed_sec",
-        "fla_a",
-        "lra_a",
-        "motor_power_w",
-    ),
-    "T5_xp_24vdc_mod": (
-        "mod_torque_in_lbs",
-        "mod_torque_nm",
-        "mod_duty_cycle_pct",
-        "starts_per_hour",
-        "speed_sec",
-        "fla_a",
-        "lra_a",
-        "motor_power_w",
-    ),
-    "T6_xp_110v_1ph": _WP_DUAL,
-    "T7_xp_220v_1ph": _WP_DUAL,
-}
 
 FIELD_LABELS: dict[str, str] = {
     "onoff_torque_in_lbs": "On/Off torque, in-lbs",
@@ -190,8 +133,15 @@ def parse_response(table_id: str, text: str) -> list[Actuator]:
             raise EscalationError(
                 f"{table_id}: row {i + 1} needs a string 'part_number' and a 'cells' object"
             )
+        cells = row["cells"]
+        missing = [f for f in TABLE_FIELDS[table_id] if f not in cells]
+        if missing:
+            raise EscalationError(f"{table_id}: row {i + 1}: missing field {missing[0]!r}")
+        extra = sorted(k for k in cells if k not in TABLE_FIELDS[table_id])
+        if extra:
+            raise EscalationError(f"{table_id}: row {i + 1}: unknown field {extra[0]!r}")
         try:
-            out.append(normalize_row(table_id, row["part_number"], row["cells"], row_index=i + 1))
+            out.append(normalize_row(table_id, row["part_number"], cells, row_index=i + 1))
         except NormalizationError as exc:
             raise EscalationError(f"{table_id}: row {i + 1}: {exc}") from exc
     return out

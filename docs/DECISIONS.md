@@ -207,3 +207,46 @@ Each entry records one decision, the alternatives considered, its trade-off, and
 **Trade-off.** The PDF prints thousands with commas and has no values with three decimals, so this shape is almost always the OCR misreading a comma. Accepting it silently corrupted 8 cells on the first run, for example T2 764B torque `9,700`/`1,100` read as `9.700`/`1.100`. The in-lbs/Nm ratio stayed plausible, so the validator missed them. Repairing it would be a guess (D-18). The rule is OCR-specific: `normalize.parse_number` itself stays generic.
 
 **Status.** Accepted (Sprint 2). Found by the OCR builder's safety test `test_every_wrong_cell_is_flagged`.
+
+## D-21 `has_data` is a generated column
+
+**Decision.** `actuators.has_data` is `GENERATED ALWAYS AS (num_nonnulls(<21 measurement columns>) > 0) STORED`. The loader never writes it. On the pydantic side, `Actuator` accepts the computed `has_data` on input and ignores it, so `model_validate(x.model_dump())` round-trips.
+
+**Alternatives.** A plain column written by the loader.
+
+**Trade-off.** It can never drift from the data: a partial UPDATE recomputes it, and search hides `has_data = false` rows from numeric filters, so drift would hide real products. Existing local tables must be dropped once to migrate (data is rebuildable).
+
+**Status.** Accepted (Gate 2, from code review).
+
+## D-22 Torque and duty must be met by the same operating mode
+
+**Decision.** With no `service` filter, a row matches only if one family (on/off, modulating or 3-phase output) satisfies every numeric family constraint at once: torque and duty cycle together. Tightest-fit ordering and the "closest value" in no-match diagnoses follow the same rule.
+
+**Alternatives.** An independent OR per constraint (the first implementation).
+
+**Trade-off.** With the independent OR, torque could come from on/off service and duty from modulating service on the same actuator. That would recommend a product no single mode can deliver. The SQL is a little longer (OR over families of AND over constraints).
+
+**Status.** Accepted (Gate 2, from code review).
+
+## D-23 Nothing the OCR missed can load as null
+
+**Decision.** Every expected cell of every OCR row produces an `OcrCell`. A cell neither OCR pass read gets `parse_error="missing"` and is flagged. Tables with table-level validator errors (`row_count`, `unique_pn`), which map to no cell, are escalated too. Vision answers must contain every column of the table as text; non-text values and missing or extra keys raise `EscalationError`.
+
+**Alternatives.** Omit unread cells (they became silent nulls). Escalate only flagged cells.
+
+**Trade-off.** It closes the last gaps where a printed value could turn into a null, or a structurally broken table could fail instead of being re-read. More cells are flagged (78), but the escalated tables are still T1, T2, T3 and T7.
+
+**Status.** Accepted (Gate 2, from code review).
+
+## D-24 Self-healing never destroys the verified JSON
+
+**Decision.** In `ensure_data`:
+- A corrupt `actuators.json` is moved aside to `actuators.json.corrupt-<UTC timestamp>` only after a successful re-extraction. It is never overwritten.
+- If the JSON is missing but Postgres holds the full, valid catalog, the JSON is rebuilt from Postgres, with no OCR and no LLM.
+- `ingest.py --from-pdf` replaces the rows in one transaction (delete, then upsert), so dropped part numbers do not linger.
+
+**Alternatives.** Overwrite with `force=True`. Always re-extract from the PDF.
+
+**Trade-off.** It respects CLAUDE.md §9 (never overwrite silently) and avoids paid model calls on every start. The cost is more cascade branches, each covered by a test.
+
+**Status.** Accepted (Gate 2, from code review).

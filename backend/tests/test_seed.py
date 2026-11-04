@@ -114,13 +114,15 @@ def test_pdf_sha256_matches_sha256sums() -> None:
     assert _sha256(PDF_PATH) == expected_hash
 
 
-def test_build_refuses_to_overwrite_without_force() -> None:
-    assert SEED_PATH.is_file()
-    before_bytes = SEED_PATH.read_bytes()
-    before_mtime = SEED_PATH.stat().st_mtime_ns
+def test_build_refuses_to_overwrite_without_force(tmp_path: Path) -> None:
+    # Never point the script at the committed seed: if the guard regressed,
+    # the test itself would overwrite it (CLAUDE.md §9).
+    out = tmp_path / "actuators.json"
+    out.write_text("sentinel", encoding="utf-8")
+    before_mtime = out.stat().st_mtime_ns
 
     result = subprocess.run(
-        [sys.executable, str(BUILD_SCRIPT)],
+        [sys.executable, str(BUILD_SCRIPT), "--out", str(out)],
         cwd=BACKEND_DIR,
         capture_output=True,
         text=True,
@@ -129,5 +131,18 @@ def test_build_refuses_to_overwrite_without_force() -> None:
 
     assert result.returncode != 0
     assert "refusing to overwrite" in result.stderr
-    assert SEED_PATH.read_bytes() == before_bytes
-    assert SEED_PATH.stat().st_mtime_ns == before_mtime
+    assert out.read_text(encoding="utf-8") == "sentinel"
+    assert out.stat().st_mtime_ns == before_mtime
+
+
+def test_build_reproduces_committed_seed(tmp_path: Path) -> None:
+    """build_seed (validated + atomic writer) yields exactly the committed JSON."""
+    out = tmp_path / "actuators.json"
+    result = subprocess.run(
+        [sys.executable, str(BUILD_SCRIPT), "--out", str(out)],
+        cwd=BACKEND_DIR, capture_output=True, text=True, check=False,
+    )
+    assert result.returncode == 0, result.stderr
+    assert json.loads(out.read_text(encoding="utf-8")) == json.loads(
+        SEED_PATH.read_text(encoding="utf-8")
+    )

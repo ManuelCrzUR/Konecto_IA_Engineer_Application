@@ -6,7 +6,8 @@ Contract:
 - extract_catalog(pdf_path, escalator=None) -> Catalog:
   1. crops.crop_tables, then ocr.ocr_tables (offline RapidOCR).
   2. validate.validate_rows on the OCR rows; flags.flag_cells(cells, issues).
-  3. Each table in flags.tables_to_escalate is replaced WHOLE by escalator(...).
+  3. Each table in flags.tables_to_escalate(flags, issues, cells) (flagged tables, plus
+     tables with table-level validator errors such as row_count/unique_pn) is replaced WHOLE by escalator(...).
      If escalator is None and something is flagged -> ExtractionError listing
      the flagged cells (never load doubtful data).
   4. validate.assert_valid on the final rows (ValidationFailed -> ExtractionError).
@@ -29,7 +30,7 @@ from app.ingestion.crops import crop_tables
 from app.ingestion.flags import Flag, flag_cells, tables_to_escalate
 from app.ingestion.ocr import ocr_tables
 from app.ingestion.table_meta import TABLE_META
-from app.ingestion.validate import ValidationFailed, assert_valid, validate_rows
+from app.ingestion.validate import Issue, ValidationFailed, assert_valid, validate_rows
 
 Escalator = Callable[[str, bytes], list[Actuator]]
 
@@ -59,6 +60,11 @@ def _describe(flags: list[Flag]) -> str:
     return "; ".join(shown) + suffix
 
 
+def _table_errors(issues: list[Issue]) -> str:
+    msgs = [i.message for i in issues if i.level == "error" and i.field in (None, "part_number")]
+    return f" [table-level errors: {'; '.join(msgs[:MAX_LISTED_CELLS])}]" if msgs else ""
+
+
 def extract_with_report(
     pdf_path: Path, escalator: Escalator | None = None
 ) -> tuple[Catalog, ExtractionReport]:
@@ -67,7 +73,7 @@ def extract_with_report(
     ocr = ocr_tables(crops)
     issues = validate_rows(ocr.rows)
     flags = flag_cells(ocr.cells, issues)
-    to_escalate = tables_to_escalate(flags)
+    to_escalate = tables_to_escalate(flags, issues, ocr.cells)
     report = ExtractionReport(escalated=list(to_escalate), flagged_cells=len(flags))
 
     rows = list(ocr.rows)
@@ -75,7 +81,7 @@ def extract_with_report(
         if escalator is None:
             raise ExtractionError(
                 f"{len(flags)} doubtful cell(s) in {', '.join(to_escalate)} and no escalator "
-                f"available: {_describe(flags)}. {HINT}"
+                f"available: {_describe(flags)}{_table_errors(issues)}. {HINT}"
             )
         for table_id in to_escalate:
             new_rows = escalator(table_id, crops[table_id])

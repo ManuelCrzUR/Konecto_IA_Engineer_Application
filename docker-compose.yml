@@ -17,7 +17,8 @@ services:
       - pgdata:/var/lib/postgresql/data
       - ./backend/docker/initdb:/docker-entrypoint-initdb.d:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U series76 -d series76"]
+      # $$ = read inside the container, so it follows POSTGRES_USER/POSTGRES_DB overrides
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10

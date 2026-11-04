@@ -10,9 +10,11 @@ import numpy as np
 import pytest
 
 from app.domain.models import NUMERIC_FIELDS
+from app.ingestion import ocr as ocr_mod
 from app.ingestion.crops import crop_tables
 from app.ingestion.flags import flag_cells, tables_to_escalate
 from app.ingestion.ocr import OcrError, OcrResult, ocr_table, ocr_tables
+from app.ingestion.table_meta import TABLE_FIELDS
 from app.ingestion.validate import validate_rows
 
 ROOT = Path(__file__).parent.parent
@@ -32,6 +34,27 @@ def test_garbage_bytes_and_unknown_table_raise() -> None:
         ocr_table("T1_wp_110v_1ph", b"not a png")
     with pytest.raises(OcrError):
         ocr_table("nope", b"")
+
+
+def test_missed_cells_become_missing_cells_not_omitted(monkeypatch: pytest.MonkeyPatch) -> None:
+    table = "T4_xp_24v_onoff"
+    pn = ocr_mod._Box(0, 0, 100, 20, "761A00-11380000/A", 0.99)
+    lay = ocr_mod._Layout(
+        pns=[pn],
+        pn_right=100,
+        mx0=900,
+        pitch=30,
+        cuts=[200.0 + 50 * i for i in range(6)],
+        rules=[],
+        data=[],
+        power=[],
+    )
+    monkeypatch.setattr(ocr_mod, "_refill", lambda *a, **k: None)
+    gray = np.full((50, 1000), 255, np.uint8)
+    cells = ocr_mod._row_cells(table, gray, lay, pn)
+    assert [c[0] for c in cells] == list(TABLE_FIELDS[table])
+    assert all(c[1] == "" for c in cells)
+    assert ocr_mod._parse_error("") == "missing"
 
 
 @pytest.fixture(scope="module")
