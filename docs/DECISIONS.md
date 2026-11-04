@@ -347,3 +347,73 @@ How the run works:
 **Trade-off.** Each fix has a regression test. `response.py` (about 190 lines of code plus a 55-line spec docstring) and `tools.py` (about 170 plus 50) are above the ~150 target. They hold one responsibility each, so splitting them further would only scatter the contract.
 
 **Status.** Accepted (Gate 3). 1066 tests green; real eval 26/26 after the fixes.
+
+## D-32 API: autocommit pool, short DB borrows, injected agent, no paid calls at startup
+
+**Decision.**
+- **Pool.** One `psycopg_pool.ConnectionPool` per app (max 10) with `autocommit=True`. The user's message is committed before the agent runs, so a 503 never loses it. `add_message` still wraps its insert and the session bump in `conn.transaction()`.
+- **Connection borrowing.** `POST /api/conversation` borrows a connection only around the DB steps (load or create the session, history, save the user message; then save the answer). It holds none while the LLM runs, because the agent's tools draw from the same pool. A test with a pool of one connection proves this.
+- **Sync endpoints.** Endpoints are sync `def`; FastAPI runs them in its threadpool, because `run_agent` is synchronous.
+- **Injected agent.** The agent is a dependency (`get_agent`), so tests override it with a fake and never call an LLM.
+- **Startup.** The lifespan runs `apply_schema` + `ensure_data()`. Vision escalation is OFF unless `STARTUP_ESCALATION=on`: the API never spends money on its own (CLAUDE.md §9).
+- **Corrupt JSON.** A corrupt `actuators.json` is now rebuilt from a full, valid Postgres, like the missing case in D-24. The bad file is moved aside first and restored if the write fails.
+- **Errors.** Every error body is `{error, detail}`:
+
+  | Cause | Status | `error` |
+  |---|---|---|
+  | Unknown session | 404 | `session_not_found` |
+  | Invalid request | 422 | `validation_error` |
+  | `AgentError` | 503 | `llm_unavailable` |
+  | Missing LLM config | 503 | `llm_not_configured` |
+  | DB down | 503 | `database_unavailable` |
+  | Anything else | 500 | `internal_error` |
+
+  The 500 response is generic; the traceback is only logged.
+
+**Alternatives.**
+- Async endpoints with an async pool.
+- One connection held per request.
+- A transaction around the whole turn, which would lose the user message on a 503.
+- Escalation on at startup.
+
+**Trade-off.** Two short borrows per turn instead of one long one. Concurrent requests on the same session could interleave their history, which is acceptable for a single-user mobile app. A clean clone with no LLM key still starts: health, sessions and data all work, and only conversation turns return 503 `llm_not_configured`.
+
+**Status.** Accepted (Sprint 4).
+
+## D-33 One OpenCV build (headless) and a 1.4 GB image
+
+**Decision.** `pyproject.toml` has a uv `override-dependencies` entry that drops `opencv-python`, the GUI build pulled in by `rapidocr-onnxruntime`. Only `opencv-python-headless` (same version and same `cv2` API) is installed. The Docker image (`python:3.12-slim` + uv 0.8.22, non-root, `uv sync --frozen --no-dev`) needs no apt packages.
+
+**Alternatives.** Keep both and install `libgl1`, `libxcb1` and `libglib2.0-0` in the image (1.98 GB). Drop our own headless dependency.
+
+**Trade-off.** Both wheels write the same `cv2` folder, so whichever is installed last wins. Removing one broke `import cv2` locally until the headless wheel was reinstalled, which shows how fragile that was. The GUI build also needs X11/GL libraries a server does not use. With one build the image went from 1.98 GB to 1.4 GB, under the 1.5 GB target. The full suite including the slow tests (real OCR on the PDF against the golden file, cell by cell) passes 1136/1136 after the change. The override is a uv-specific mechanism, documented in a comment next to it.
+
+**Status.** Accepted (Sprint 4).
+
+## D-34 Gate 4 security review: localhost binding, generic 503, accepted risks
+
+**Decision.** A manual review of the Sprint 4 API led to these fixes and these accepted risks.
+
+Fixes:
+- **Port binding.** compose publishes the API and Postgres on `127.0.0.1` only (`API_BIND` and `DB_BIND`, both default `127.0.0.1`). Before, both listened on every interface, so anyone on the same network could read every conversation and reach Postgres with the default password. The Android emulator still works through `10.0.2.2`, which maps to the host's loopback. A physical phone needs `API_BIND=0.0.0.0`.
+- **Generic 503.** `llm_unavailable` now returns a generic detail. The provider's error text, which can contain upstream details, is only logged.
+
+Already in place:
+- parameterized SQL only, and the LLM never writes SQL;
+- read-only tools;
+- a generic 500;
+- a non-root container, with `.env` excluded from the image;
+- input bounded to 2000 characters;
+- the agent's step limit.
+
+**Accepted risks.**
+- **No authentication.** `GET /api/sessions` lists every conversation. This is single-user by design; the login hook is D-10.
+- **No rate limiting.**
+- **Prompt injection can only steer the wording.** The guard blocks unverified numbers and part numbers, and the tools cannot write.
+- **The `debug` trace is always in the response.** It holds catalog data and the guard's original answer, which is by design for the Debug screen.
+
+**Alternatives.** API key or token auth now. A reverse proxy with rate limits.
+
+**Trade-off.** Binding to localhost removes the real exposure at no cost to the emulator workflow. Auth and rate limits add work the assessment does not require, and they are listed as optional.
+
+**Status.** Accepted (Gate 4). `/security-review` could not run because the repo has no remote (`origin/HEAD`), so the review was done by hand on the Sprint 4 diff.

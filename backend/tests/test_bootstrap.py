@@ -168,6 +168,53 @@ def test_missing_json_with_full_db_rebuilds_from_db(
     assert _corrupt_files(json_path) == []
 
 
+def test_corrupt_json_with_full_db_rebuilds_from_db(
+    pg, json_path: Path, golden_catalog: Catalog, no_extract: None
+) -> None:
+    ensure_data(pg, json_path, PDF)
+    bad = json_path.read_text()[:500]
+    json_path.write_text(bad)
+    s = ensure_data(pg, json_path, PDF)
+    assert (s.source, s.rows) == ("db", 68)
+    assert read_catalog(json_path) == golden_catalog
+    assert json.loads(json_path.read_text()) == json.loads(REAL_JSON.read_text())
+    moved = _corrupt_files(json_path)
+    assert len(moved) == 1
+    assert re.fullmatch(r"actuators\.json\.corrupt-\d{8}T\d{6}Z", moved[0].name)
+    assert moved[0].read_text() == bad
+
+
+def test_corrupt_json_with_partial_db_falls_back_to_extraction(
+    pg, json_path: Path, golden_catalog: Catalog, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ensure_data(pg, json_path, PDF)
+    pg.execute(
+        "DELETE FROM actuators WHERE part_number IN "
+        "(SELECT part_number FROM actuators ORDER BY part_number LIMIT 3)"
+    )
+    json_path.write_text("{ not json")
+    monkeypatch.setattr(pipeline, "extract_catalog", lambda pdf, esc=None: golden_catalog)
+    s = ensure_data(pg, json_path, PDF)
+    assert (s.source, s.rows) == ("pdf", 68)
+    assert len(_corrupt_files(json_path)) == 1
+
+
+def test_corrupt_json_full_db_write_failure_leaves_file(
+    pg, json_path: Path, no_extract: None, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    ensure_data(pg, json_path, PDF)
+    json_path.write_text("{ not json")
+
+    def fail(*a: object, **k: object) -> None:
+        raise OSError("disk full")
+
+    monkeypatch.setattr("app.bootstrap.write_catalog", fail)
+    with pytest.raises(OSError):
+        ensure_data(pg, json_path, PDF)
+    assert json_path.read_text() == "{ not json"
+    assert _corrupt_files(json_path) == []
+
+
 def test_missing_json_with_partial_db_falls_back_to_extraction(
     pg, json_path: Path, golden_catalog: Catalog, monkeypatch: pytest.MonkeyPatch
 ) -> None:

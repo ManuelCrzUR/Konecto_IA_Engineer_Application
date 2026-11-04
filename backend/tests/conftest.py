@@ -27,6 +27,10 @@ def pg_conn():
     try:
         conn = psycopg.connect(url, autocommit=True, connect_timeout=3)
     except psycopg.OperationalError as exc:
+        if "does not exist" in str(exc):
+            # Server is up but the DB is missing (e.g. after `docker compose down -v`):
+            # fail loudly; a silent skip would hide every DB test.
+            pytest.fail(f"Test database missing at {url}: {exc}. Create it or reset the volume.")
         pytest.skip(f"Postgres unreachable at {url} ({exc}). Start it: docker compose up -d db")
     if SCHEMA_SQL.exists():
         conn.execute(SCHEMA_SQL.read_text())

@@ -1,0 +1,13 @@
+.venv
+__pycache__
+*.pyc
+tests/
+.pytest_cache
+.mypy_cache
+.ruff_cache
+.coverage*
+htmlcov
+bench/
+*.corrupt-*
+.env*
+eval/report.md

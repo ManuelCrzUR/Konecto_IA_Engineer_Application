@@ -3,10 +3,11 @@
 Cascade:
 1. actuators.json valid and Postgres row count == its rows   -> source "db" (no-op)
 2. actuators.json valid, DB differs                          -> upsert, source "json"
-3. actuators.json MISSING (not corrupt) and Postgres holds the full catalog
+3. actuators.json MISSING or CORRUPT and Postgres holds the full catalog
    (rows rebuilt from the DB pass assert_valid and per-table counts equal
    EXPECTED_ROWS)                                            -> JSON rebuilt from
-   the DB (force=False), source "db". No OCR / paid vision call.
+   the DB (force=False), source "db". No OCR / paid vision call. A corrupt file is
+   first moved aside (see below), and restored if the write fails.
 4. Otherwise PDF -> extract_catalog -> write JSON -> upsert  -> source "pdf"
 5. Any validation failure aborts with a clear message; nothing doubtful is loaded.
 
@@ -108,6 +109,17 @@ def _rebuild_from_db(conn: psycopg.Connection) -> Catalog | None:
     return Catalog(tables=list(TABLE_META), rows=rows)
 
 
+def _heal_json(rebuilt: Catalog, json_path: Path, corrupt: bool) -> None:
+    """Write the DB-rebuilt catalog; a corrupt file is moved aside, restored on failure."""
+    moved = _move_aside(json_path) if corrupt else None
+    try:
+        write_catalog(rebuilt, json_path, force=False)
+    except Exception:
+        if moved is not None:
+            moved.rename(json_path)
+        raise
+
+
 def _load(conn: psycopg.Connection, catalog: Catalog, replace: bool) -> None:
     with conn.transaction():
         if replace:
@@ -136,12 +148,11 @@ def ensure_data(
         _load(conn, catalog, replace=current > expected)
         return DataStatus(source="json", rows=expected)
 
-    if not corrupt:
-        rebuilt = _rebuild_from_db(conn)
-        if rebuilt is not None:
-            write_catalog(rebuilt, json_path, force=False)
-            logger.info("Rebuilt %s from the database (%d rows)", json_path, len(rebuilt.rows))
-            return DataStatus(source="db", rows=len(rebuilt.rows))
+    rebuilt = _rebuild_from_db(conn)
+    if rebuilt is not None:
+        _heal_json(rebuilt, json_path, corrupt)
+        logger.info("Rebuilt %s from the database (%d rows)", json_path, len(rebuilt.rows))
+        return DataStatus(source="db", rows=len(rebuilt.rows))
 
     logger.info("Extracting catalog from %s", pdf_path)
     extracted = pipeline.extract_catalog(pdf_path, escalator)
