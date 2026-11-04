@@ -1,0 +1,6954 @@
+[
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "700",
+  "conf": 0.9976479013760885,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "80",
+  "conf": 0.9972027540206909,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9984409809112549,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "36",
+  "conf": 0.9987204372882843,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "580",
+  "conf": 0.9972060918807983,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "65",
+  "conf": 0.997613787651062,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9983278512954712,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.99805215994517,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "17",
+  "conf": 0.9981489479541779,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "20",
+  "conf": 0.9983547031879425,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.2",
+  "conf": 0.9945857326189677,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.1",
+  "conf": 0.9882863163948059,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "1.4",
+  "conf": 0.9509314894676208,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "1.3",
+  "conf": 0.9982421398162842,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761A00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "15",
+  "conf": 0.9992808997631073,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "880",
+  "conf": 0.9943000475565592,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "100",
+  "conf": 0.9967560370763143,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9972057640552521,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "31",
+  "conf": 0.9974993169307709,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "620",
+  "conf": 0.997196098168691,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "70",
+  "conf": 0.9977644085884094,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9981933236122131,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9968628088633219,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "19",
+  "conf": 0.9973718523979187,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "23",
+  "conf": 0.9993360340595245,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.3",
+  "conf": 0.976983904838562,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.2",
+  "conf": 0.9966359535853068,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "1.4",
+  "conf": 0.998674213886261,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "1.3",
+  "conf": 0.9982967575391134,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "761B00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "15",
+  "conf": 0.9992808997631073,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "1.330",
+  "conf": 0.922799575328827,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "150",
+  "conf": 0.9953166246414185,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "50",
+  "conf": 0.997321754693985,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "42",
+  "conf": 0.9988908469676971,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,150",
+  "conf": 0.9495585680007934,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "130",
+  "conf": 0.9970952669779459,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9984476566314697,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9970269799232483,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "18",
+  "conf": 0.9977336525917053,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "21",
+  "conf": 0.9955150485038757,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "2.3",
+  "conf": 0.9981438914934794,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "2.3",
+  "conf": 0.9982338547706604,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "2.5",
+  "conf": 0.9971141219139099,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "2.4",
+  "conf": 0.998739759127299,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762A00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9987475574016571,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "1,750",
+  "conf": 0.952601146697998,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "200",
+  "conf": 0.9973317384719849,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9993089437484741,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "21",
+  "conf": 0.9971128404140472,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,330",
+  "conf": 0.9257292509078979,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "150",
+  "conf": 0.9928997159004211,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9980187118053436,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9975411494572958,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "25",
+  "conf": 0.9996289312839508,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "30",
+  "conf": 0.9973893463611603,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "2.3",
+  "conf": 0.9980858365694681,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "2.3",
+  "conf": 0.9977903962135315,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "2.5",
+  "conf": 0.9971029758453369,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "2.4",
+  "conf": 0.9994502663612366,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "762B00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9987475574016571,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "2.650",
+  "conf": 0.9400907635688782,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "300",
+  "conf": 0.9917739431063334,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "50",
+  "conf": 0.997321754693985,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "29",
+  "conf": 0.9992941915988922,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1.950",
+  "conf": 0.9175636887550354,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "220",
+  "conf": 0.9989835023880005,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9983278512954712,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9979406793912252,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "25",
+  "conf": 0.9997153580188751,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "31",
+  "conf": 0.9948920011520386,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "2.6",
+  "conf": 0.9977932175000509,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "2.5",
+  "conf": 0.997900664806366,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "2.9",
+  "conf": 0.9975560903549194,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "3.0",
+  "conf": 0.983806292215983,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763A00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9987475574016571,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "4,400",
+  "conf": 0.9495017051696777,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "500",
+  "conf": 0.8507689634958903,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9970815777778625,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "16",
+  "conf": 0.9976048469543457,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "3,350",
+  "conf": 0.942273211479187,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "380",
+  "conf": 0.9939353068669637,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9985788762569427,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9975411494572958,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "26",
+  "conf": 0.9996288418769836,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "32",
+  "conf": 0.9989041984081268,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "4.8",
+  "conf": 0.9978998303413391,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "4.6",
+  "conf": 0.9970739881197611,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "5.0",
+  "conf": 0.9769391417503357,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "4.9",
+  "conf": 0.9988973538080851,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763B00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "90",
+  "conf": 0.9929282963275909,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "4.800",
+  "conf": 0.9233833193778992,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "550",
+  "conf": 0.9983515540758768,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9975510537624359,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "13",
+  "conf": 0.9976384937763214,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "3.540",
+  "conf": 0.9415695905685425,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "400",
+  "conf": 0.9984477957089742,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9988525807857513,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9971759915351868,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "33",
+  "conf": 0.9987794160842896,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "39",
+  "conf": 0.9984334707260132,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "4.8",
+  "conf": 0.9975108106931051,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "4.6",
+  "conf": 0.995687464872996,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "5.0",
+  "conf": 0.9870242873827616,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "4.9",
+  "conf": 0.9981019298235575,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "763C00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "90",
+  "conf": 0.9929282963275909,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "6,650",
+  "conf": 0.9705098152160645,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "750",
+  "conf": 0.9963045716285706,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "25",
+  "conf": 0.9995488822460175,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "12",
+  "conf": 0.9989900290966034,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "6,020",
+  "conf": 0.9171868681907653,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "680",
+  "conf": 0.9940676887830099,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9992035031318665,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "840",
+  "conf": 0.9981200496355692,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "30",
+  "conf": 0.9957195818424225,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "36",
+  "conf": 0.9992842972278595,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "6.5",
+  "conf": 0.9678791761398315,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "6.5",
+  "conf": 0.9679418007532755,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "7.3",
+  "conf": 0.998550275961558,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "7.4",
+  "conf": 0.997909148534139,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764A00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9981326262156168,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "9.700",
+  "conf": 0.9552640318870544,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "1,100",
+  "conf": 0.9211710810661315,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "25",
+  "conf": 0.9994901120662689,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "10",
+  "conf": 0.9976842105388641,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "8,230",
+  "conf": 0.9651674032211304,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "930",
+  "conf": 0.9969818989435831,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9992496073246002,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "840",
+  "conf": 0.9980548421541849,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "36",
+  "conf": 0.9979655742645264,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "43",
+  "conf": 0.9985624253749847,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "6.8",
+  "conf": 0.9980655113855997,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "6.8",
+  "conf": 0.9980934858322144,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "7.3",
+  "conf": 0.9961962302525839,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "7.4",
+  "conf": 0.9983370900154114,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "764B00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9981326262156168,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "17,700",
+  "conf": 0.9619551499684652,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "2,000",
+  "conf": 0.9758072018623352,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "25",
+  "conf": 0.9995794296264648,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "4",
+  "conf": 0.9977042078971863,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "15000",
+  "conf": 0.9948411703109741,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "1,700",
+  "conf": 0.899861478805542,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9993982911109924,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "840",
+  "conf": 0.9980038205782572,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "88",
+  "conf": 0.9982408881187439,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "106",
+  "conf": 0.9978508949279785,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "6.8",
+  "conf": 0.9986957708994547,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "6.8",
+  "conf": 0.9984052379926046,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "7.4",
+  "conf": 0.99907253185908,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "7.4",
+  "conf": 0.9987462162971497,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765A00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9981326262156168,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "26.500",
+  "conf": 0.9480007191499075,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "3,000",
+  "conf": 0.9175203561782836,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "25",
+  "conf": 0.999562531709671,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "3",
+  "conf": 0.9938096404075623,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "22,550",
+  "conf": 0.9568615953127543,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "2,550",
+  "conf": 0.9612953662872314,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.999090850353241,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "840",
+  "conf": 0.9980730811754862,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "108",
+  "conf": 0.9976352453231812,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "130",
+  "conf": 0.9927453398704529,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "7.0",
+  "conf": 0.9940418402353922,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "7.0",
+  "conf": 0.9940418402353922,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "7.3",
+  "conf": 0.9545397957166036,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "7.4",
+  "conf": 0.9979283213615417,
+  "refill": false
+ },
+ {
+  "table_id": "T1_wp_110v_1ph",
+  "part_number": "765B00-11300000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9981326262156168,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "700",
+  "conf": 0.99785844484965,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "80",
+  "conf": 0.9988981783390045,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9984697103500366,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "36",
+  "conf": 0.9986888468265533,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "580",
+  "conf": 0.9931605855623881,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "65",
+  "conf": 0.998855859041214,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9992404580116272,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.998577356338501,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "17",
+  "conf": 0.9992737770080566,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "20",
+  "conf": 0.9996857643127441,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "0.7",
+  "conf": 0.997045079867045,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "0.7",
+  "conf": 0.997045079867045,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "0.7",
+  "conf": 0.9979754288991293,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "0.7",
+  "conf": 0.9980708161989847,
+  "refill": true
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761A00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "15",
+  "conf": 0.9989472031593323,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "880",
+  "conf": 0.9981813828150431,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "100",
+  "conf": 0.9983201821645101,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9981057643890381,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "31",
+  "conf": 0.9985269010066986,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "620",
+  "conf": 0.9986550211906433,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "70",
+  "conf": 0.9985269904136658,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9992476999759674,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9978057146072388,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "19",
+  "conf": 0.9995336830615997,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "23",
+  "conf": 0.9993172287940979,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "0.7",
+  "conf": 0.9977033933003744,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "0.7",
+  "conf": 0.9977652629216512,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "0.7",
+  "conf": 0.9978656967480978,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "0.7",
+  "conf": 0.9978656967480978,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "761B00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "15",
+  "conf": 0.9989472031593323,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "1.330",
+  "conf": 0.89966299533844,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "150",
+  "conf": 0.9987485408782959,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.999099999666214,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "30",
+  "conf": 0.998292863368988,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1.150",
+  "conf": 0.9443110585212707,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "130",
+  "conf": 0.9985832174619039,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9989603757858276,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9980132778485616,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "18",
+  "conf": 0.9985155761241913,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "21",
+  "conf": 0.9990625083446503,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.0",
+  "conf": 0.9974986910820007,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.0",
+  "conf": 0.9980776309967041,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "1.2",
+  "conf": 0.9990153710047404,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "1.1",
+  "conf": 0.999508281548818,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762A00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9993890523910522,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "1.750",
+  "conf": 0.9716832518577576,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "200",
+  "conf": 0.9986197551091512,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9993262588977814,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "21",
+  "conf": 0.999072790145874,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1.330",
+  "conf": 0.9259762167930603,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "150",
+  "conf": 0.9986554781595866,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9993487000465393,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9978734453519186,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "24",
+  "conf": 0.998666375875473,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "29",
+  "conf": 0.999811977148056,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.1",
+  "conf": 0.9992106954256693,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.1",
+  "conf": 0.9995714028676351,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "1.2",
+  "conf": 0.9991594950358073,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "1.1",
+  "conf": 0.9995794296264648,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "762B00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9993890523910522,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "2,650",
+  "conf": 0.9254254460334778,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "300",
+  "conf": 0.997259259223938,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9984985589981079,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "24",
+  "conf": 0.9987662136554718,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,950",
+  "conf": 0.9514367938041687,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "220",
+  "conf": 0.9990624984105428,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9992175400257111,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9983508388201395,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "24",
+  "conf": 0.9984992742538452,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "29",
+  "conf": 0.999733954668045,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.3",
+  "conf": 0.9983569582303365,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.3",
+  "conf": 0.9979654550552368,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "1.4",
+  "conf": 0.9989495674769083,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "1.5",
+  "conf": 0.9922526677449545,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763A00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9993890523910522,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "4,400",
+  "conf": 0.971034049987793,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "500",
+  "conf": 0.9766292770703634,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9989348351955414,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "16",
+  "conf": 0.9990091919898987,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "3.350",
+  "conf": 0.9671447992324829,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "380",
+  "conf": 0.9984670480092367,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9993451535701752,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9984318415323893,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "26",
+  "conf": 0.9995579421520233,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "32",
+  "conf": 0.9987774193286896,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "2.2",
+  "conf": 0.9991668462753296,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "2.1",
+  "conf": 0.9992543260256449,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "2.4",
+  "conf": 0.9994949102401733,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "2.5",
+  "conf": 0.9948859214782715,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763B00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "90",
+  "conf": 0.9949364960193634,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "4,800",
+  "conf": 0.9808283567428588,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "550",
+  "conf": 0.9879158139228821,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "25",
+  "conf": 0.9993935227394104,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "13",
+  "conf": 0.9994288086891174,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "3,540",
+  "conf": 0.9670193552970886,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "400",
+  "conf": 0.9973366657892863,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9989400506019592,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9983450174331665,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "28",
+  "conf": 0.9991097450256348,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "34",
+  "conf": 0.9972167015075684,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "2.2",
+  "conf": 0.999032735824585,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "2.1",
+  "conf": 0.9995708266894022,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "2.4",
+  "conf": 0.9993252952893575,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "2.5",
+  "conf": 0.9977942307790121,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "763C00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "90",
+  "conf": 0.9949364960193634,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "6.650",
+  "conf": 0.903236198425293,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "750",
+  "conf": 0.9983004530270895,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "25",
+  "conf": 0.9961285293102264,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "13",
+  "conf": 0.9989711344242096,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "6,020",
+  "conf": 0.9107084989547729,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "680",
+  "conf": 0.9970510403315226,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9990014433860779,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "840",
+  "conf": 0.9980569084485372,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "27",
+  "conf": 0.9991181492805481,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "33",
+  "conf": 0.99870964884758,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "3.2",
+  "conf": 0.9983303745587667,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "3.0",
+  "conf": 0.9976180791854858,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "3.8",
+  "conf": 0.9987073938051859,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "3.9",
+  "conf": 0.9985660910606384,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764A00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9983744621276855,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "9.700",
+  "conf": 0.9349992513656616,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "1.100",
+  "conf": 0.951910424232483,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "25",
+  "conf": 0.9996365606784821,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "10",
+  "conf": 0.998840719461441,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "7,080",
+  "conf": 0.9277724981307983,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "800",
+  "conf": 0.9981293479601542,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9986913800239563,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "840",
+  "conf": 0.9990310470263163,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "36",
+  "conf": 0.9979141056537628,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "43",
+  "conf": 0.9978049397468567,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "3.6",
+  "conf": 0.9954737027486166,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "3.5",
+  "conf": 0.9967275460561117,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "3.9",
+  "conf": 0.9982987443606058,
+  "refill": true
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "3.6",
+  "conf": 0.996178388595581,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "764B00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9983744621276855,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "17.700",
+  "conf": 0.9373784065246582,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "2,000",
+  "conf": 0.9848516821861267,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "25",
+  "conf": 0.9996045529842377,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "4",
+  "conf": 0.996136486530304,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "15.000",
+  "conf": 0.9391431013743082,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "1,700",
+  "conf": 0.9245428919792176,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9993259906768799,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "840",
+  "conf": 0.9991087118784586,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "88",
+  "conf": 0.9983473420143127,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "106",
+  "conf": 0.9989927212397257,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "3.3",
+  "conf": 0.9978475173314413,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "3.2",
+  "conf": 0.99886421362559,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "3.8",
+  "conf": 0.9986711740493774,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "62",
+  "conf": 0.5124447792768478,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765A00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9983744621276855,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "26,500",
+  "conf": 0.9603593250115713,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "3,000",
+  "conf": 0.8972927808761597,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "25",
+  "conf": 0.9993343949317932,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "3",
+  "conf": 0.9970824122428894,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "22.550",
+  "conf": 0.9240199029445648,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "2.550",
+  "conf": 0.9170561790466308,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.999069094657898,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "840",
+  "conf": 0.9985975821812948,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "108",
+  "conf": 0.9469980200131735,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "130",
+  "conf": 0.9985260367393494,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "3.5",
+  "conf": 0.9953629374504089,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "3.5",
+  "conf": 0.9962039391199747,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "3.8",
+  "conf": 0.9981854557991028,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "3.9",
+  "conf": 0.9991313219070435,
+  "refill": true
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "765B00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9983744621276855,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "31,000",
+  "conf": 0.9297440548737844,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "3.500",
+  "conf": 0.8985068321228027,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9983174502849579,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "18",
+  "conf": 0.9986438453197479,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "30.975",
+  "conf": 0.9353485306104025,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "3.500",
+  "conf": 0.9276826739311218,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9990336298942566,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9983958005905151,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "33",
+  "conf": 0.998875230550766,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "39",
+  "conf": 0.9992835223674774,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "11.2",
+  "conf": 0.9995472133159637,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "11.2",
+  "conf": 0.9984095990657806,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "17.0",
+  "conf": 0.9991978853940964,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "17.0",
+  "conf": 0.9993434995412827,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766A00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "700",
+  "conf": 0.9961732625961304,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "35,400",
+  "conf": 0.9333670735359192,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "4,000",
+  "conf": 0.9314310193061829,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.999017059803009,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "12",
+  "conf": 0.9991982579231262,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "35.400",
+  "conf": 0.9302771190802256,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "4,000",
+  "conf": 0.9599079012870788,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9990721344947815,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9983526865641276,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "49",
+  "conf": 0.9990820586681366,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "58",
+  "conf": 0.9952253997325897,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "11.2",
+  "conf": 0.9993836134672165,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "11.2",
+  "conf": 0.9995056539773941,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "17.0",
+  "conf": 0.9990048557519913,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "17.0",
+  "conf": 0.9985760897397995,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "766B00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "700",
+  "conf": 0.9961732625961304,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "53,100",
+  "conf": 0.9518690407276154,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "6,000",
+  "conf": 0.8952493667602539,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9988355934619904,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "9",
+  "conf": 0.9936776757240295,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "53,100",
+  "conf": 0.9064343074957529,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "6,000",
+  "conf": 0.9283816337585449,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.998651772737503,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9977450370788574,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "66",
+  "conf": 0.9975289702415466,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "78",
+  "conf": 0.9991044700145721,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "9.0",
+  "conf": 0.9980560739835104,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "9.0",
+  "conf": 0.9976187149683634,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "17.0",
+  "conf": 0.9992961436510086,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "17.0",
+  "conf": 0.9989897161722183,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767A00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "700",
+  "conf": 0.9961732625961304,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "70,800",
+  "conf": 0.9188396036624908,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "8,000",
+  "conf": 0.9455612182617188,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9988337457180023,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "6",
+  "conf": 0.9956788420677185,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "70,800",
+  "conf": 0.9680465956528982,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "8,000",
+  "conf": 0.9515755772590637,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9988202154636383,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "096",
+  "conf": 0.993024488290151,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "98",
+  "conf": 0.9971480965614319,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "116",
+  "conf": 0.9987725814183553,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "9.0",
+  "conf": 0.9962821205457052,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "9.0",
+  "conf": 0.9964779416720072,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "17.0",
+  "conf": 0.9990348219871521,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "17.0",
+  "conf": 0.9989972859621048,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767B00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "700",
+  "conf": 0.9961732625961304,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "79.700",
+  "conf": 0.957980215549469,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "9,000",
+  "conf": 0.9296711087226868,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9984089732170105,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "6",
+  "conf": 0.9974128603935242,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "79,650",
+  "conf": 0.9408577581246694,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "9,000",
+  "conf": 0.9650358915328979,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9992290139198303,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "096",
+  "conf": 0.9910202225049337,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "66",
+  "conf": 0.8394952118396759,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "117",
+  "conf": 0.9994765718777975,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "9.0",
+  "conf": 0.9981897075970968,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "9.0",
+  "conf": 0.9985437393188477,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "17.0",
+  "conf": 0.9991055876016617,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "17.0",
+  "conf": 0.9990892112255096,
+  "refill": false
+ },
+ {
+  "table_id": "T2_wp_220v_1ph",
+  "part_number": "767C00-11320000/A",
+  "field": "motor_power_w",
+  "raw": "700",
+  "conf": 0.9961732625961304,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "output_torque_in_lbs",
+  "raw": "2.650",
+  "conf": 0.91711266040802,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "output_torque_nm",
+  "raw": "300",
+  "conf": 0.9920472304026285,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "duty_cycle_pct",
+  "raw": "70",
+  "conf": 0.9980668127536774,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "cycles_per_hour",
+  "raw": "39",
+  "conf": 0.997756838798523,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "starts_per_hour",
+  "raw": "1200",
+  "conf": 0.9967477917671204,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "speed_sec_60hz",
+  "raw": "26",
+  "conf": 0.9992725551128387,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "speed_sec_50hz",
+  "raw": "32",
+  "conf": 0.9975184798240662,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "fla_60hz_a",
+  "raw": "1.0",
+  "conf": 0.9929175774256388,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "fla_50hz_a",
+  "raw": "1.0",
+  "conf": 0.9885873198509216,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "lra_60hz_a",
+  "raw": "1.2",
+  "conf": 0.9958528876304626,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "lra_50hz_a",
+  "raw": "1.2",
+  "conf": 0.9932950139045715,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763A00-11330C00/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9985489845275879,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "output_torque_in_lbs",
+  "raw": "4,400",
+  "conf": 0.9255341410636901,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "output_torque_nm",
+  "raw": "500",
+  "conf": 0.7204129894574484,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "duty_cycle_pct",
+  "raw": "70",
+  "conf": 0.9975777864456177,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "cycles_per_hour",
+  "raw": "39",
+  "conf": 0.9992716908454895,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "starts_per_hour",
+  "raw": "1200",
+  "conf": 0.995347335934639,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "speed_sec_60hz",
+  "raw": "26",
+  "conf": 0.999574601650238,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "speed_sec_50hz",
+  "raw": "32",
+  "conf": 0.9988481104373932,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "fla_60hz_a",
+  "raw": "2.0",
+  "conf": 0.9911527633666992,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "fla_50hz_a",
+  "raw": "2.0",
+  "conf": 0.9911527633666992,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "lra_60hz_a",
+  "raw": "2.4",
+  "conf": 0.99927951892217,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "lra_50hz_a",
+  "raw": "2.4",
+  "conf": 0.9990950425465902,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763B00-11330C00/A",
+  "field": "motor_power_w",
+  "raw": "90",
+  "conf": 0.9943854212760925,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "output_torque_in_lbs",
+  "raw": "5.300",
+  "conf": 0.9651702046394348,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "output_torque_nm",
+  "raw": "600",
+  "conf": 0.9975877404212952,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "duty_cycle_pct",
+  "raw": "70",
+  "conf": 0.9985372126102448,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "cycles_per_hour",
+  "raw": "32",
+  "conf": 0.9971436262130737,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "starts_per_hour",
+  "raw": "1200",
+  "conf": 0.9965961426496506,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "speed_sec_60hz",
+  "raw": "32",
+  "conf": 0.9946988523006439,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "speed_sec_50hz",
+  "raw": "39",
+  "conf": 0.9981971085071564,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "fla_60hz_a",
+  "raw": "2.0",
+  "conf": 0.9959673484166464,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "fla_50hz_a",
+  "raw": "2.0",
+  "conf": 0.9957010944684347,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "lra_60hz_a",
+  "raw": "2.4",
+  "conf": 0.9983625411987305,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "lra_50hz_a",
+  "raw": "2.4",
+  "conf": 0.999232014020284,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "763C00-11330C00/A",
+  "field": "motor_power_w",
+  "raw": "90",
+  "conf": 0.9943854212760925,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "output_torque_in_lbs",
+  "raw": "7,080",
+  "conf": 0.9754542708396912,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "output_torque_nm",
+  "raw": "800",
+  "conf": 0.9936740199724833,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "duty_cycle_pct",
+  "raw": "70",
+  "conf": 0.998751163482666,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "cycles_per_hour",
+  "raw": "36",
+  "conf": 0.998977780342102,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "starts_per_hour",
+  "raw": "1200",
+  "conf": 0.9950727075338364,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "speed_sec_60hz",
+  "raw": "29",
+  "conf": 0.9995654821395874,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "speed_sec_50hz",
+  "raw": "35",
+  "conf": 0.9990060031414032,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "fla_60hz_a",
+  "raw": "3.4",
+  "conf": 0.9984615246454874,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "fla_50hz_a",
+  "raw": "3.4",
+  "conf": 0.9989943106969198,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "lra_60hz_a",
+  "raw": "4.0",
+  "conf": 0.996127208073934,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "lra_50hz_a",
+  "raw": "4.0",
+  "conf": 0.9968712528546652,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764A00-11330C00/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9986554781595866,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "output_torque_in_lbs",
+  "raw": "10.600",
+  "conf": 0.9853108326594034,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "output_torque_nm",
+  "raw": "1.200",
+  "conf": 0.9073369264602661,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "duty_cycle_pct",
+  "raw": "70",
+  "conf": 0.9982233941555023,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "cycles_per_hour",
+  "raw": "29",
+  "conf": 0.9995384216308594,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "starts_per_hour",
+  "raw": "1200",
+  "conf": 0.9968656152486801,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "speed_sec_60hz",
+  "raw": "36",
+  "conf": 0.9983328282833099,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "speed_sec_50hz",
+  "raw": "43",
+  "conf": 0.9983311295509338,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "fla_60hz_a",
+  "raw": "3.4",
+  "conf": 0.9967756271362305,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "fla_50hz_a",
+  "raw": "3.4",
+  "conf": 0.9978167017300924,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "lra_60hz_a",
+  "raw": "4.0",
+  "conf": 0.9945687651634216,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "lra_50hz_a",
+  "raw": "4.0",
+  "conf": 0.9945687651634216,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "764B00-11330C00/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9986554781595866,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "output_torque_in_lbs",
+  "raw": "17,700",
+  "conf": 0.965323140223821,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "output_torque_nm",
+  "raw": "2,000",
+  "conf": 0.9770730495452881,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "duty_cycle_pct",
+  "raw": "50",
+  "conf": 0.9937110543251038,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "cycles_per_hour",
+  "raw": "8",
+  "conf": 0.9990472197532654,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "starts_per_hour",
+  "raw": "1200",
+  "conf": 0.9964718371629715,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "speed_sec_60hz",
+  "raw": "88",
+  "conf": 0.9991303384304047,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "speed_sec_50hz",
+  "raw": "105",
+  "conf": 0.9950288931528727,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "fla_60hz_a",
+  "raw": "3.4",
+  "conf": 0.9982239802678426,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "fla_50hz_a",
+  "raw": "3.4",
+  "conf": 0.9990882277488708,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "lra_60hz_a",
+  "raw": "4.0",
+  "conf": 0.9945673743883768,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "lra_50hz_a",
+  "raw": "4.0",
+  "conf": 0.9951895276705424,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765A00-11330C00/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9986554781595866,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "output_torque_in_lbs",
+  "raw": "26.500",
+  "conf": 0.9677278200785319,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "output_torque_nm",
+  "raw": "3,000",
+  "conf": 0.9099093794822692,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "duty_cycle_pct",
+  "raw": "50",
+  "conf": 0.9947680532932281,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "cycles_per_hour",
+  "raw": "6",
+  "conf": 0.9944431185722351,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "starts_per_hour",
+  "raw": "1200",
+  "conf": 0.996075227856636,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "speed_sec_60hz",
+  "raw": "108",
+  "conf": 0.9989282091458639,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "speed_sec_50hz",
+  "raw": "130",
+  "conf": 0.9960808157920837,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "fla_60hz_a",
+  "raw": "3.4",
+  "conf": 0.9977092941602071,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "fla_50hz_a",
+  "raw": "3.4",
+  "conf": 0.9977792104085287,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "lra_60hz_a",
+  "raw": "4.0",
+  "conf": 0.9948360721270243,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "lra_50hz_a",
+  "raw": "4.0",
+  "conf": 0.9946574370066324,
+  "refill": false
+ },
+ {
+  "table_id": "T3_wp_220v_3ph",
+  "part_number": "765B00-11330C00/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9986554781595866,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761X30-11380000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "620",
+  "conf": 0.9992509484291077,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761X30-11380000/A",
+  "field": "onoff_torque_nm",
+  "raw": "70",
+  "conf": 0.9995051324367523,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761X30-11380000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9990704953670502,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761X30-11380000/A",
+  "field": "cycles_per_hour",
+  "raw": "350",
+  "conf": 0.9988919496536255,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761X30-11380000/A",
+  "field": "speed_sec",
+  "raw": "17",
+  "conf": 0.9998001754283905,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761X30-11380000/A",
+  "field": "fla_a",
+  "raw": "5.0",
+  "conf": 0.9996490478515625,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761X30-11380000/A",
+  "field": "lra_a",
+  "raw": "12.8",
+  "conf": 0.9998721033334732,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761X30-11380000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9994081854820251,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761Y30-11380000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "700",
+  "conf": 0.9987685879071554,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761Y30-11380000/A",
+  "field": "onoff_torque_nm",
+  "raw": "80",
+  "conf": 0.9987833499908447,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761Y30-11380000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9985136687755585,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761Y30-11380000/A",
+  "field": "cycles_per_hour",
+  "raw": "300",
+  "conf": 0.998723308245341,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761Y30-11380000/A",
+  "field": "speed_sec",
+  "raw": "20",
+  "conf": 0.9995399713516235,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761Y30-11380000/A",
+  "field": "fla_a",
+  "raw": "6.3",
+  "conf": 0.9991254607836405,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761Y30-11380000/A",
+  "field": "lra_a",
+  "raw": "12.8",
+  "conf": 0.9997975081205368,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "761Y30-11380000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9994081854820251,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762X30-11380000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "1,350",
+  "conf": 0.9946315288543701,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762X30-11380000/A",
+  "field": "onoff_torque_nm",
+  "raw": "150",
+  "conf": 0.9992826183636984,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762X30-11380000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9992977976799011,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762X30-11380000/A",
+  "field": "cycles_per_hour",
+  "raw": "200",
+  "conf": 0.9987027843793234,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762X30-11380000/A",
+  "field": "speed_sec",
+  "raw": "22",
+  "conf": 0.9999080896377563,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762X30-11380000/A",
+  "field": "fla_a",
+  "raw": "6.0",
+  "conf": 0.9998263120651245,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762X30-11380000/A",
+  "field": "lra_a",
+  "raw": "16.9",
+  "conf": 0.9998183101415634,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762X30-11380000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9994081854820251,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762Y30-11380000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "1,410",
+  "conf": 0.9993372440338135,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762Y30-11380000/A",
+  "field": "onoff_torque_nm",
+  "raw": "160",
+  "conf": 0.998947282632192,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762Y30-11380000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.999542772769928,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762Y30-11380000/A",
+  "field": "cycles_per_hour",
+  "raw": "200",
+  "conf": 0.9985184272130331,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762Y30-11380000/A",
+  "field": "speed_sec",
+  "raw": "22",
+  "conf": 0.9999150633811951,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762Y30-11380000/A",
+  "field": "fla_a",
+  "raw": "7.4",
+  "conf": 0.999897301197052,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762Y30-11380000/A",
+  "field": "lra_a",
+  "raw": "16.9",
+  "conf": 0.9997337907552719,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "762Y30-11380000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9994081854820251,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "763X30-11380000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "2,120",
+  "conf": 0.9993031024932861,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "763X30-11380000/A",
+  "field": "onoff_torque_nm",
+  "raw": "240",
+  "conf": 0.9997844099998474,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "763X30-11380000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9995620846748352,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "763X30-11380000/A",
+  "field": "cycles_per_hour",
+  "raw": "160",
+  "conf": 0.9989436268806458,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "763X30-11380000/A",
+  "field": "speed_sec",
+  "raw": "32",
+  "conf": 0.999584823846817,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "763X30-11380000/A",
+  "field": "fla_a",
+  "raw": "8.9",
+  "conf": 0.9998467564582825,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "763X30-11380000/A",
+  "field": "lra_a",
+  "raw": "30.8",
+  "conf": 0.9993733167648315,
+  "refill": false
+ },
+ {
+  "table_id": "T4_xp_24v_onoff",
+  "part_number": "763X30-11380000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9994081854820251,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761X30-11370000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "560",
+  "conf": 0.9991358717282613,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761X30-11370000/A",
+  "field": "mod_torque_nm",
+  "raw": "65",
+  "conf": 0.999734103679657,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761X30-11370000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9985412657260895,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761X30-11370000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9985517660776774,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761X30-11370000/A",
+  "field": "speed_sec",
+  "raw": "17",
+  "conf": 0.99958336353302,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761X30-11370000/A",
+  "field": "fla_a",
+  "raw": "5.0",
+  "conf": 0.9975505272547404,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761X30-11370000/A",
+  "field": "lra_a",
+  "raw": "12.8",
+  "conf": 0.9998393207788467,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761X30-11370000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9993995130062103,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761Y30-11370000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "630",
+  "conf": 0.9989084601402283,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761Y30-11370000/A",
+  "field": "mod_torque_nm",
+  "raw": "72",
+  "conf": 0.9998998045921326,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761Y30-11370000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9978510737419128,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761Y30-11370000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9989006121953329,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761Y30-11370000/A",
+  "field": "speed_sec",
+  "raw": "20",
+  "conf": 0.9995838701725006,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761Y30-11370000/A",
+  "field": "fla_a",
+  "raw": "6.3",
+  "conf": 0.9995850324630737,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761Y30-11370000/A",
+  "field": "lra_a",
+  "raw": "12.8",
+  "conf": 0.9997888058423996,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "761Y30-11370000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9993995130062103,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762X30-11370000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,150",
+  "conf": 0.9843945622444152,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762X30-11370000/A",
+  "field": "mod_torque_nm",
+  "raw": "130",
+  "conf": 0.9955261548360189,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762X30-11370000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9992596805095673,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762X30-11370000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9990444978078207,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762X30-11370000/A",
+  "field": "speed_sec",
+  "raw": "22",
+  "conf": 0.9999202489852905,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762X30-11370000/A",
+  "field": "fla_a",
+  "raw": "6.0",
+  "conf": 0.9996883273124695,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762X30-11370000/A",
+  "field": "lra_a",
+  "raw": "16.9",
+  "conf": 0.9998147934675217,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762X30-11370000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9993995130062103,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762Y30-11370000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,270",
+  "conf": 0.9971986293792725,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762Y30-11370000/A",
+  "field": "mod_torque_nm",
+  "raw": "145",
+  "conf": 0.999764064947764,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762Y30-11370000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9994652271270752,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762Y30-11370000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9994423389434814,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762Y30-11370000/A",
+  "field": "speed_sec",
+  "raw": "22",
+  "conf": 0.9998697638511658,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762Y30-11370000/A",
+  "field": "fla_a",
+  "raw": "7.4",
+  "conf": 0.9998984535535177,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762Y30-11370000/A",
+  "field": "lra_a",
+  "raw": "16.9",
+  "conf": 0.9997874200344086,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "762Y30-11370000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9993995130062103,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "763X30-11370000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,900",
+  "conf": 0.9991636753082276,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "763X30-11370000/A",
+  "field": "mod_torque_nm",
+  "raw": "220",
+  "conf": 0.9994969765345255,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "763X30-11370000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9995821714401245,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "763X30-11370000/A",
+  "field": "starts_per_hour",
+  "raw": "840",
+  "conf": 0.9996493061383566,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "763X30-11370000/A",
+  "field": "speed_sec",
+  "raw": "32",
+  "conf": 0.9992807507514954,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "763X30-11370000/A",
+  "field": "fla_a",
+  "raw": "8.9",
+  "conf": 0.9996176759401957,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "763X30-11370000/A",
+  "field": "lra_a",
+  "raw": "30.8",
+  "conf": 0.9989923387765884,
+  "refill": false
+ },
+ {
+  "table_id": "T5_xp_24vdc_mod",
+  "part_number": "763X30-11370000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9993995130062103,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "690",
+  "conf": 0.9991447329521179,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "80",
+  "conf": 0.9978564381599426,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9994601011276245,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "190",
+  "conf": 0.9991292357444763,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "550",
+  "conf": 0.9996767044067383,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "65",
+  "conf": 0.9998922348022461,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9993700385093689,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9996752540270487,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "20",
+  "conf": 0.9996036887168884,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "23",
+  "conf": 0.9995530843734741,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.2",
+  "conf": 0.9992484450340271,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.1",
+  "conf": 0.9973037044207255,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "1.4",
+  "conf": 0.9998338222503662,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "1.3",
+  "conf": 0.9996587435404459,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761X30-11300000/A",
+  "field": "motor_power_w",
+  "raw": "15",
+  "conf": 0.9996133744716644,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "860",
+  "conf": 0.9991642236709595,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "100",
+  "conf": 0.9991104006767273,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.999443769454956,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "190",
+  "conf": 0.9989458322525024,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "680",
+  "conf": 0.9967725872993469,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "80",
+  "conf": 0.9981992840766907,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9993947446346283,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9993504484494528,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "20",
+  "conf": 0.9988284707069397,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "23",
+  "conf": 0.9993944466114044,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.2",
+  "conf": 0.9994602004686991,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.1",
+  "conf": 0.9966913064320883,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "1.4",
+  "conf": 0.9996980230013529,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "1.3",
+  "conf": 0.999533494313558,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "761Y30-11300000/A",
+  "field": "motor_power_w",
+  "raw": "15",
+  "conf": 0.9996133744716644,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "1,350",
+  "conf": 0.9974826097488403,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "150",
+  "conf": 0.9989314079284668,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "70",
+  "conf": 0.9992133975028992,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "100",
+  "conf": 0.9978065689404806,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,150",
+  "conf": 0.9970157027244568,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "130",
+  "conf": 0.9991668065388998,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9993973076343536,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9994706511497498,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "21",
+  "conf": 0.9997050166130066,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "25",
+  "conf": 0.9998173415660858,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "2.0",
+  "conf": 0.9993631839752197,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.9",
+  "conf": 0.999700685342153,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "2.5",
+  "conf": 0.9999056657155355,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "2.4",
+  "conf": 0.9999749660491943,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762X30-11300000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9995607137680054,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "1,770",
+  "conf": 0.9972739696502686,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "200",
+  "conf": 0.9987830320994059,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "70",
+  "conf": 0.9987768828868866,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "100",
+  "conf": 0.9979799191157023,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,360",
+  "conf": 0.992845618724823,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "160",
+  "conf": 0.9994061787923177,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9995713829994202,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9993319908777872,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "21",
+  "conf": 0.9996634721755981,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "25",
+  "conf": 0.9999150037765503,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "2.3",
+  "conf": 0.9998190005620321,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "2.2",
+  "conf": 0.9999455610911051,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "2.5",
+  "conf": 0.9999248186747233,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "2.4",
+  "conf": 0.9999532699584961,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "762Y30-11300000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9995607137680054,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "2,640",
+  "conf": 0.9985804915428161,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "300",
+  "conf": 0.9982619086901346,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "70",
+  "conf": 0.9993307590484619,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "80",
+  "conf": 0.9987843930721283,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "2,110",
+  "conf": 0.937784206867218,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "240",
+  "conf": 0.9998125235239664,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9994382560253143,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9996251662572225,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "26",
+  "conf": 0.9999314546585083,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "31",
+  "conf": 0.9990946650505066,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "2.3",
+  "conf": 0.9998027284940084,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "2.0",
+  "conf": 0.9996322393417358,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "2.9",
+  "conf": 0.9999567270278931,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "3.0",
+  "conf": 0.9992264707883199,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763X30-11300000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9995607137680054,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "3,980",
+  "conf": 0.9973305106163025,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "450",
+  "conf": 0.9996863206227621,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9994554817676544,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "170",
+  "conf": 0.9991916616757711,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "3,180",
+  "conf": 0.9979314684867859,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "360",
+  "conf": 0.9995624820391337,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9992517530918121,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9997773170471191,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "29",
+  "conf": 0.9998345673084259,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "35",
+  "conf": 0.9996621608734131,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "4.5",
+  "conf": 0.9998725056648254,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "3.8",
+  "conf": 0.9997546871503195,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "5.0",
+  "conf": 0.9997218251228333,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "4.9",
+  "conf": 0.999764104684194,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "763Y30-11300000/A",
+  "field": "motor_power_w",
+  "raw": "90",
+  "conf": 0.9992706477642059,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "6,900",
+  "conf": 0.9996939659118652,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "800",
+  "conf": 0.9981276988983154,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9990140795707703,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "160",
+  "conf": 0.9995607932408651,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "5,520",
+  "conf": 0.9990796208381653,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "640",
+  "conf": 0.9996771216392517,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9993135929107666,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9997752706209818,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "31",
+  "conf": 0.9989538192749023,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "37",
+  "conf": 0.9989352226257324,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "5.1",
+  "conf": 0.9983854095141093,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "5.0",
+  "conf": 0.9995072285334269,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "7.3",
+  "conf": 0.9997211297353109,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "7.4",
+  "conf": 0.9998725056648254,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764X30-11300000/A",
+  "field": "motor_power_w",
+  "raw": "90",
+  "conf": 0.9992706477642059,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "9,600",
+  "conf": 0.9963685750961304,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "1,100",
+  "conf": 0.9962754368782043,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9991775155067444,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "160",
+  "conf": 0.9994525710741679,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "7,680",
+  "conf": 0.9948696613311767,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "880",
+  "conf": 0.9977264404296875,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9993913471698761,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9996119936307272,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "31",
+  "conf": 0.9993560314178467,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "37",
+  "conf": 0.999388724565506,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "5.4",
+  "conf": 0.9998611410458883,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "5.4",
+  "conf": 0.9998892545700073,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "7.3",
+  "conf": 0.999661942323049,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "7.4",
+  "conf": 0.9998608032862345,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "764Y30-11300000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9989509979883829,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "17,500",
+  "conf": 0.9958554605642954,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "2,000",
+  "conf": 0.967590606212616,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9989610314369202,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "50",
+  "conf": 0.9994826912879944,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "14,000",
+  "conf": 0.9955309530099233,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "1,600",
+  "conf": 0.9972319722175598,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9987540245056152,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9997823039690653,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "93",
+  "conf": 0.9997092187404633,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "112",
+  "conf": 0.9994491537412008,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "5.8",
+  "conf": 0.9991818070411682,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "5.7",
+  "conf": 0.9998156428337097,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "7.3",
+  "conf": 0.9997232755025228,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "7.4",
+  "conf": 0.9999347527821859,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765X30-11300000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9989509979883829,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "25,900",
+  "conf": 0.9991001983483633,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "onoff_torque_nm",
+  "raw": "3,000",
+  "conf": 0.9923950552940368,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9990515410900116,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "cycles_per_hour",
+  "raw": "50",
+  "conf": 0.9993878304958344,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "20,720",
+  "conf": 0.9983881215254465,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "mod_torque_nm",
+  "raw": "2,400",
+  "conf": 0.9985192537307739,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9992294311523438,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9996923009554545,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "speed_sec_60hz",
+  "raw": "93",
+  "conf": 0.9995864629745483,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "speed_sec_50hz",
+  "raw": "112",
+  "conf": 0.9992799361546835,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "fla_60hz_a",
+  "raw": "6.3",
+  "conf": 0.9995889067649841,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "fla_50hz_a",
+  "raw": "6.3",
+  "conf": 0.9995481967926025,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "lra_60hz_a",
+  "raw": "7.3",
+  "conf": 0.9994173248608907,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "lra_50hz_a",
+  "raw": "7.4",
+  "conf": 0.9999248584111532,
+  "refill": false
+ },
+ {
+  "table_id": "T6_xp_110v_1ph",
+  "part_number": "765Y30-11300000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9989509979883829,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "690",
+  "conf": 0.9991447329521179,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "80",
+  "conf": 0.9979114234447479,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9995848536491394,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "190",
+  "conf": 0.9991292357444763,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "550",
+  "conf": 0.9996767044067383,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "65",
+  "conf": 0.9998922348022461,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9993700385093689,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9996373057365417,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "20",
+  "conf": 0.9996036887168884,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "23",
+  "conf": 0.9995530843734741,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "0.6",
+  "conf": 0.9995372692743937,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "0.6",
+  "conf": 0.9997831781705221,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "0.7",
+  "conf": 0.9992894927660624,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "0.7",
+  "conf": 0.9989719986915588,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761X30-11320000/A",
+  "field": "motor_power_w",
+  "raw": "15",
+  "conf": 0.9996327757835388,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "790",
+  "conf": 0.9994848569234213,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "06",
+  "conf": 0.9968965947628021,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9995043277740479,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "190",
+  "conf": 0.9989458322525024,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "630",
+  "conf": 0.9993857741355896,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "72",
+  "conf": 0.9998228847980499,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9993947446346283,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9993504484494528,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "20",
+  "conf": 0.9988284707069397,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "23",
+  "conf": 0.9993944466114044,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "0.6",
+  "conf": 0.9992064833641052,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "0.6",
+  "conf": 0.9991533756256104,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "0.7",
+  "conf": 0.9990763266881307,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "0.7",
+  "conf": 0.9984355966250101,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "761Y30-11320000/A",
+  "field": "motor_power_w",
+  "raw": "15",
+  "conf": 0.9996327757835388,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "1,350",
+  "conf": 0.9983986139297485,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "150",
+  "conf": 0.9991746147473654,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9994836151599884,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "180",
+  "conf": 0.9990070263544718,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,150",
+  "conf": 0.9639394402503967,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "130",
+  "conf": 0.9991668065388998,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9994205236434937,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9995798865954081,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "23",
+  "conf": 0.9993591606616974,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "28",
+  "conf": 0.9998338520526886,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.0",
+  "conf": 0.9987697998682658,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "0.9",
+  "conf": 0.9994056820869446,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "1.2",
+  "conf": 0.9998380343119303,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "1.1",
+  "conf": 0.997346043586731,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762X30-11320000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9995607137680054,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "1,590",
+  "conf": 0.9976878881454467,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "180",
+  "conf": 0.9990865786870321,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "35",
+  "conf": 0.9996775984764099,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "180",
+  "conf": 0.999070922533671,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,270",
+  "conf": 0.9989156484603882,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "145",
+  "conf": 0.9998658696810404,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9994684457778931,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9993319908777872,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "23",
+  "conf": 0.9996107220649719,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "28",
+  "conf": 0.9998393952846527,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.1",
+  "conf": 0.9978254238764445,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.0",
+  "conf": 0.9982578357060751,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "1.2",
+  "conf": 0.9995799859364828,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "1.1",
+  "conf": 0.9525854786237081,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "762Y30-11320000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9995607137680054,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "2,300",
+  "conf": 0.9978847026824951,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "260",
+  "conf": 0.9994845589001974,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9993899464607239,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "140",
+  "conf": 0.9961977203687032,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "1,900",
+  "conf": 0.9992053508758545,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "220",
+  "conf": 0.9997974634170532,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "40",
+  "conf": 0.9995757341384888,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "960",
+  "conf": 0.9996251662572225,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "26",
+  "conf": 0.9998691976070404,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "31",
+  "conf": 0.9986512064933777,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.3",
+  "conf": 0.9990349610646566,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.3",
+  "conf": 0.999498705069224,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "1.4",
+  "conf": 0.9996946056683859,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "1.5",
+  "conf": 0.9998739957809448,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763X30-11320000/A",
+  "field": "motor_power_w",
+  "raw": "40",
+  "conf": 0.9995607137680054,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "3,980",
+  "conf": 0.9952971935272217,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "450",
+  "conf": 0.9997002681096395,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9992135167121887,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "170",
+  "conf": 0.9991854826609293,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "3,180",
+  "conf": 0.9945383429527282,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "360",
+  "conf": 0.9994261860847473,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9993715882301331,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9996670484542847,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "29",
+  "conf": 0.999848484992981,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "35",
+  "conf": 0.9996174573898315,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "1.9",
+  "conf": 0.9996808767318726,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "1.5",
+  "conf": 0.9994888703028361,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "2.4",
+  "conf": 0.9999817609786987,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "2.5",
+  "conf": 0.9999315738677979,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "763Y30-11320000/A",
+  "field": "motor_power_w",
+  "raw": "90",
+  "conf": 0.9990723729133606,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "6,900",
+  "conf": 0.9983180642127991,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "800",
+  "conf": 0.9979531566301981,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9989960193634033,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "140",
+  "conf": 0.9996401270230612,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "5,520",
+  "conf": 0.9978688478469848,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "640",
+  "conf": 0.9991564154624939,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9992712736129761,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9998052517573038,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "34",
+  "conf": 0.9995375871658325,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "41",
+  "conf": 0.9988938570022583,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "2.4",
+  "conf": 0.8881467382113138,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "2.2",
+  "conf": 0.9999313751856486,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "3.8",
+  "conf": 0.9997164011001587,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "3.9",
+  "conf": 0.9998501141866049,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764X30-11320000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9990530610084534,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "8,300",
+  "conf": 0.9986148238182068,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "940",
+  "conf": 0.9996459285418192,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9991775155067444,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "140",
+  "conf": 0.999580959479014,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "6,640",
+  "conf": 0.9979858756065368,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "750",
+  "conf": 0.9995608329772949,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9991373717784882,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9997086127599081,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "34",
+  "conf": 0.9997971653938293,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "41",
+  "conf": 0.9994018971920013,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "3.4",
+  "conf": 0.999795655409495,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "3.3",
+  "conf": 0.9987133741378784,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "3.8",
+  "conf": 0.9997607072194418,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "3.9",
+  "conf": 0.9998201131820679,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "764Y30-11320000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9990530610084534,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "17,500",
+  "conf": 0.9955380459626516,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "2,000",
+  "conf": 0.9934930324554443,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.999135822057724,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "50",
+  "conf": 0.9994826912879944,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "14,000",
+  "conf": 0.9955309530099233,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "1,600",
+  "conf": 0.9957273721694946,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9987540245056152,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9997823039690653,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "93",
+  "conf": 0.9997092187404633,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "112",
+  "conf": 0.9994491537412008,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "2.4",
+  "conf": 0.9999757210413615,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "2.2",
+  "conf": 0.9999744097391764,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "3.8",
+  "conf": 0.9997818470001221,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "3.9",
+  "conf": 0.9998426636060079,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765X30-11320000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9990530610084534,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "onoff_torque_in_lbs",
+  "raw": "25,900",
+  "conf": 0.9991001983483633,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "onoff_torque_nm",
+  "raw": "3,000",
+  "conf": 0.9923950552940368,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "onoff_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9990515410900116,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "cycles_per_hour",
+  "raw": "50",
+  "conf": 0.9993878304958344,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "mod_torque_in_lbs",
+  "raw": "20,720",
+  "conf": 0.9983881215254465,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "mod_torque_nm",
+  "raw": "2,400",
+  "conf": 0.9985192537307739,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "mod_duty_cycle_pct",
+  "raw": "30",
+  "conf": 0.9992294311523438,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "starts_per_hour",
+  "raw": "720",
+  "conf": 0.9996923009554545,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "speed_sec_60hz",
+  "raw": "93",
+  "conf": 0.9998314678668976,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "speed_sec_50hz",
+  "raw": "112",
+  "conf": 0.9986288746198019,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "fla_60hz_a",
+  "raw": "3.4",
+  "conf": 0.9997875293095907,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "fla_50hz_a",
+  "raw": "3.3",
+  "conf": 0.9994333783785502,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "lra_60hz_a",
+  "raw": "3.8",
+  "conf": 0.9996306498845419,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "lra_50hz_a",
+  "raw": "3.9",
+  "conf": 0.9997827808062235,
+  "refill": false
+ },
+ {
+  "table_id": "T7_xp_220v_1ph",
+  "part_number": "765Y30-11320000/A",
+  "field": "motor_power_w",
+  "raw": "180",
+  "conf": 0.9990530610084534,
+  "refill": false
+ }
+]

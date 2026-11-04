@@ -1,0 +1,65 @@
+{
+  "T1_wp_110v_1ph": {
+    "page_image": "page-001.png",
+    "box": [
+      0,
+      0,
+      727,
+      302
+    ]
+  },
+  "T2_wp_220v_1ph": {
+    "page_image": "page-001.png",
+    "box": [
+      0,
+      304,
+      727,
+      692
+    ]
+  },
+  "T3_wp_220v_3ph": {
+    "page_image": "page-003.png",
+    "box": [
+      0,
+      0,
+      718,
+      252
+    ]
+  },
+  "T4_xp_24v_onoff": {
+    "page_image": "page-004.png",
+    "box": [
+      0,
+      145,
+      1162,
+      405
+    ]
+  },
+  "T5_xp_24vdc_mod": {
+    "page_image": "page-004.png",
+    "box": [
+      0,
+      418,
+      1162,
+      676
+    ]
+  },
+  "T6_xp_110v_1ph": {
+    "page_image": "page-005.png",
+    "box": [
+      0,
+      150,
+      1126,
+      580
+    ]
+  },
+  "T7_xp_220v_1ph": {
+    "page_image": "page-005.png",
+    "box": [
+      0,
+      594,
+      1126,
+      1024
+    ]
+  }
+}

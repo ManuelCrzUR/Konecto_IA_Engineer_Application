@@ -1,0 +1,21 @@
+{
+  "mcpServers": {
+    "mobile": {
+      "type": "stdio",
+      "command": "npx",
+      "args": [
+        "-y",
+        "@mobilenext/mobile-mcp@1.0.16"
+      ],
+      "env": {}
+    },
+    "docs-langchain": {
+      "type": "http",
+      "url": "https://docs.langchain.com/mcp"
+    },
+    "reference-langchain": {
+      "type": "http",
+      "url": "https://reference.langchain.com/mcp"
+    }
+  }
+}

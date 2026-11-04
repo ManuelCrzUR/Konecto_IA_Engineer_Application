@@ -1,0 +1,159 @@
+# =============================================================================
+# .gitignore - Series 76 Technical Assistant (Konecto)
+# Regla general: versionar el código, la configuración de IA (.claude/) y los
+# datos procesados verificados. Ignorar secretos, entornos locales, caches y
+# artefactos de build.
+# =============================================================================
+
+# -----------------------------------------------------------------------------
+# Secretos (NUNCA commitear keys). Sí se versiona la plantilla .env.example
+# -----------------------------------------------------------------------------
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets.*
+
+# -----------------------------------------------------------------------------
+# Configuración de Claude Code: se commitea .claude/ (requisito del enunciado),
+# salvo lo personal o efímero
+# -----------------------------------------------------------------------------
+.claude/settings.local.json
+.claude/worktrees/
+CLAUDE.local.md
+
+# -----------------------------------------------------------------------------
+# Python (backend, ingesta, tests, benchmark)
+# -----------------------------------------------------------------------------
+__pycache__/
+*.py[cod]
+*.pyo
+*.egg-info/
+.eggs/
+build/
+dist/
+.venv/
+venv/
+env/
+.python-version
+# The backend pins Python 3.12 for uv: versioned for reproducibility
+!backend/.python-version
+pip-log.txt
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.coverage
+htmlcov/
+.ipynb_checkpoints/
+
+# -----------------------------------------------------------------------------
+# Base de datos local (Postgres en Docker)
+# Si el volumen de pgdata se monta como carpeta local, no se versiona.
+# -----------------------------------------------------------------------------
+pgdata/
+*.dump
+*.sql.gz
+
+# -----------------------------------------------------------------------------
+# Datos: se versionan solo los procesados verificados y los PDFs de origen.
+# Se ignoran salidas intermedias y pruebas sueltas.
+# -----------------------------------------------------------------------------
+data/tmp/
+data/scratch/
+*.tmp.json
+*.partial.json
+# Los extractos de página y las imágenes intermedias del OCR no se versionan
+data/raw/**/pages/
+data/raw/**/*.png
+data/raw/**/*.jpg
+
+# -----------------------------------------------------------------------------
+# Benchmark de extractores (bench/): se versiona el código y el golden file;
+# se ignoran resultados crudos y caches de modelos.
+# -----------------------------------------------------------------------------
+bench/results/
+bench/out/
+bench/cache/
+
+# -----------------------------------------------------------------------------
+# Git worktrees temporales y artefactos de git
+# -----------------------------------------------------------------------------
+*.orig
+*.rej
+*.swp
+*~
+
+# -----------------------------------------------------------------------------
+# Docker
+# -----------------------------------------------------------------------------
+.dockerignore.local
+docker-compose.override.yml
+
+# -----------------------------------------------------------------------------
+# App móvil - Android (Kotlin + Compose)
+# -----------------------------------------------------------------------------
+mobile/android/.gradle/
+mobile/android/**/build/
+mobile/android/local.properties
+mobile/android/.idea/
+mobile/android/captures/
+mobile/android/.cxx/
+mobile/android/*.keystore
+mobile/android/*.jks
+mobile/android/*.iml
+mobile/android/keystore.properties
+*.apk
+*.aab
+
+# -----------------------------------------------------------------------------
+# App móvil - iOS (Swift + SwiftUI, Xcode)
+# -----------------------------------------------------------------------------
+mobile/ios/**/DerivedData/
+mobile/ios/**/xcuserdata/
+mobile/ios/**/*.xcuserstate
+mobile/ios/**/*.xccheckout
+mobile/ios/**/*.moved-aside
+mobile/ios/**/.build/
+mobile/ios/**/Pods/
+mobile/ios/**/Carthage/Build/
+mobile/ios/**/*.ipa
+mobile/ios/**/*.dSYM.zip
+mobile/ios/**/*.dSYM
+
+# Xcode en la raíz por si se abre desde otra ruta
+xcuserdata/
+DerivedData/
+*.xcuserstate
+
+# -----------------------------------------------------------------------------
+# IDEs y editores (configuración personal)
+# -----------------------------------------------------------------------------
+.idea/
+*.iml
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+!.vscode/launch.json
+!.vscode/tasks.json
+*.sublime-workspace
+.fleet/
+
+# -----------------------------------------------------------------------------
+# Sistema operativo (macOS)
+# -----------------------------------------------------------------------------
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+.Spotlight-V100
+.Trashes
+Icon?
+
+# -----------------------------------------------------------------------------
+# Logs y reportes locales
+# -----------------------------------------------------------------------------
+*.log
+logs/
+coverage/
+reports/

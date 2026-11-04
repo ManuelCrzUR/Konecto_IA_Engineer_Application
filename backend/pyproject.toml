@@ -1,0 +1,52 @@
+[project]
+name = "series76-assistant"
+version = "0.1.0"
+description = "Technical assistant for Series 76 electric actuators (LangChain agent + FastAPI + Postgres)"
+requires-python = ">=3.12,<3.13"
+dependencies = [
+    "langchain>=1.0.0",
+    "langchain-core>=1.0.0",
+    "langchain-openai>=1.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn[standard]>=0.30.0",
+    "psycopg[binary,pool]>=3.2.0",
+    "pydantic>=2.0.0",
+    "python-dotenv>=1.0.0",
+    "rapidocr-onnxruntime>=1.4.0",
+    "opencv-python-headless>=4.9.0",
+    "numpy>=1.26.0",
+    "pillow>=10.0.0",
+    "pyyaml>=6.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["app"]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "pytest-cov>=5.0",
+    "ruff>=0.6.0",
+    "mypy>=1.10",
+    "httpx>=0.27.0",
+]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "slow: real OCR or long tests",
+    "integration: needs Postgres",
+]
+addopts = "-m 'not slow'"
+
+[tool.ruff]
+line-length = 100
+target-version = "py312"
+
+[tool.mypy]
+python_version = "3.12"
+ignore_missing_imports = true

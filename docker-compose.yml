@@ -1,0 +1,38 @@
+services:
+  db:
+    image: postgres:16
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-series76}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-series76}
+      POSTGRES_DB: ${POSTGRES_DB:-series76}
+    # Small local app: cap connections and kill abandoned transactions.
+    command: >
+      postgres
+      -c max_connections=50
+      -c idle_in_transaction_session_timeout=60000
+    ports:
+      - "${DB_PORT:-5432}:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+      - ./backend/docker/initdb:/docker-entrypoint-initdb.d:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U series76 -d series76"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  # Added in Sprint 4:
+  # api:
+  #   build: ./backend
+  #   env_file: .env
+  #   environment:
+  #     DATABASE_URL: postgresql://series76:series76@db:5432/series76
+  #   depends_on:
+  #     db:
+  #       condition: service_healthy
+  #   ports:
+  #     - "8000:8000"
+
+volumes:
+  pgdata:
