@@ -1,0 +1,1 @@
+{"session_id":"dcae9457-f9a4-4cd2-960f-e9d4a4ddad96","answer":"Part number 999Z does not exist in the catalog. No close suggestions were returned.","products":[],"debug":[{"tool":"get_actuator","params":{"part_number":"999Z"},"result":{"status":"not_found","query":"999Z","normalized":"999Z","actuator":null,"notes":[],"candidates":[],"suggestions":[]},"duration_ms":7.25}]}

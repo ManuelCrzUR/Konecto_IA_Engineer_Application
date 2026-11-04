@@ -163,3 +163,26 @@ def test_to_history():
         ("user", "m1", []),
         ("assistant", "m2", ["761C", "761C"]),
     ]
+
+
+def test_503_carries_session_id_and_retry_reuses_session(env):
+    client, agent, conn, _ = env
+    agent.error = AgentError("boom")
+    r = client.post("/api/conversation", json={"query": "hello"})
+    assert r.status_code == 503 and set(r.json()) == {"error", "detail"}
+    sid = r.headers["X-Session-Id"]
+    assert _count(conn, "sessions") == 1
+    assert str(conn.execute("SELECT id FROM sessions").fetchone()["id"]) == sid
+    agent.error = None
+    r2 = client.post("/api/conversation", json={"session_id": sid, "query": "hello"})
+    assert r2.status_code == 200 and r2.headers["X-Session-Id"] == sid
+    assert r2.json()["session_id"] == sid and _count(conn, "sessions") == 1
+
+
+def test_success_header_matches_body_and_errors_before_session_have_none(env):
+    client, _, _, _ = env
+    r = client.post("/api/conversation", json={"query": "hi"})
+    assert r.headers["X-Session-Id"] == r.json()["session_id"]
+    r404 = client.post("/api/conversation", json={"session_id": str(uuid.uuid4()), "query": "x"})
+    r422 = client.post("/api/conversation", json={"query": ""})
+    assert "X-Session-Id" not in r404.headers and "X-Session-Id" not in r422.headers

@@ -27,16 +27,18 @@ Contract:
 - token_values(token) -> set[float]
     All readings of a token: '1,330' -> {1330.0, 1.33}; '2,3' -> {2.3};
     '1.330' -> {1.33, 1330.0}; '17' -> {17.0}; '1,234,567' -> {1234567.0}.
-- allowed_numbers(trace, query) -> set[float]
+- allowed_numbers(trace, query, user_history="") -> set[float]
     Every reading of every numeric token found in: dict keys ('fla_50hz_a' -> 50) and all values (numbers and
-    strings, recursively) of every trace result and params, and the query.
-    Plus ALWAYS_ALLOWED.
-- unverified_numbers(answer, trace, query) -> list[str]
+    strings, recursively) of every trace result and params, the query, and
+    `user_history` (what the USER typed in earlier turns; earlier assistant
+    turns never count). Plus ALWAYS_ALLOWED.
+- unverified_numbers(answer, trace, query, user_history="") -> list[str]
     Tokens of extract_numbers(answer) with no reading in allowed_numbers.
-- unverified_part_numbers(answer, trace, query) -> list[str]
+- unverified_part_numbers(answer, trace, query, user_history="") -> list[str]
     Part-number-like tokens in the answer (same regex as above, normalized:
     uppercase, no '*' or '/A') that are neither equal to nor a prefix of a
-    part-number token found in the trace (params and results) or the query.
+    part-number token found in the trace (params and results), the query or
+    `user_history`.
     Catches a part number the LLM made up.
 - template_answer(trace, query) -> str
     Deterministic answer built only from the trace, in the query's language
@@ -46,7 +48,8 @@ Contract:
     please rephrase" line. Every number in it comes from the trace.
 - detect_lang(query) -> "es" | "en"   (cheap heuristic: Spanish accents/¿¡ñ
     or common Spanish words -> "es")
-- build_result(answer, trace, query) -> AgentResult
+- build_result(answer, trace, query, user_history="") -> AgentResult
+    (`query` alone drives language detection; `user_history` is passed to the checks.)
     unverified = unverified_numbers + unverified_part_numbers.
     If it is empty: answer unchanged, guard_triggered False.
     Else: answer = template_answer(...), guard_triggered True, and a
@@ -158,8 +161,8 @@ def _walk(obj: Any) -> list[str]:
     return []
 
 
-def allowed_numbers(trace: list[ToolTrace], query: str) -> set[float]:
-    tokens = extract_numbers(query)
+def allowed_numbers(trace: list[ToolTrace], query: str, user_history: str = "") -> set[float]:
+    tokens = extract_numbers(query) + extract_numbers(user_history)
     for t in trace:
         tokens += _walk(t.params) + _walk(t.result)
     out = set(ALWAYS_ALLOWED)
@@ -168,8 +171,10 @@ def allowed_numbers(trace: list[ToolTrace], query: str) -> set[float]:
     return out
 
 
-def unverified_numbers(answer: str, trace: list[ToolTrace], query: str) -> list[str]:
-    allowed = allowed_numbers(trace, query)
+def unverified_numbers(
+    answer: str, trace: list[ToolTrace], query: str, user_history: str = ""
+) -> list[str]:
+    allowed = allowed_numbers(trace, query, user_history)
     return [n for n in extract_numbers(answer) if not token_values(n) & allowed]
 
 
@@ -177,8 +182,10 @@ def _pn_tokens(text: str) -> list[str]:
     return [m.upper().rstrip("*").removesuffix("/A") for m in _PN.findall(text)]
 
 
-def unverified_part_numbers(answer: str, trace: list[ToolTrace], query: str) -> list[str]:
-    known = _pn_tokens(query)
+def unverified_part_numbers(
+    answer: str, trace: list[ToolTrace], query: str, user_history: str = ""
+) -> list[str]:
+    known = _pn_tokens(query) + _pn_tokens(user_history)
     for t in trace:
         known += _pn_tokens(json.dumps([t.params, t.result], default=str))
     return [p for p in _pn_tokens(answer) if not any(k.startswith(p) for k in known)]
@@ -231,8 +238,11 @@ def template_answer(trace: list[ToolTrace], query: str) -> str:
     return tx["none"]
 
 
-def build_result(answer: str, trace: list[ToolTrace], query: str) -> AgentResult:
-    bad = unverified_numbers(answer, trace, query) + unverified_part_numbers(answer, trace, query)
+def build_result(
+    answer: str, trace: list[ToolTrace], query: str, user_history: str = ""
+) -> AgentResult:
+    bad = unverified_numbers(answer, trace, query, user_history)
+    bad += unverified_part_numbers(answer, trace, query, user_history)
     triggered = bool(bad)
     final = template_answer(trace, query) if triggered else answer
     out = list(trace)

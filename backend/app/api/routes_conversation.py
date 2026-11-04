@@ -21,6 +21,11 @@ held while the agent runs, because its tools borrow from the same pool.
      message stays saved and no assistant message is written.
   5. add_message(conn, session_id, "assistant", result.answer, result.products,
      result.trace).
+  Header X-Session-Id: <uuid> is set on the success response and, once the
+     session exists, on any failure after step 3 (the exception gets a
+     `session_id` attribute that the handlers in errors.py turn into the header).
+     A client that got a 503 retries with that id instead of creating a duplicate
+     session. The body of errors stays {error, detail}.
   6. return ConversationResponse(session_id=..., answer=result.answer,
      products=result.products, debug=result.trace).
 - to_history(messages: list[StoredMessage]) -> list[HistoryTurn]: role and
@@ -32,7 +37,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, Response
 
 from app.api.deps import AgentRunner, get_agent, get_conn_factory, get_current_user
 from app.api.errors import ApiError
@@ -59,6 +64,7 @@ def to_history(messages: list[StoredMessage]) -> list[HistoryTurn]:
 @router.post("/conversation", response_model=ConversationResponse)
 def post_conversation(
     body: ConversationRequest,
+    response: Response,
     conn_factory: Annotated[ConnFactory, Depends(get_conn_factory)],
     agent: Annotated[AgentRunner, Depends(get_agent)],
     user: Annotated[str | None, Depends(get_current_user)],
@@ -77,11 +83,16 @@ def post_conversation(
         history = to_history(sessions_repo.list_messages(conn, session.id))
         # Saved (and committed) before the agent runs: a 503 below never loses it.
         sessions_repo.add_message(conn, session.id, "user", body.query)
-    result = agent(body.query, history, conn_factory=conn_factory)
-    with conn_factory() as conn:
-        sessions_repo.add_message(
-            conn, session.id, "assistant", result.answer, result.products, result.trace
-        )
+    try:
+        result = agent(body.query, history, conn_factory=conn_factory)
+        with conn_factory() as conn:
+            sessions_repo.add_message(
+                conn, session.id, "assistant", result.answer, result.products, result.trace
+            )
+    except Exception as exc:
+        exc.session_id = session.id  # type: ignore[attr-defined]  # read by errors.py
+        raise
+    response.headers["X-Session-Id"] = str(session.id)
     return ConversationResponse(
         session_id=session.id, answer=result.answer, products=result.products, debug=result.trace
     )

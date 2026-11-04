@@ -219,3 +219,17 @@ def test_known_part_numbers_and_bases_pass():
     a = BY_PN["764A00-11300000/A"]
     assert R.unverified_part_numbers("764A00-11300000/A and the 764A00 base", [found(a)], "q") == []
     assert R.unverified_part_numbers("the 762b00-11330c00*", [], "is 762B00-11330C00 ok?") == []
+
+
+def test_user_history_numbers_count_as_verified():
+    earlier = "Busco algo para una válvula en zona explosiva, 24V"
+    answer = f'Lo último que me dijiste fue: "{earlier}"'
+    q = "¿Qué fue lo último que te dije?"
+    assert R.build_result(answer, [], q).guard_triggered  # without history: rejected
+    r = R.build_result(answer, [], q, earlier)
+    assert not r.guard_triggered and r.answer == answer
+
+
+def test_user_history_part_number_passes():
+    assert R.unverified_part_numbers("Pediste 764A00", [], "y eso?") == ["764A00"]
+    assert R.unverified_part_numbers("Pediste 764A00", [], "y eso?", "dame 764A00-11300000") == []

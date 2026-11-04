@@ -39,7 +39,7 @@ services:
       db:
         condition: service_healthy
     ports:
-      # Localhost by default (the Android emulator reaches it as 10.0.2.2).
+      # Localhost by default; the Android app reaches it through `adb reverse` (make android-reverse).
       # API_BIND=0.0.0.0 exposes it on the LAN for a physical phone. No auth (D-10).
       - "${API_BIND:-127.0.0.1}:${API_PORT:-8000}:8000"
     healthcheck:

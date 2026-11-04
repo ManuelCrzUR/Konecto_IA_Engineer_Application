@@ -17,32 +17,32 @@ Passed: 26/26 (100%)
 
 | id | category | pass | tools | seconds | failures |
 |---|---|---|---|---|---|
-| lookup-01 | lookup | PASS | get_actuator | 4.96 |  |
-| lookup-02 | lookup | PASS | get_actuator | 4.27 |  |
-| lookup-03 | lookup | PASS | get_actuator | 5.59 |  |
-| lookup-04 | lookup | PASS | get_actuator | 3.86 |  |
-| recommend-01 | recommend | PASS | search_actuators | 5.86 |  |
-| recommend-02 | recommend | PASS | search_actuators | 5.94 |  |
-| recommend-03 | recommend | PASS | search_actuators | 4.5 |  |
-| recommend-04 | recommend | PASS | search_actuators | 4.25 |  |
-| recommend-05 | recommend | PASS | search_actuators | 4.84 |  |
-| invalid-01 | invalid_pn | PASS | get_actuator | 3.21 |  |
-| invalid-02 | invalid_pn | PASS | get_actuator | 3.64 |  |
-| invalid-03 | invalid_pn | PASS | get_actuator | 4.48 |  |
-| na-01 | na | PASS | get_actuator | 3.79 |  |
-| na-02 | na | PASS | get_actuator | 4.16 |  |
-| impossible-01 | impossible | PASS | search_actuators | 4.13 |  |
-| impossible-02 | impossible | PASS | search_actuators | 4.33 |  |
-| impossible-03 | impossible | PASS | search_actuators | 5.11 |  |
-| ambiguous-01 | ambiguous | PASS | get_actuator | 4.26 |  |
-| ambiguous-02 | ambiguous | PASS | describe_catalog | 4.62 |  |
-| ambiguous-03 | ambiguous | PASS | get_actuator | 5.14 |  |
-| subset-01 | out_of_subset | PASS | search_actuators | 5.65 |  |
-| subset-02 | out_of_subset | PASS | search_actuators | 5.01 |  |
-| subset-03 | out_of_subset | PASS | search_actuators | 4.42 |  |
-| multi-01 | multi_turn | PASS | get_actuator | 8.68 |  |
-| multi-02 | multi_turn | PASS | get_actuator | 7.6 |  |
-| multi-03 | multi_turn | PASS | get_actuator | 7.2 |  |
+| lookup-01 | lookup | PASS | get_actuator | 6.31 |  |
+| lookup-02 | lookup | PASS | get_actuator | 5.61 |  |
+| lookup-03 | lookup | PASS | get_actuator | 5.62 |  |
+| lookup-04 | lookup | PASS | get_actuator | 4.62 |  |
+| recommend-01 | recommend | PASS | search_actuators | 3.9 |  |
+| recommend-02 | recommend | PASS | search_actuators | 6.01 |  |
+| recommend-03 | recommend | PASS | search_actuators | 5.28 |  |
+| recommend-04 | recommend | PASS | search_actuators | 5.09 |  |
+| recommend-05 | recommend | PASS | search_actuators | 5.25 |  |
+| invalid-01 | invalid_pn | PASS | get_actuator | 4.68 |  |
+| invalid-02 | invalid_pn | PASS | get_actuator | 4.77 |  |
+| invalid-03 | invalid_pn | PASS | get_actuator | 4.01 |  |
+| na-01 | na | PASS | get_actuator | 5.59 |  |
+| na-02 | na | PASS | get_actuator | 4.65 |  |
+| impossible-01 | impossible | PASS | search_actuators | 5.24 |  |
+| impossible-02 | impossible | PASS | search_actuators | 4.5 |  |
+| impossible-03 | impossible | PASS | search_actuators | 4.17 |  |
+| ambiguous-01 | ambiguous | PASS | get_actuator | 4.63 |  |
+| ambiguous-02 | ambiguous | PASS | describe_catalog | 7.02 |  |
+| ambiguous-03 | ambiguous | PASS | get_actuator | 4.14 |  |
+| subset-01 | out_of_subset | PASS | search_actuators | 9.31 |  |
+| subset-02 | out_of_subset | PASS | search_actuators | 6.86 |  |
+| subset-03 | out_of_subset | PASS | search_actuators | 4.35 |  |
+| multi-01 | multi_turn | PASS | get_actuator | 7.32 |  |
+| multi-02 | multi_turn | PASS | get_actuator | 7.17 |  |
+| multi-03 | multi_turn | PASS | get_actuator | 7.14 |  |
 
 ## Transcripts
 
@@ -52,10 +52,10 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> For 764A00-11300000/A:
+> For **764A00-11300000/A**:
 > 
-> - On/off torque: 750 Nm
-> - 60 Hz stroke time: 30 seconds per 90°
+> - On/off torque: **750 Nm**
+> - 60 Hz stroke time: **30 seconds per 90°**
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'found', 'products': ['764A00-11300000/A'], 'answer_numbers': ['750', '30']}`
 - Tools: get_actuator; products: 764A00-11300000/A
@@ -66,7 +66,7 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> Para el **762B00-11320000/A**, el FLA a 60 Hz es **1.1 A**.
+> El FLA a 60 Hz es **1.1 A**.
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'found', 'products': ['762B00-11320000/A'], 'answer_numbers': ['1.1']}`
 - Tools: get_actuator; products: 762B00-11320000/A
@@ -77,9 +77,9 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> No — 766A00-11320000/A is not CSA certified. Note: Sizes 6 and 7 are not CSA Certified.
+> 766A00-11320000/A is **not CSA certified** — Sizes 6 and 7 are not CSA Certified.
 > 
-> On/off torque: 3500 Nm
+> On/off torque: **3500 Nm**
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'found', 'products': ['766A00-11320000/A'], 'answer_numbers': ['3500']}`
 - Tools: get_actuator; products: 766A00-11320000/A
@@ -119,12 +119,12 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> La mejor coincidencia es **763B00-11320000/A**:
+> Mejor coincidencia: **763B00-11320000/A**
 > 
-> - 220V, monofásico, a prueba de intemperie, servicio on/off
-> - Torque on/off: 4400 in-lbs
+> - 4400 in-lbs en servicio on/off
+> - 220V, monofásico, a prueba de intemperie
 > 
-> Cumple con su mínimo de 3000 in-lbs.
+> También hay otras opciones de mayor torque en esa misma configuración.
 
 - Expected: `{'tools': ['search_actuators'], 'status': 'ok', 'products': ['763B00-11320000/A']}`
 - Tools: search_actuators; products: 763B00-11320000/A
@@ -137,10 +137,9 @@ Passed: 26/26 (100%)
 
 > Best match: **763A00-11320000/A**
 > 
-> - On/off torque: 300 Nm
-> - Speed: 24 seconds per 90° at 60 Hz
-> - 220V, single phase, weatherproof
-> - CSA certified
+> - 300 Nm on/off torque
+> - 220V, 1-phase, weatherproof
+> - 24 seconds per 90° at 60 Hz
 
 - Expected: `{'tools': ['search_actuators'], 'status': 'ok', 'products': ['763A00-11320000/A']}`
 - Tools: search_actuators; products: 763A00-11320000/A
@@ -151,14 +150,14 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> Hay 4 opciones explosionproof, 220V monofásico, modulante, con al menos 600 Nm. La más ajustada es:
+> Hay 4 opciones explosionproof, 220V monofásico, modulante, con al menos 600 Nm:
 > 
-> **764X30-11320000/A** — par modulante 640 Nm, 34 seconds per 90° a 60 Hz, certificado CSA.
+> **Mejor ajuste:** 764X30-11320000/A — 640 Nm en modulante
 > 
-> También cumplen:
-> - **764Y30-11320000/A** — par modulante 750 Nm
-> - **765X30-11320000/A** — par modulante 1600 Nm
-> - **765Y30-11320000/A** — par modulante 2400 Nm
+> Otras opciones:
+> - 764Y30-11320000/A — 750 Nm en modulante
+> - 765X30-11320000/A — 1600 Nm en modulante
+> - 765Y30-11320000/A — 2400 Nm en modulante
 
 - Expected: `{'tools': ['search_actuators'], 'status': 'ok', 'products': ['764X30-11320000/A']}`
 - Tools: search_actuators; products: 764X30-11320000/A, 764Y30-11320000/A, 765X30-11320000/A, 765Y30-11320000/A
@@ -169,9 +168,9 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> Best match: **761X30-11370000/A** — 24V DC, explosionproof, modulating, 65 Nm.
+> Best match: **761X30-11370000/A** — 24V DC, explosionproof, modulating, 65 Nm modulating torque.
 > 
-> CSA certified.
+> Also available in this series up to 220 Nm if you need more margin.
 
 - Expected: `{'tools': ['search_actuators'], 'status': 'ok', 'products': ['761X30-11370000/A']}`
 - Tools: search_actuators; products: 761X30-11370000/A
@@ -182,7 +181,7 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> The part number 999Z does not exist in the Series 76 catalog.
+> The 999Z actuator does not exist in the catalog. No close suggestions were returned.
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'not_found', 'no_products': True}`
 - Tools: get_actuator; products: -
@@ -193,14 +192,16 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> Ese número de parte no existe en el catálogo.
+> El número de parte **768A00-11300000/A** no existe en el catálogo.
 > 
-> ¿Querías decir uno de estos?
+> Sugerencias cercanas:
 > - 761A00-11300000/A
 > - 762A00-11300000/A
 > - 763A00-11300000/A
 > - 764A00-11300000/A
 > - 765A00-11300000/A
+> 
+> ¿Quieres que busque las especificaciones de alguno de estos?
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'not_found', 'no_products': True}`
 - Tools: get_actuator; products: -
@@ -211,7 +212,9 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> ABC-123 does not exist in the Series 76 catalog — no matching part number was found.
+> Part number ABC-123 does not exist in the Series 76 catalog — no close matches were returned.
+> 
+> If you have a different part number, or want to search by torque / voltage / enclosure, I can look it up.
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'not_found', 'no_products': True}`
 - Tools: get_actuator; products: -
@@ -222,7 +225,7 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> The 761A00-11330C00/A exists, but the catalog prints N/A for torque and speed — no data is available for that part number.
+> The 761A00-11330C00/A exists, but the catalog prints N/A for both torque and speed — no data is available for that part number.
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'found_no_data'}`
 - Tools: get_actuator; products: 761A00-11330C00/A
@@ -233,7 +236,7 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> El 762B00-11330C00/A (220V, trifásico) existe, pero en la tabla figura como N/A: no hay datos de FLA disponibles para esa referencia.
+> El **762B00-11330C00/A** existe — trifásico 220V, weatherproof — pero en la tabla figura **N/A**: no hay dato de FLA disponible para esa referencia.
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'found_no_data'}`
 - Tools: get_actuator; products: 762B00-11330C00/A
@@ -244,9 +247,9 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> No match for 10000 Nm, 220V single phase, weatherproof.
+> No actuator meets all of those requirements — the blocking requirement is torque.
 > 
-> The blocking requirement is torque — the maximum available is 9000.0 Nm.
+> For 220V, single-phase, weatherproof, the maximum available torque is 9000.0 Nm, below your requested 10000 Nm.
 
 - Expected: `{'tools': ['search_actuators'], 'status': 'no_match', 'no_products': True}`
 - Tools: search_actuators; products: -
@@ -259,9 +262,9 @@ Passed: 26/26 (100%)
 
 > No hay un actuador que cumpla todos los requisitos.
 > 
-> El requisito que bloquea es el tiempo de cierre de 5 segundos o menos. El más rápido disponible con las demás condiciones es de 33.0 s a 60 Hz.
+> El requisito que bloquea es el tiempo de cierre de 5 segundos o menos. El más rápido disponible con 1000 Nm mínimo, 220V monofásico y weatherproof es de 33.0 s a 60 Hz.
 > 
-> ¿Quieres que busque sin el límite de velocidad, o con un tiempo máximo mayor?
+> ¿Quieres que busque sin el límite de velocidad, o con un tiempo mayor?
 
 - Expected: `{'tools': ['search_actuators'], 'status': 'no_match', 'no_products': True}`
 - Tools: search_actuators; products: -
@@ -274,7 +277,7 @@ Passed: 26/26 (100%)
 
 > No match for 110V weatherproof at 4000 Nm or more.
 > 
-> Closest available torque reported is 3000.0 Nm.
+> The closest available torque reported is 3000.0 Nm.
 
 - Expected: `{'tools': ['search_actuators'], 'status': 'no_match', 'no_products': True}`
 - Tools: search_actuators; products: -
@@ -285,13 +288,11 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> The part number 764A00 is ambiguous — there are 3 candidates:
+> 764A00 is ambiguous — which one do you mean?
 > 
-> 1. **764A00-11300000/A** — weatherproof, 110V, 1-phase
-> 2. **764A00-11320000/A** — weatherproof, 220V, 1-phase
-> 3. **764A00-11330C00/A** — weatherproof, 220V, 3-phase
-> 
-> Which one do you mean?
+> - **764A00-11300000/A** — weatherproof, 110V, 1-phase
+> - **764A00-11320000/A** — weatherproof, 220V, 1-phase
+> - **764A00-11330C00/A** — weatherproof, 220V, 3-phase
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'ambiguous'}`
 - Tools: get_actuator; products: -
@@ -302,9 +303,9 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> The Series 76 catalog covers 65 to 9000 Nm (550 to 79700 in-lbs) in weatherproof and explosionproof versions.
+> The Series 76 catalog covers 65 to 9000 Nm (550 to 79700 in-lbs), in weatherproof and explosionproof enclosures, at 24V, 110V and 220V, single- and three-phase, for on/off and modulating service.
 > 
-> What minimum torque do you need, in Nm or in-lbs?
+> What torque, voltage, enclosure and service do you need?
 
 - Expected: `{'tools': ['describe_catalog']}`
 - Tools: describe_catalog; products: -
@@ -315,20 +316,20 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> Hay varios modelos 763, ¿cuál necesitas?
+> Hay varias variantes del **763**, ¿cuál necesitas?
 > 
-> **Weatherproof:**
-> - 763A00-11300000/A, 763B00-11300000/A, 763C00-11300000/A — 110V, 1 fase
-> - 763A00-11320000/A, 763B00-11320000/A, 763C00-11320000/A — 220V, 1 fase
-> - 763A00-11330C00/A, 763B00-11330C00/A, 763C00-11330C00/A — 220V, 3 fases
+> Por carcasa, voltaje y fase:
 > 
-> **Explosionproof:**
-> - 763X30-11300000/A, 763Y30-11300000/A — 110V, 1 fase
-> - 763X30-11320000/A, 763Y30-11320000/A — 220V, 1 fase
-> - 763X30-11370000/A — 24V DC
-> - 763X30-11380000/A — 24V AC/DC
+> **Weatherproof**
+> - 110V, 1 fase: 763A00-11300000/A, 763B00-11300000/A, 763C00-11300000/A
+> - 220V, 1 fase: 763A00-11320000/A, 763B00-11320000/A, 763C00-11320000/A
+> - 220V, 3 fases: 763A00-11330C00/A, 763B00-11330C00/A, 763C00-11330C00/A
 > 
-> Indícame la carcasa, el voltaje y la fase que buscas y te doy sus datos.
+> **Explosionproof**
+> - 110V, 1 fase: 763X30-11300000/A, 763Y30-11300000/A
+> - 220V, 1 fase: 763X30-11320000/A, 763Y30-11320000/A
+> - 24V DC, modulante: 763X30-11370000/A
+> - 24V AC/DC, on/off: 763X30-11380000/A
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'ambiguous'}`
 - Tools: get_actuator; products: -
@@ -339,9 +340,7 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> No match — the 24V weatherproof combination is out of catalog, so no actuator meets at least 100 Nm with those requirements.
-> 
-> Would you like to try a different voltage or enclosure?
+> No match — a 24V weatherproof actuator at that torque is out of catalog. The catalog has no data for that voltage/enclosure combination.
 
 - Expected: `{'tools': ['search_actuators'], 'status': 'no_match', 'no_products': True, 'out_of_catalog': True}`
 - Tools: search_actuators; products: -
@@ -352,9 +351,9 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> No hay un actuador Series 76 con esa combinación en el catálogo: trifásico 220V a prueba de explosión (explosionproof) está fuera de catálogo.
+> No hay en el catálogo un actuador trifásico 220V a prueba de explosión (explosionproof). Esa combinación está fuera de catálogo.
 > 
-> ¿Quieres que busque la alternativa más cercana priorizando trifásico o priorizando a prueba de explosión?
+> ¿Quieres que busque una alternativa, por ejemplo monofásico explosionproof o trifásico weatherproof?
 
 - Expected: `{'tools': ['search_actuators'], 'status': 'no_match', 'no_products': True, 'out_of_catalog': True}`
 - Tools: search_actuators; products: -
@@ -365,9 +364,9 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> No — a 24V three-phase actuator is not in the catalog.
+> No — a 24V three-phase actuator with at least 100 Nm is out of catalog. That voltage/phase combination does not exist in the catalog.
 > 
-> The search returned no match, with voltage and phase blocking the combination.
+> Would you like me to search for 24V single-phase, or three-phase at a different voltage?
 
 - Expected: `{'tools': ['search_actuators'], 'status': 'no_match', 'no_products': True, 'out_of_catalog': True}`
 - Tools: search_actuators; products: -
@@ -378,18 +377,21 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> **761A00-11300000/A** — weatherproof, 110V, 1-phase, CSA certified.
+> **761A00-11300000/A** — weatherproof, 110V, 1-phase, CSA certified
 > 
-> - On/off torque: 80 Nm (700 in-lbs), 40% duty cycle, 36 cycles/hour
-> - Modulating torque: 65 Nm (580 in-lbs), 40% duty cycle, 960 starts/hour
-> - Speed: 17 seconds per 90° @ 60Hz (20 @ 50Hz)
-> - FLA: 1.2 A @ 60Hz, motor power: 15 W
+> - On/off torque: 80 Nm (700 in-lbs), 40% duty, 36 cycles/hour
+> - Modulating torque: 65 Nm (580 in-lbs), 40% duty, 960 starts/hour
+> - Speed: 17 seconds per 90° @ 60Hz / 20 seconds per 90° @ 50Hz
+> - FLA: 1.2 A @ 60Hz, Motor power: 15 W
 
 **User:** and how much current does it draw at 50 Hz?
 
 **Assistant:**
 
-> At 50 Hz, FLA is **1.1 A**.
+> For **761A00-11300000/A** at 50 Hz:
+> 
+> - FLA: 1.1 A
+> - LRA: 1.3 A
 
 - Expected: `{'tools': ['get_actuator'], 'status': 'found', 'products': ['761A00-11300000/A'], 'answer_numbers': ['1.1']}`
 - Tools: get_actuator; products: 761A00-11300000/A
@@ -400,9 +402,9 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> Best match: **763A00-11320000/A** — modulating torque 220 Nm, 220V single phase, weatherproof.
+> Best match: **763A00-11320000/A** — 220 Nm modulating torque, 220V single phase, weatherproof.
 > 
-> 4 other matches also meet ≥200 Nm modulating in this configuration.
+> 4 other matches also meet your requirements.
 
 **User:** what's the 60 Hz speed of the first one?
 
@@ -419,19 +421,19 @@ Passed: 26/26 (100%)
 
 **Assistant:**
 
-> **762A00-11300000/A** — weatherproof, 110V, 1 fase, AC, CSA
+> **762A00-11300000/A** — weatherproof, 110V AC, 1 fase, servicio on/off y modulante. Certificaciones: CSA, CE, & UKCA.
 > 
-> - Par on/off: 150 Nm (1330 in-lbs), ciclo 50%, 42 ciclos/hora
-> - Par modulante: 130 Nm (1150 in-lbs), ciclo 40%, 960 arranques/hora
-> - Velocidad: 18 s a 60 Hz / 21 s a 50 Hz
-> - FLA: 2.3 A, LRA: 2.5 A a 60 Hz / 2.4 A a 50 Hz
-> - Potencia motor: 40 W
+> - Par on/off: 150 Nm (1330 in-lbs), ciclo de trabajo 50%, 42 ciclos/hora
+> - Par modulante: 130 Nm (1150 in-lbs), ciclo de trabajo 40%, 960 arranques/hora
+> - Velocidad: 18 segundos por 90° a 60Hz / 21 segundos por 90° a 50Hz
+> - FLA: 2.3 A, LRA: 2.5 A a 60Hz / 2.4 A a 50Hz
+> - Potencia del motor: 40 W
 
 **User:** y cuál es su velocidad a 50 Hz?
 
 **Assistant:**
 
-> Para el **762A00-11300000/A**, la velocidad a 50 Hz es de **21 s** por 90°.
+> **762A00-11300000/A** — a 50 Hz: **21 segundos por 90°**.
 
 - Expected: `{'tools': ['get_actuator'], 'products': ['762A00-11300000/A'], 'answer_numbers': ['21']}`
 - Tools: get_actuator; products: 762A00-11300000/A

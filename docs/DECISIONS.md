@@ -268,6 +268,8 @@ Each entry records one decision, the alternatives considered, its trade-off, and
 - the user's query;
 - `ALWAYS_ALLOWED`: 0 to 10 and 90.
 
+Numbers and part numbers typed by the user in earlier turns of the session also count as verified (found by the developer: 'what did I say last?' quoting '24V' was rejected); earlier assistant figures still do not.
+
 `1,330` is read as both 1330 and 1.33; `2,3` is read as 2.3 (Spanish decimal). If any number fails, the answer is replaced by a deterministic template built from the trace, `guard_triggered` is set, and a `number_guard` entry with the original answer goes into the trace.
 
 **Alternatives.** No guard (trust the prompt). Ask the LLM to self-check. Use a structured-output answer with numbers as references.
@@ -357,6 +359,7 @@ How the run works:
 - **Injected agent.** The agent is a dependency (`get_agent`), so tests override it with a fake and never call an LLM.
 - **Startup.** The lifespan runs `apply_schema` + `ensure_data()`. Vision escalation is OFF unless `STARTUP_ESCALATION=on`: the API never spends money on its own (CLAUDE.md §9).
 - **Corrupt JSON.** A corrupt `actuators.json` is now rebuilt from a full, valid Postgres, like the missing case in D-24. The bad file is moved aside first and restored if the write fails.
+- **Retry continuity.** Responses from `POST /api/conversation` carry `X-Session-Id`, including 503s after the session exists, so a client retry continues the same session instead of creating a duplicate. A retried question is stored again: accepted, it is the user's real retry. Error bodies stay `{error, detail}`.
 - **Errors.** Every error body is `{error, detail}`:
 
   | Cause | Status | `error` |
@@ -417,3 +420,41 @@ Already in place:
 **Trade-off.** Binding to localhost removes the real exposure at no cost to the emulator workflow. Auth and rate limits add work the assessment does not require, and they are listed as optional.
 
 **Status.** Accepted (Gate 4). `/security-review` could not run because the repo has no remote (`origin/HEAD`), so the review was done by hand on the Sprint 4 diff.
+
+## D-35 The Android app reaches the backend through `adb reverse`, not `10.0.2.2`
+
+**Decision.** The app's default base URL is `http://localhost:<API_PORT>/`. `make android-reverse` (`adb reverse tcp:<port> tcp:<port>`) maps the device's localhost to the Mac's. The URL is configurable in `mobile/android/local.properties` (`api.baseUrl`).
+
+**Alternatives.** `http://10.0.2.2:<port>` (the emulator's alias for the host loopback). `API_BIND=0.0.0.0` with the Mac's LAN IP.
+
+**Trade-off.** The first real run on the emulator showed what goes wrong with `10.0.2.2` on this Mac:
+- The emulator reached a plain server on the Mac's 127.0.0.1.
+- It never reached the API, because Colima publishes container ports through its own ssh forwarder. Requests never arrived: the API log was empty and the app timed out.
+
+`adb reverse` goes through the adb server on the Mac, so it behaves like a local `curl`. It works with Docker Desktop, Colima and USB phones, and keeps the API bound to localhost (D-34). The cost is one command per emulator boot, documented in the README and wrapped in `make android-reverse`. A phone over Wi-Fi still needs `API_BIND=0.0.0.0` and the Mac's LAN IP.
+
+**Status.** Accepted (Sprint 5).
+
+## D-36 Gate 5: Android client hardening from code review and E2E
+
+**Decision.** `code-review` and the emulator E2E found these problems in the app. Each fix has a regression test.
+
+- **Unexpected responses no longer crash the app.** A non-JSON or schema-mismatched body is now a `bad_response` failure. Before, a `SerializationException` escaped the ViewModel scope.
+- **Retry continues the same session.** The backend adds `X-Session-Id` to every `/api/conversation` response, including 503s (D-32). The app adopts that id on a failed send, so Retry no longer creates a duplicate session.
+- **Retry is offered only for transient failures.** Those are network errors, timeouts and 5xx. A 4xx shows its message and returns the text to the draft. The input is capped at the backend's 2000 characters.
+- **A failed send keeps the typed text.** The contract already required this, and the first version cleared the field.
+- **Chat state is protected.**
+  - Sending is blocked while the history loads, so a late load cannot overwrite new bubbles.
+  - The session id is kept in `SavedStateHandle`, so it survives process death.
+- **The Conversations list refreshes on every resume**, unless a load is already running, and the pull-to-refresh indicator always resets. Before, a new chat was missing from the list after going back.
+- **Smaller fixes.**
+  - Debug refresh cancels the previous request.
+  - The comparison table's divider renders.
+  - The field ordering lives in one helper (`orderedKeys`), with `remember`.
+  - HTTP logging is at BASIC level and only in debug builds.
+
+**Alternatives.** An idempotency key per message, which needs a schema change. Disabling Retry entirely.
+
+**Trade-off.** Retrying a question stores it again in the history. That is the user's real retry, and the agent still answers once per attempt. The remaining lint warnings (no app icon, no data-extraction rules) are cosmetic or not applicable: `allowBackup=false` and the app stores nothing locally. The icon is a Sprint 6 polish item.
+
+**Status.** Accepted (Gate 5). 63 unit tests and 15 instrumented tests green on API 37; backend 1298 tests green.

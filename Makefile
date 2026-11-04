@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: help up down reset logs test eval chat ingest db recovery
+.PHONY: android-reverse help up down reset logs test eval chat ingest db recovery
 
 # Host port for the API. Read from the shell env first, then from .env, then 8000.
 # (Make does not read .env by itself; Compose does, for the ${API_PORT} substitution.)
@@ -45,6 +45,9 @@ ingest: ## Run the PDF ingestion script (e.g. make ingest ARGS=--force)
 
 db: ## Start only the Postgres container
 	docker compose up -d db
+
+android-reverse: ## Let the emulator / USB phone reach the API at localhost:$(API_PORT) (adb reverse)
+	adb reverse tcp:$(API_PORT) tcp:$(API_PORT) && adb reverse --list
 
 recovery: ## Self-healing e2e on the real stack (ARGS=--yes also runs the destructive down -v step)
 	bash backend/tests/e2e/recovery.sh $(ARGS)

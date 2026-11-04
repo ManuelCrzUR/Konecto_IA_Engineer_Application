@@ -20,10 +20,11 @@ Contract:
        config {"recursion_limit": RECURSION_LIMIT}.
     3. answer = text of the last AIMessage (string content, or the joined
        text blocks if content is a list).
-    4. return response.build_result(answer, recorder.trace, query).
+    4. return response.build_result(answer, recorder.trace, query, user_history)
+       (user_history = the user turns of `history` joined by newlines).
   Errors:
     - GraphRecursionError (too many steps) -> not raised: result of
-      build_result(LOOP_ANSWER, trace, query) (the guard then may swap in the
+      build_result(LOOP_ANSWER, trace, query, user_history) (the guard then may swap in the
       template; that's fine).
     - A provider failure (PROVIDER_ERRORS: openai.APIError, httpx.HTTPError,
       TimeoutError, ConnectionError) -> AgentError(<short reason>) chained from
@@ -139,6 +140,7 @@ def run_agent(
     llm: BaseChatModel | None = None,
     conn_factory: ConnFactory | None = None,
 ) -> AgentResult:
+    user_history = "\n".join(h.content for h in history or [] if h.role == "user")
     recorder = TraceRecorder()
     agent = create_agent(
         llm or get_llm("agent"),
@@ -152,7 +154,7 @@ def run_agent(
             config=RunnableConfig(recursion_limit=RECURSION_LIMIT),
         )
     except GraphRecursionError:
-        return response.build_result(LOOP_ANSWER, recorder.trace, query)
+        return response.build_result(LOOP_ANSWER, recorder.trace, query, user_history)
     except PROVIDER_ERRORS as exc:
         raise AgentError(f"LLM call failed: {exc}") from exc
     # parallel tool calls finish in any order: report them as the model requested them
@@ -163,4 +165,4 @@ def run_agent(
     trace = [t for _, t in sorted(recorder.calls, key=lambda p: rank(p[0]))]
     ai = [m for m in state["messages"] if isinstance(m, AIMessage)]
     answer = _text(ai[-1].content) if ai else ""
-    return response.build_result(answer, trace, query)
+    return response.build_result(answer, trace, query, user_history)

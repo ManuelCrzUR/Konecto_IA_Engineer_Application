@@ -13,6 +13,9 @@ Contract:
                                  message>}; the provider's reason is only logged.
     LLMConfigError           -> 503, {"error": "llm_not_configured", "detail": <var name msg>}
     psycopg.OperationalError -> 503, {"error": "database_unavailable", "detail": ...}
+    (AgentError, LLMConfigError, OperationalError and any other Exception also add
+     the header `X-Session-Id` when the exception carries a `session_id` attribute,
+     set by POST /api/conversation once the session exists.)
     any other Exception      -> 500, {"error": "internal_error", "detail": "Unexpected
                                  server error"}; the traceback is logged, never returned.
 """
@@ -40,8 +43,14 @@ class ApiError(Exception):
         self.status, self.error, self.detail = status, error, detail
 
 
-def _reply(status: int, error: str, detail: str | None) -> JSONResponse:
-    return JSONResponse(ErrorOut(error=error, detail=detail).model_dump(), status_code=status)
+def _reply(
+    status: int, error: str, detail: str | None, exc: Exception | None = None
+) -> JSONResponse:
+    sid = getattr(exc, "session_id", None)
+    headers = {"X-Session-Id": str(sid)} if sid is not None else None
+    return JSONResponse(
+        ErrorOut(error=error, detail=detail).model_dump(), status_code=status, headers=headers
+    )
 
 
 def _summarize(exc: RequestValidationError) -> str:
@@ -69,18 +78,22 @@ def install_error_handlers(app: FastAPI) -> None:
     async def _agent(_: Request, exc: AgentError) -> JSONResponse:
         # The provider's error text stays in the log; clients get a generic reason.
         logger.warning("Agent failed: %s", exc)
-        return _reply(503, "llm_unavailable", "The language model is unavailable. Try again shortly.")
+        return _reply(
+            503, "llm_unavailable", "The language model is unavailable. Try again shortly.", exc
+        )
 
     @app.exception_handler(LLMConfigError)
     async def _llm_config(_: Request, exc: LLMConfigError) -> JSONResponse:
-        return _reply(503, "llm_not_configured", str(exc))
+        return _reply(503, "llm_not_configured", str(exc), exc)
 
     @app.exception_handler(psycopg.OperationalError)
     async def _db(_: Request, exc: psycopg.OperationalError) -> JSONResponse:
         logger.error("Database unavailable: %s", exc)
-        return _reply(503, "database_unavailable", "The database is unavailable. Try again shortly.")
+        return _reply(
+            503, "database_unavailable", "The database is unavailable. Try again shortly.", exc
+        )
 
     @app.exception_handler(Exception)
     async def _unexpected(_: Request, exc: Exception) -> JSONResponse:
         logger.error("Unhandled error", exc_info=(type(exc), exc, exc.__traceback__))
-        return _reply(500, "internal_error", "Unexpected server error")
+        return _reply(500, "internal_error", "Unexpected server error", exc)

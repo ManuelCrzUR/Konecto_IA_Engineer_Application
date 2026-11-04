@@ -183,3 +183,19 @@ def test_parallel_trace_entries_stay_paired(factory):
     for t in r.trace:  # each entry's result is for its own params
         assert t.result["actuator"]["part_number"] == t.params["part_number"]
     assert [t.params["part_number"] for t in r.trace] == ["761A00-11300000/A", "762A00-11300000/A"]
+
+
+def test_earlier_user_numbers_verified_assistant_numbers_not(factory):
+    hist = [
+        HistoryTurn(role="user", content="Busco algo en zona explosiva, 24V"),
+        HistoryTurn(role="assistant", content="It gives 999 Nm"),
+    ]
+    ok = run_agent(
+        "¿Qué fue lo último que te dije?",
+        hist,
+        llm=fake(AIMessage(content='Dijiste: "Busco algo en zona explosiva, 24V"')),
+        conn_factory=factory,
+    )
+    assert not ok.guard_triggered
+    bad = run_agent("repeat", hist, llm=fake(AIMessage(content="999 Nm")), conn_factory=factory)
+    assert bad.guard_triggered

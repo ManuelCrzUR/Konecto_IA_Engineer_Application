@@ -284,3 +284,23 @@ def test_sessions_limit(client):
 
 def test_sessions_empty(client):
     assert client.get("/api/sessions").json() == []
+
+
+def test_503_carries_session_id_and_retry_continues_session(client, agent):
+    agent.next = AgentError("down")
+    resp = ask(client, "will fail")
+    assert_error(resp, 503, "llm_unavailable")
+    sessions = client.get("/api/sessions").json()
+    assert len(sessions) == 1 and resp.headers["X-Session-Id"] == str(sessions[0]["id"])
+    agent.next = None
+    retry = ask(client, "will fail", resp.headers["X-Session-Id"])
+    assert retry.status_code == 200
+    assert retry.headers["X-Session-Id"] == retry.json()["session_id"]
+    assert len(client.get("/api/sessions").json()) == 1
+
+
+def test_llm_config_503_has_header_but_404_and_422_do_not(client, agent):
+    agent.next = LLMConfigError("AGENT_MODEL missing")
+    assert "X-Session-Id" in ask(client).headers
+    assert "X-Session-Id" not in ask(client, "hi", str(uuid.uuid4())).headers
+    assert "X-Session-Id" not in ask(client, "").headers
