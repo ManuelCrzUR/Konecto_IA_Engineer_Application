@@ -9,7 +9,7 @@ import inspect
 import pytest
 
 from app import bootstrap
-from app.agent import agent, tools
+from app.agent import agent, prompts, response, tools
 from app.api import schemas
 from app.db import actuators_repo, connection, sessions_repo
 from app.domain.search import SearchFilters
@@ -46,9 +46,21 @@ CONTRACTS = {
     tools: {
         "normalize_part_number": ["text"],
         "lookup_actuator": ["conn", "part_number"],
-        "search": ["conn", "filters"],
+        "search": ["conn", "filters", "limit"],
         "describe": ["conn"],
         "make_tools": ["conn_factory"],
+    },
+    prompts: {"context_line": ["history"], "build_messages": ["query", "history"]},
+    response: {
+        "products_from_trace": ["trace", "answer"],
+        "extract_numbers": ["text"],
+        "token_values": ["token"],
+        "allowed_numbers": ["trace", "query"],
+        "unverified_numbers": ["answer", "trace", "query"],
+        "unverified_part_numbers": ["answer", "trace", "query"],
+        "detect_lang": ["query"],
+        "template_answer": ["trace", "query"],
+        "build_result": ["answer", "trace", "query"],
     },
     agent: {"run_agent": ["query", "history", "llm", "conn_factory"]},
 }

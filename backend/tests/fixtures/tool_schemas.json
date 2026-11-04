@@ -1,0 +1,152 @@
+{
+  "describe_catalog": {
+    "description": "Summarize what the catalog contains (voltages, phases, enclosures, services, torque ranges, row counts). Use for vague or broad questions, or to check whether a combination exists before answering 'no data'.",
+    "properties": {},
+    "title": "describe_catalog",
+    "type": "object"
+  },
+  "get_actuator": {
+    "description": "Look up ONE Series 76 actuator by part number (any case, with or without dash, '/A' or '*'). Use whenever the user names a part number or a fragment of one. Returns status found, found_no_data (valid part number printed as N/A), ambiguous (several candidates: ask the user which one) or not_found (with close suggestions). Quote numbers only from the result.",
+    "properties": {
+      "part_number": {
+        "title": "Part Number",
+        "type": "string"
+      }
+    },
+    "required": [
+      "part_number"
+    ],
+    "title": "get_actuator",
+    "type": "object"
+  },
+  "search_actuators": {
+    "description": "Find actuators that meet technical requirements (minimum torque with its unit, voltage, phase, enclosure, service, maximum speed, minimum duty cycle). Use for recommendations when no part number is given. Set only the fields the user stated. Returns the tightest-fitting matches first, or no_match with the blocking requirement and the closest available value. Quote numbers only from the result.",
+    "properties": {
+      "enclosure": {
+        "anyOf": [
+          {
+            "enum": [
+              "weatherproof",
+              "explosionproof"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Enclosure"
+      },
+      "max_speed_sec": {
+        "anyOf": [
+          {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Max Speed Sec"
+      },
+      "min_duty_cycle_pct": {
+        "anyOf": [
+          {
+            "maximum": 100,
+            "minimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Min Duty Cycle Pct"
+      },
+      "min_torque": {
+        "anyOf": [
+          {
+            "exclusiveMinimum": 0,
+            "type": "number"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Min Torque"
+      },
+      "phase": {
+        "anyOf": [
+          {
+            "enum": [
+              1,
+              3
+            ],
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Phase"
+      },
+      "service": {
+        "anyOf": [
+          {
+            "enum": [
+              "on_off",
+              "modulating"
+            ],
+            "type": "string"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Service"
+      },
+      "speed_hz": {
+        "default": 60,
+        "enum": [
+          50,
+          60
+        ],
+        "title": "Speed Hz",
+        "type": "integer"
+      },
+      "torque_unit": {
+        "default": "nm",
+        "enum": [
+          "nm",
+          "in_lbs"
+        ],
+        "title": "Torque Unit",
+        "type": "string"
+      },
+      "voltage_v": {
+        "anyOf": [
+          {
+            "enum": [
+              24,
+              110,
+              220
+            ],
+            "type": "integer"
+          },
+          {
+            "type": "null"
+          }
+        ],
+        "default": null,
+        "title": "Voltage V"
+      }
+    },
+    "title": "search_actuators",
+    "type": "object"
+  }
+}

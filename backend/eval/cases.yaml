@@ -1,0 +1,263 @@
+# Evaluation set for the Series 76 assistant (format: see eval/run.py docstring).
+# All expected values come from data/processed/actuators.json (table ids as in
+# that file) and were cross-checked with the real tool functions (lookup_actuator /
+# search) against a loaded database.
+
+# ---------------------------------------------------------------- lookup (4)
+- id: lookup-01
+  category: lookup
+  # T1_wp_110v_1ph, 764A00-11300000/A: onoff_torque_nm 750, speed_sec_60hz 30.
+  turns: ["What's the on/off torque in Nm and the 60 Hz stroke time of the 764A00-11300000/A?"]
+  expect:
+    tools: [get_actuator]
+    status: found
+    products: ["764A00-11300000/A"]
+    answer_numbers: ["750", "30"]
+
+- id: lookup-02
+  category: lookup
+  # T2_wp_220v_1ph, 762B00-11320000/A: fla_60hz_a 1.1 (sloppy PN: no dash).
+  turns: ["Cuánto es el FLA a 60 Hz del 762b0011320000/A? Es para dimensionar la protección."]
+  expect:
+    tools: [get_actuator]
+    status: found
+    products: ["762B00-11320000/A"]
+    answer_numbers: ["1.1"]
+
+- id: lookup-03
+  category: lookup
+  # T2_wp_220v_1ph, 766A00-11320000/A: csa_certified false (size 6, "/A*" in the PDF),
+  # onoff_torque_nm 3500. Lowercase, no '/A'.
+  turns: ["is the 766a00-11320000 CSA certified? and what's its on/off torque in Nm"]
+  expect:
+    tools: [get_actuator]
+    status: found
+    products: ["766A00-11320000/A"]
+    answer_numbers: ["3500"]
+
+- id: lookup-04
+  category: lookup
+  # T5_xp_24vdc_mod, 761X30-11370000/A: lra_a 12.8, mod_torque_nm 65.
+  turns: ["Necesito la corriente de rotor bloqueado (LRA) y el torque modulante en Nm del 761x30-11370000"]
+  expect:
+    tools: [get_actuator]
+    status: found
+    products: ["761X30-11370000/A"]
+    answer_numbers: ["12.8", "65"]
+
+# ------------------------------------------------------------- recommend (5)
+- id: recommend-01
+  category: recommend
+  # Tightest fit for 200 Nm modulating, 220V 1ph weatherproof: T2 763A00-11320000/A
+  # (mod_torque_nm 220; 762x rows have 130-150). Lists are not number-checked.
+  turns: ["I need at least 200 Nm of modulating torque, 220V single phase, weatherproof. What do you recommend?"]
+  expect:
+    tools: [search_actuators]
+    status: ok
+    products: ["763A00-11320000/A"]
+
+- id: recommend-02
+  category: recommend
+  # 3000 in-lbs on/off, 220V 1ph weatherproof: first match T2 763B00-11320000/A
+  # (onoff_torque_in_lbs 4400; 763A has 2650 < 3000). Unit must be in_lbs, no conversion.
+  turns: ["Necesito un actuador de 3000 in-lbs mínimo, 220V monofásico, a prueba de intemperie, servicio on/off."]
+  expect:
+    tools: [search_actuators]
+    status: ok
+    products: ["763B00-11320000/A"]
+
+- id: recommend-03
+  category: recommend
+  # >=300 Nm on/off, 220V 1ph weatherproof, max 25 s at 60 Hz: only T2 763A00-11320000/A
+  # (onoff 300 Nm, speed_sec_60hz 24).
+  turns: ["Looking for 300 Nm or more, on/off, 220V single phase, weatherproof, and it has to stroke in 25 seconds or less."]
+  expect:
+    tools: [search_actuators]
+    status: ok
+    products: ["763A00-11320000/A"]
+
+- id: recommend-04
+  category: recommend
+  # >=600 Nm modulating, 220V 1ph explosionproof: first match T7 764X30-11320000/A
+  # (mod_torque_nm 640).
+  turns: ["Necesito un actuador antiexplosión (explosionproof), 220V monofásico, modulante, con al menos 600 Nm. Qué opciones hay?"]
+  expect:
+    tools: [search_actuators]
+    status: ok
+    products: ["764X30-11320000/A"]
+
+- id: recommend-05
+  category: recommend
+  # >=50 Nm modulating, 24V explosionproof: first match T5_xp_24vdc_mod 761X30-11370000/A
+  # (mod_torque_nm 65).
+  turns: ["24V explosion proof valve actuator, modulating, at least 50 Nm. Which one fits best?"]
+  expect:
+    tools: [search_actuators]
+    status: ok
+    products: ["761X30-11370000/A"]
+
+# ----------------------------------------------------------- invalid_pn (3)
+- id: invalid-01
+  category: invalid_pn
+  # Fragment that matches nothing in the catalog.
+  turns: ["What is the torque of the 999Z actuator?"]
+  expect:
+    tools: [get_actuator]
+    status: not_found
+    no_products: true
+
+- id: invalid-02
+  category: invalid_pn
+  # Well-formed Series 76 PN, but size 768 does not exist (catalog goes 761-767).
+  turns: ["Dame las especificaciones del 768A00-11300000/A"]
+  expect:
+    tools: [get_actuator]
+    status: not_found
+    no_products: true
+
+- id: invalid-03
+  category: invalid_pn
+  # Not shaped like a part number at all.
+  turns: ["pull up the datasheet numbers for ABC-123 please"]
+  expect:
+    tools: [get_actuator]
+    status: not_found
+    no_products: true
+
+# ------------------------------------------------------------------- na (2)
+- id: na-01
+  category: na
+  # T3_wp_220v_3ph, 761A00-11330C00/A: valid PN printed as N/A (all values null).
+  turns: ["What's the torque and speed of the 761A00-11330C00/A?"]
+  expect:
+    tools: [get_actuator]
+    status: found_no_data
+
+- id: na-02
+  category: na
+  # T3_wp_220v_3ph, 762B00-11330C00/A: valid PN printed as N/A.
+  turns: ["Cuál es el FLA del 762b00-11330c00? Es trifásico 220V."]
+  expect:
+    tools: [get_actuator]
+    status: found_no_data
+
+# ------------------------------------------------------------ impossible (3)
+- id: impossible-01
+  category: impossible
+  # 220V 1ph weatherproof max torque in the catalog is 9000 Nm (closest.min_torque).
+  turns: ["I need 10000 Nm, 220V single phase, weatherproof."]
+  expect:
+    tools: [search_actuators]
+    status: no_match
+    no_products: true
+    guard_ok: true
+
+- id: impossible-02
+  category: impossible
+  # 220V 1ph weatherproof, >=1000 Nm, <=5 s: no row is that fast (fastest available 33 s).
+  turns: ["Necesito 1000 Nm mínimo, 220V monofásico weatherproof y que cierre en 5 segundos o menos."]
+  expect:
+    tools: [search_actuators]
+    status: no_match
+    no_products: true
+    guard_ok: true
+
+- id: impossible-03
+  category: impossible
+  # 110V weatherproof max torque is 3000 Nm in the catalog, so 4000 Nm is not available.
+  turns: ["Any 110V weatherproof actuator with 4000 Nm or more?"]
+  expect:
+    tools: [search_actuators]
+    status: no_match
+    no_products: true
+    guard_ok: true
+
+# ------------------------------------------------------------- ambiguous (3)
+- id: ambiguous-01
+  category: ambiguous
+  # Base 764A00 matches 3 rows: -11300000 (110V), -11320000 (220V 1ph), -11330C00 (220V 3ph).
+  turns: ["Tell me about the 764A00"]
+  expect:
+    tools: [get_actuator]
+    status: ambiguous
+
+- id: ambiguous-02
+  category: ambiguous
+  # No requirement at all: the agent should look at the catalog / ask, not search blindly.
+  turns: ["I need an actuator"]
+  expect:
+    tools: [describe_catalog]
+
+- id: ambiguous-03
+  category: ambiguous
+  # Size '763' matches many rows (A/B/C, X30/Y30, several voltages).
+  turns: ["Me recomendaron el 763, cuáles son sus datos?"]
+  expect:
+    tools: [get_actuator]
+    status: ambiguous
+
+# ----------------------------------------------------------- out_of_subset (3)
+- id: subset-01
+  category: out_of_subset
+  # No 24V weatherproof table in the catalog -> no_match.out_of_catalog true.
+  turns: ["I need a 24V weatherproof actuator, at least 100 Nm."]
+  expect:
+    tools: [search_actuators]
+    status: no_match
+    out_of_catalog: true
+    no_products: true
+
+- id: subset-02
+  category: out_of_subset
+  # No three-phase explosionproof table in the catalog.
+  turns: ["Necesito un actuador trifásico 220V a prueba de explosión (explosionproof)."]
+  expect:
+    tools: [search_actuators]
+    status: no_match
+    out_of_catalog: true
+    no_products: true
+
+- id: subset-03
+  category: out_of_subset
+  # 24V tables have no phase; a 24V three-phase request cannot exist.
+  turns: ["Do you have a 24V three-phase actuator with at least 100 Nm?"]
+  expect:
+    tools: [search_actuators]
+    status: no_match
+    out_of_catalog: true
+    no_products: true
+
+# ------------------------------------------------------------ multi_turn (3)
+- id: multi-01
+  category: multi_turn
+  # Turn 2: T1_wp_110v_1ph, 761A00-11300000/A: fla_50hz_a 1.1 (fla_60hz_a is 1.2).
+  turns:
+    - "Give me the specs of the 761A00-11300000/A"
+    - "and how much current does it draw at 50 Hz?"
+  expect:
+    tools: [get_actuator]
+    status: found
+    products: ["761A00-11300000/A"]
+    answer_numbers: ["1.1"]
+
+- id: multi-02
+  category: multi_turn
+  # Turn 1 search (>=200 Nm modulating, 220V 1ph weatherproof): first match 763A00-11320000/A.
+  # Turn 2: its speed_sec_60hz is 24 (T2_wp_220v_1ph).
+  turns:
+    - "I need at least 200 Nm of modulating torque, 220V single phase, weatherproof."
+    - "what's the 60 Hz speed of the first one?"
+  expect:
+    tools: [get_actuator]
+    answer_numbers: ["24"]
+
+- id: multi-03
+  category: multi_turn
+  # Turn 2: T1_wp_110v_1ph, 762A00-11300000/A: speed_sec_50hz 21 (60 Hz is 18).
+  turns:
+    - "Hola, dame los datos del 762a00-11300000"
+    - "y cuál es su velocidad a 50 Hz?"
+  expect:
+    tools: [get_actuator]
+    products: ["762A00-11300000/A"]
+    answer_numbers: ["21"]

@@ -250,3 +250,100 @@ Each entry records one decision, the alternatives considered, its trade-off, and
 **Trade-off.** It respects CLAUDE.md §9 (never overwrite silently) and avoids paid model calls on every start. The cost is more cascade branches, each covered by a test.
 
 **Status.** Accepted (Gate 2, from code review).
+
+## D-25 Ambiguous lookups return candidate details, not bare part numbers
+
+**Decision.** `ActuatorLookup.candidates` is a list of `Candidate` (part number, enclosure, voltage, phase, service, has_data). Base `764A00` returns 3 candidates (110V 1ph, 220V 1ph, 220V 3ph).
+
+**Alternatives.** A list of part number strings, as in the Sprint 1 contract.
+
+**Trade-off.** With bare strings, the LLM would have to decode the voltage suffix (`11300000` = 110V) itself. That is knowledge from memory, which the project forbids. The details come from the section titles, so the model can ask "110V or 220V?" correctly. The tool output is slightly larger.
+
+**Status.** Accepted (Sprint 3).
+
+## D-26 Number guard: what counts as a verified number
+
+**Decision.** `response.build_result` extracts every number in the answer (part numbers removed first) and accepts it only if one of its readings appears in:
+- the trace: tool results and params, including numbers inside dict keys (`fla_50hz_a` gives 50);
+- the user's query;
+- `ALWAYS_ALLOWED`: 0 to 10 and 90.
+
+`1,330` is read as both 1330 and 1.33; `2,3` is read as 2.3 (Spanish decimal). If any number fails, the answer is replaced by a deterministic template built from the trace, `guard_triggered` is set, and a `number_guard` entry with the original answer goes into the trace.
+
+**Alternatives.** No guard (trust the prompt). Ask the LLM to self-check. Use a structured-output answer with numbers as references.
+
+**Trade-off.** It is cheap, deterministic and testable, and it turns "the LLM never invents numbers" into a code guarantee. The guard is lenient by design: a correct number used in the wrong place, such as quoting an FLA as the torque, passes, and small integers always pass. Black-box tests showed why keys must count: without them, a correct "FLA at 50 Hz" answer was rejected. The first real eval run (24/26) showed that the family name "Series 76" also has to be stripped like part numbers; after that fix it scored 26/26.
+
+**Status.** Accepted (Sprint 3).
+
+## D-27 Follow-up context goes in the user message, and units are never converted
+
+**Decision.** `build_messages` produces exactly one SystemMessage, first. The part numbers from the previous turn are prefixed to the final HumanMessage as `[Context: ...]`. The prompt forbids unit conversion: a requirement in ft-lbs, kW or similar is answered by asking for Nm or in-lbs.
+
+**Alternatives.** A second SystemMessage mid-conversation. Letting the LLM convert units.
+
+**Trade-off.** Some OpenAI-compatible providers (Gemini included) reject or merge system messages that are not first. Converting units is computing, which CLAUDE.md §9 forbids. The cost is one extra question to the user.
+
+**Status.** Accepted (Sprint 3).
+
+## D-28 Tool errors go back to the model; LLM errors become AgentError
+
+**Decision.** The `TraceRecorder` middleware records every tool call: name, args, the parsed dict result and duration. A tool exception becomes an error ToolMessage and a `{"error": ...}` trace entry, so the model can recover. Exceptions from the LLM call become `AgentError`, which the API will map to 503. Hitting the recursion limit (12) returns a fixed "could not complete" answer through the guard.
+
+**Alternatives.** Let every exception propagate. Use LangChain's built-in tool error handling.
+
+**Trade-off.** The trace for the Debug screen and the error policy live in one small middleware, which is tested with a fake chat model.
+
+**Status.** Accepted (Sprint 3).
+
+## D-29 How the agent evaluation is run, and what it costs
+
+**Decision.** During development the agent evaluation (`uv run python -m eval.run`, 26 cases in `eval/cases.yaml`) runs against OpenRouter with `AGENT_MODEL=stealth/crouton-alpha` and `LLM_BASE_URL` empty, so it defaults to `https://openrouter.ai/api/v1`. That model is a free "stealth" model.
+
+How the run works:
+- A single case runs first as a smoke test (`--only lookup-01`), then the full set (`--workers 3`).
+- Each case calls the real `run_agent` against the dev Postgres, which `ensure_data()` loads with the 68 rows and with escalation off.
+- The checks are deterministic: tools called, tool `status`, part numbers in `products`, exact numbers in the answer, `out_of_catalog`, and the number guard not triggered.
+- The report is written to `eval/report.md`.
+- The unit tests never call a real LLM; they use fake chat models.
+
+**Cost check (2026-11-04).** The OpenRouter models endpoint lists `stealth/crouton-alpha` at prompt `0` / completion `0` USD per token. After two full runs (26 cases each), `GET /api/v1/key` showed `usage: 0` and `limit_remaining: 10` of the USD 10 budget. The developer approved using the key for this model (CLAUDE.md §9).
+
+**Results.** The first run scored 24/26. Both failures were false positives of the number guard caused by "Series 76" (see D-26). After the fix, the second run scored 26/26.
+
+**Alternatives.** Google AI Studio's free tier, the original plan for Gate 3: free, but with tighter rate limits and a different key. A paid model on OpenRouter would spend the budget, which is reserved for the final run.
+
+**Trade-off.** It is free and uses the same endpoint and code path as production. Stealth models are temporary: one can disappear or start charging. Before each run, check the pricing and the key usage, and switch `AGENT_MODEL` if the model changes. The final run with the chosen model (Sprint 6) must be reported separately, with its cost.
+
+**Status.** Accepted (Sprint 3, Gate 3).
+
+## D-30 Tool output uses the printed spelling of numbers; multilingual scope
+
+**Decision.**
+1. Tools pass their dumped results through `tools.as_printed`, which turns whole-number floats into ints (750.0 -> 750). Postgres `numeric` reads back as float, and the LLM copied the ".0" into answers ("750.0 Nm") although the PDF prints "750". The prompt names the speed unit as printed in the tables, "seconds per 90°".
+2. Language: understanding the question and writing the answer depend on the LLM. The prompt says "answer in the user's language". Tools are language-neutral: they take structured filters and return numbers. The only code with language support is the guard's fallback template, which covers Spanish and English (`detect_lang`); any other language gets the English template.
+
+**Alternatives.** (1) Format numbers in the prompt, or let the LLM tidy them; changing the DB column types. (2) Templates for more languages, or LLM-written fallbacks.
+
+**Trade-off.** (1) The value is identical; only its spelling changes, so it is not a conversion. The guard already accepts both spellings. (2) Konecto evaluates in English and the target users speak Spanish. More templates add code for a path that is rare (the guard fires only on unverified numbers), and an LLM-written fallback would defeat its purpose.
+
+**Status.** Accepted (Sprint 3, from reading the eval transcripts; eval still 26/26).
+
+## D-31 Gate 3 code-review fixes
+
+**Decision.** Code review found ten issues. The fixes:
+- **Invented part numbers.** The guard now also checks part numbers. Each part number in the answer must equal, or be a prefix of, a part number found in the trace or the query (`unverified_part_numbers`). Before, a made-up "769A00-11300000/A" passed, because part-number tokens were only stripped before the number check.
+- **Mention filter.** A full part number (with or without "/A") now takes priority over its 6-char base. Naming "761A00-11300000/A" no longer pulls in its 220V siblings.
+- **Duplicate products.** When the same part number appears twice, the entry with more notes wins. That is the get_actuator entry, which carries the table notes, such as the hazardous-area class. The first entry's position is kept.
+- **Parallel tool calls.** `TraceRecorder` stores (tool_call id, trace) pairs in one list. Two parallel lists could misalign under concurrent tool threads.
+- **Error mapping.** `run_agent` maps only provider failures (`openai.APIError`, `httpx.HTTPError`, `TimeoutError`, `ConnectionError`) to `AgentError`. Our own bugs propagate, so the API answers 500 for them instead of a misleading 503.
+- **Recursion limit.** Raised from 12 to 25, about 12 sequential tool calls, so a follow-up that re-checks 5 products still fits.
+- **Dashless partial part numbers.** `normalize_part_number` inserts the dash in partials such as "761A001130", so the prefix search finds them.
+- **Shared constants.** `CSA_NOTE` lives only in tools. Suggestions read all rows with `limit=count` instead of a hardcoded 1000.
+- **Module size.** `eval/run.py` was split: `eval/cases.py` holds the case models and checks, and `run.py` holds the runner, report and CLI.
+
+**Not changed (accepted risk).** Numbers in the user's query and in tool params still count as verified. Without that, an answer that repeats the user's own requirement ("your 200 Nm") would be rejected. A new prompt rule covers the remaining risk: verify any figure the user states with a tool, correct it with the tool's value, and mention only part numbers returned by a tool. The guard stays lenient by design (D-26).
+
+**Trade-off.** Each fix has a regression test. `response.py` (about 190 lines of code plus a 55-line spec docstring) and `tools.py` (about 170 plus 50) are above the ~150 target. They hold one responsibility each, so splitting them further would only scatter the contract.
+
+**Status.** Accepted (Gate 3). 1066 tests green; real eval 26/26 after the fixes.

@@ -55,14 +55,28 @@ class SearchFilters(BaseModel):
     min_duty_cycle_pct: float | None = Field(None, ge=0, le=100)
 
 
+class Candidate(BaseModel):
+    """A part number plus the section facts (from its table title) that tell
+    candidates apart, so the LLM can ask "110V or 220V?" without decoding suffixes."""
+
+    part_number: str
+    enclosure: str
+    voltage: str
+    phase: int | None = None
+    service: str
+    has_data: bool
+
+
 class ActuatorLookup(BaseModel):
     """Result of get_actuator(part_number).
 
     status:
     - found:          exactly one row and it has data -> `actuator` set.
     - found_no_data:  exactly one row, printed as N/A -> `actuator` set, has_data False.
-    - ambiguous:      the input matches several part numbers -> `candidates` (PNs).
+    - ambiguous:      the input matches several part numbers -> `candidates`.
     - not_found:      no match -> `suggestions` (closest PNs, may be empty).
+    `notes`: printed notes of the actuator's table (found / found_no_data),
+    plus "Sizes 6 and 7 are not CSA Certified" when csa_certified is False.
     """
 
     status: Literal["found", "found_no_data", "ambiguous", "not_found"]
@@ -70,7 +84,7 @@ class ActuatorLookup(BaseModel):
     normalized: str
     actuator: Actuator | None = None
     notes: list[str] = Field(default_factory=list)
-    candidates: list[str] = Field(default_factory=list)
+    candidates: list[Candidate] = Field(default_factory=list)
     suggestions: list[str] = Field(default_factory=list)
 
 
