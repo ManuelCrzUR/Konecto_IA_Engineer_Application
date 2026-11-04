@@ -101,7 +101,11 @@ def test_response_roundtrip(golden: list[Actuator]) -> None:
         session_id=uuid.uuid4(),
         answer="ok",
         products=[Product.from_actuator(golden[0])],
-        debug=[ToolTrace(tool="get_actuator", params={"part_number": "x"}, result={"a": [1]}, duration_ms=1.5)],
+        debug=[
+            ToolTrace(
+                tool="get_actuator", params={"part_number": "x"}, result={"a": [1]}, duration_ms=1.5
+            )
+        ],
     )
     again = ConversationResponse.model_validate_json(resp.model_dump_json())
     assert again == resp
@@ -112,3 +116,43 @@ def test_catalog_file_validates() -> None:
         pytest.skip("actuators.json not generated yet")
     cat = Catalog.model_validate_json(CATALOG_PATH.read_text())
     assert len(cat.rows) == 68
+
+
+def _row_764a() -> Product:
+    catalog = Catalog.model_validate_json(CATALOG_PATH.read_text())
+    row = next(r for r in catalog.rows if r.part_number == "764A00-11300000/A")
+    return Product.from_actuator(row)
+
+
+def test_product_json_writes_whole_floats_as_ints() -> None:
+    data = json.loads(_row_764a().model_dump_json())
+    assert data["fields"]["onoff_torque_nm"] == 750
+    assert isinstance(data["fields"]["onoff_torque_nm"], int)
+    assert data["fields"]["fla_60hz_a"] == 6.5
+    assert isinstance(data["fields"]["fla_60hz_a"], float)
+
+
+def test_product_python_dump_keeps_floats() -> None:
+    value = _row_764a().model_dump()["fields"]["onoff_torque_nm"]
+    assert value == 750.0
+    assert isinstance(value, float)
+    assert isinstance(_row_764a().model_dump(mode="json")["fields"]["onoff_torque_nm"], int)
+
+
+def test_product_json_keeps_none_as_null() -> None:
+    p = _row_764a().model_copy(update={"fields": {"fla_60hz_a": None, "lra_60hz_a": 12.0}})
+    data = json.loads(p.model_dump_json())
+    assert data["fields"] == {"fla_60hz_a": None, "lra_60hz_a": 12}
+
+
+def test_product_json_roundtrips() -> None:
+    p = _row_764a()
+    assert Product.model_validate_json(p.model_dump_json()) == p
+    assert Product.model_validate(json.loads(p.model_dump_json())) == p
+
+
+def test_response_serializes_nested_product_fields_as_ints() -> None:
+    resp = ConversationResponse(session_id=uuid.uuid4(), answer="ok", products=[_row_764a()])
+    data = json.loads(resp.model_dump_json())
+    assert data["products"][0]["fields"]["onoff_torque_nm"] == 750
+    assert isinstance(data["products"][0]["fields"]["onoff_torque_nm"], int)

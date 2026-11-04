@@ -320,7 +320,7 @@ How the run works:
 ## D-30 Tool output uses the printed spelling of numbers; multilingual scope
 
 **Decision.**
-1. Tools pass their dumped results through `tools.as_printed`, which turns whole-number floats into ints (750.0 -> 750). Postgres `numeric` reads back as float, and the LLM copied the ".0" into answers ("750.0 Nm") although the PDF prints "750". The prompt names the speed unit as printed in the tables, "seconds per 90°".
+1. Tools pass their dumped results through `tools.as_printed`, which turns whole-number floats into ints (750.0 -> 750). The same rule applies to `Product.fields` when it is serialized to JSON (a `field_serializer` with `when_used="json"`), so the API response and stored messages show `750` too. Python-mode dumps and `Actuator`, and therefore `actuators.json`, keep floats. Postgres `numeric` reads back as float, and the LLM copied the ".0" into answers ("750.0 Nm") although the PDF prints "750". The prompt names the speed unit as printed in the tables, "seconds per 90°".
 2. Language: understanding the question and writing the answer depend on the LLM. The prompt says "answer in the user's language". Tools are language-neutral: they take structured filters and return numbers. The only code with language support is the guard's fallback template, which covers Spanish and English (`detect_lang`); any other language gets the English template.
 
 **Alternatives.** (1) Format numbers in the prompt, or let the LLM tidy them; changing the DB column types. (2) Templates for more languages, or LLM-written fallbacks.

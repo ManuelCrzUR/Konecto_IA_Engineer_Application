@@ -21,6 +21,7 @@ from pydantic import (
     Field,
     StringConstraints,
     computed_field,
+    field_serializer,
     model_validator,
 )
 
@@ -160,7 +161,15 @@ class Catalog(BaseModel):
 
 
 class Product(BaseModel):
-    """What the API/app shows per actuator. Values are copied as is."""
+    """What the API/app shows per actuator. Values are copied as is.
+
+    JSON serialization of `fields` (model_dump(mode="json") / model_dump_json /
+    FastAPI responses): whole-number floats are written as ints, as the PDF
+    prints them (750.0 -> 750, 6.5 stays 6.5, None stays null). Python-mode
+    dumps keep floats. Same rule as tools.as_printed (D-30); the value is
+    identical, only its spelling changes. Validation is unchanged: ints read
+    back from JSON/jsonb become floats again, so round trips are stable.
+    """
 
     part_number: str
     enclosure: str
@@ -171,6 +180,10 @@ class Product(BaseModel):
     has_data: bool
     fields: dict[str, float | None] = Field(default_factory=dict)
     notes: list[str] = Field(default_factory=list)
+
+    @field_serializer("fields", when_used="json")
+    def _fields_as_printed(self, fields: dict[str, float | None]) -> dict[str, float | int | None]:
+        return {k: int(v) if v is not None and v.is_integer() else v for k, v in fields.items()}
 
     @classmethod
     def from_actuator(cls, a: Actuator, notes: list[str] | None = None) -> Product:
