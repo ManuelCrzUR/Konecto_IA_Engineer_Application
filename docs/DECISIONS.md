@@ -167,3 +167,43 @@ Each entry records one decision, the alternatives considered, its trade-off, and
 **Trade-off.** The regex is a little looser, but cross-checking the suffix against the section title still catches mismatches (Sprint 2 `normalize`). The in-repo fixture makes tests pass on a clean machine.
 
 **Status.** Accepted (Sprint 1).
+
+## D-17 Pair checks emit one issue per cell
+
+**Decision.** `Issue.field` is always a single real field name. Pair checks (`torque_ratio`, `fla_le_lra`, `speed_60_le_50`) emit one issue for each cell of the pair.
+
+**Alternatives.** One issue with a combined field such as `"onoff_torque_in_lbs/onoff_torque_nm"`.
+
+**Trade-off.** The flag rule ("validator error in that field") looks up issues by field name. With the combined name it would miss them, and the known OCR error `90 -> 6 Nm` would not be flagged for escalation. The cost is two issue lines per broken pair. Found by the black-box test-writer (task 2.5), not by the builder's own tests.
+
+**Status.** Accepted (Sprint 2).
+
+## D-18 OCR text is never repaired; doubtful cells are flagged instead
+
+**Decision.** `ocr.py` passes every raw cell to the strict `normalize.parse_number` unchanged. The benchmark's repairs (`O` -> `0`, guessing `.` as a thousands separator) are removed. A cell that does not parse keeps a `None` value and gets `parse_error`. `flags.py` then marks it `unparsable`, and its whole table is re-read by vision. A part number that fails the suffix check, for example `11330C0O`, is recorded as a flagged `part_number` cell and its row is skipped.
+
+**Alternatives.** Keep the benchmark repairs. They gave 99.45% of cells right offline.
+
+**Trade-off.** A repair is a guess, and a guessed value could reach Postgres looking correct. Without repairs, raw OCR accuracy drops to 96.15%. But no wrong value is loaded: the 28 rejected cells are empty and flagged, and 99.4% of the cells that received a value are correct. The escalated tables are the same as in the benchmark (T1, T2, T3 and T7), so there is no extra cost on this PDF.
+
+**Status.** Accepted (Sprint 2).
+
+## D-19 `get_llm()` lives at `app/llm.py`
+
+**Decision.** The only factory for chat models is `app/llm.py`, with one task per model (`agent` -> `AGENT_MODEL`, `extract` -> `EXTRACT_LLM_MODEL`). Both `agent/` and `ingestion/escalate.py` import it.
+
+**Alternatives.** `app/agent/llm.py`, as in the original architecture.
+
+**Trade-off.** The vision escalation also needs an LLM, and `ingestion/` must not import `agent/`. A shared root module keeps the layer rules and keeps per-task model configuration in one place. The tree changes slightly.
+
+**Status.** Accepted (Sprint 2).
+
+## D-20 Dot-thousands OCR reads (`9.700`) are doubtful
+
+**Decision.** In `ocr.py`, a raw cell matching `^\d{1,3}\.\d{3}$` is treated as unparsable and flagged. It is never read as 9.7.
+
+**Alternatives.** Accept it as a decimal (the plain `parse_number` behaviour) or repair it to 9700.
+
+**Trade-off.** The PDF prints thousands with commas and has no values with three decimals, so this shape is almost always the OCR misreading a comma. Accepting it silently corrupted 8 cells on the first run, for example T2 764B torque `9,700`/`1,100` read as `9.700`/`1.100`. The in-lbs/Nm ratio stayed plausible, so the validator missed them. Repairing it would be a guess (D-18). The rule is OCR-specific: `normalize.parse_number` itself stays generic.
+
+**Status.** Accepted (Sprint 2). Found by the OCR builder's safety test `test_every_wrong_cell_is_flagged`.
