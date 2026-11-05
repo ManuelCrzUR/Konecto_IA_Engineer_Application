@@ -140,7 +140,10 @@ def test_build_reproduces_committed_seed(tmp_path: Path) -> None:
     out = tmp_path / "actuators.json"
     result = subprocess.run(
         [sys.executable, str(BUILD_SCRIPT), "--out", str(out)],
-        cwd=BACKEND_DIR, capture_output=True, text=True, check=False,
+        cwd=BACKEND_DIR,
+        capture_output=True,
+        text=True,
+        check=False,
     )
     assert result.returncode == 0, result.stderr
     assert json.loads(out.read_text(encoding="utf-8")) == json.loads(

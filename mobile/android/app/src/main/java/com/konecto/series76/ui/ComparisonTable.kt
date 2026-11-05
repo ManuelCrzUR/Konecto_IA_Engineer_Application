@@ -94,7 +94,9 @@ private fun BestFrame() {
         .offset(x = LabelWidth + Gap).width(ColWidth).fillMaxHeight()
         .shadow(12.dp, ColShape, ambientColor = colors.glow, spotColor = colors.glow)
         .background(MaterialTheme.colorScheme.surface, ColShape)
-    if (!colors.isDark) m = m.border(BorderStroke(1.dp, MaterialTheme.colorScheme.primary), ColShape)
+    // Border fades out as the theme goes dark (the glow takes over); glow is already a blended colour.
+    val borderAlpha = 1f - colors.darkFraction
+    if (borderAlpha > 0f) m = m.border(BorderStroke(1.dp, MaterialTheme.colorScheme.primary.copy(alpha = borderAlpha)), ColShape)
     Spacer(m)
 }
 

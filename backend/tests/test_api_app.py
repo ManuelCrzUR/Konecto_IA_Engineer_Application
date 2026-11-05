@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import logging
-import os
 
 import psycopg
 import pytest
@@ -18,10 +17,9 @@ from app.api.errors import ApiError
 from app.api.main import create_app, startup_escalator
 from app.db.connection import SCHEMA_SQL
 from app.llm import LLMConfigError
+from tests.conftest import get_test_db_url
 
-DB_URL = os.environ.get(
-    "TEST_DATABASE_URL", "postgresql://series76:series76@localhost:5432/series76_t_api_a"
-)
+DB_URL = get_test_db_url("series76_t_api_a")
 
 
 class Body(BaseModel):
@@ -75,7 +73,18 @@ def test_health_after_bootstrap(clean_db, caplog):
         TestClient(create_app(DB_URL, bootstrap=True)) as c,
     ):
         assert c.get("/health").json() == {"status": "ok", "actuators": 68}
-    assert "source=" in caplog.text
+    assert "Data ready: 68 actuators (source: " in caplog.text
+
+
+def test_data_ready_logged_when_db_already_full(clean_db, caplog):
+    with TestClient(create_app(DB_URL, bootstrap=True)):
+        pass  # first start fills the database
+    with (
+        caplog.at_level(logging.INFO, logger="series76.api"),
+        TestClient(create_app(DB_URL, bootstrap=True)),
+    ):
+        pass
+    assert "Data ready: 68 actuators (source: db)" in caplog.text
 
 
 def test_health_without_bootstrap_is_empty(client):
@@ -86,7 +95,12 @@ def test_health_without_bootstrap_is_empty(client):
     ("path", "status", "error", "detail"),
     [
         ("/t/api", 409, "conflict", "already there"),
-        ("/t/agent", 503, "llm_unavailable", "The language model is unavailable. Try again shortly."),
+        (
+            "/t/agent",
+            503,
+            "llm_unavailable",
+            "The language model is unavailable. Try again shortly.",
+        ),
         ("/t/llmcfg", 503, "llm_not_configured", "AGENT_MODEL is not set"),
         ("/t/db", 503, "database_unavailable", None),
         ("/t/value", 500, "internal_error", "Unexpected server error"),
@@ -131,7 +145,7 @@ def test_startup_escalator(monkeypatch):
     assert startup_escalator() is None
     monkeypatch.setenv("STARTUP_ESCALATION", "off")
     assert startup_escalator() is None
-    monkeypatch.setattr(main, "make_vision_escalator", lambda: (lambda t, b: []))
+    monkeypatch.setattr(main, "make_vision_escalator", lambda: lambda t, b: [])
     monkeypatch.setenv("STARTUP_ESCALATION", "on")
     assert callable(startup_escalator())
 

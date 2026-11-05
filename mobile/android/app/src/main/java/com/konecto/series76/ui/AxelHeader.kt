@@ -31,6 +31,6 @@ fun AxelHeader(
             verticalAlignment = Alignment.CenterVertically,
             content = content,
         )
-        colors.headerDivider?.let { HorizontalDivider(color = it) }
+        HorizontalDivider(color = colors.headerDivider)
     }
 }

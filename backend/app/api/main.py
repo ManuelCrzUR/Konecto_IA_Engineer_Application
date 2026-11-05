@@ -48,6 +48,24 @@ from app.ingestion.pipeline import Escalator
 
 logger = logging.getLogger("series76.api")
 
+
+def _ensure_app_logging() -> None:
+    """uvicorn only configures its own loggers, so series76.* INFO lines had no handler.
+
+    If nobody configured the root logger (plain uvicorn), give it one stderr handler.
+    The app logger keeps propagating, so gunicorn, basicConfig or pytest's caplog,
+    which own the root logger, receive the records once and nothing is duplicated.
+    """
+    root = logging.getLogger()
+    if not root.handlers:
+        handler = logging.StreamHandler()
+        handler.setFormatter(logging.Formatter("%(levelname)s:     %(name)s: %(message)s"))
+        root.addHandler(handler)
+    app_logger = logging.getLogger("series76")
+    if app_logger.level == logging.NOTSET:
+        app_logger.setLevel(logging.INFO)
+
+
 POOL_MAX = 10
 POOL_TIMEOUT = 10.0  # seconds to wait for Postgres at startup
 
@@ -83,6 +101,7 @@ def _open_pool(url: str) -> ConnectionPool:
 
 
 def create_app(database_url: str | None = None, *, bootstrap: bool = True) -> FastAPI:
+    _ensure_app_logging()
     url = database_url or default_database_url()
 
     @asynccontextmanager
@@ -94,7 +113,7 @@ def create_app(database_url: str | None = None, *, bootstrap: bool = True) -> Fa
                 with pool.connection() as conn:
                     apply_schema(conn)
                     status = ensure_data(conn, escalator=startup_escalator())
-                logger.info("Data ready: source=%s rows=%d", status.source, status.rows)
+                logger.info(status.summary())
             yield
         finally:
             pool.close()

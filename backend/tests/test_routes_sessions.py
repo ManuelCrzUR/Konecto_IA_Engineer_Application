@@ -1,6 +1,5 @@
 """GET /api/sessions and /api/sessions/{id}/messages on a minimal app (real Postgres)."""
 
-import os
 import uuid
 from collections.abc import Iterator
 
@@ -15,7 +14,7 @@ from app.api.deps import get_conn
 from app.api.errors import install_error_handlers
 from app.db import sessions_repo as repo
 from app.domain.models import Actuator, Product, ToolTrace
-from tests.conftest import DEFAULT_TEST_URL
+from tests.conftest import get_test_db_url
 
 
 @pytest.fixture
@@ -24,7 +23,7 @@ def client(pg) -> Iterator[TestClient]:
     app.include_router(routes_sessions.router, prefix="/api")
     install_error_handlers(app)
 
-    url = os.environ.get("TEST_DATABASE_URL", DEFAULT_TEST_URL)
+    url = get_test_db_url()
 
     def _conn() -> Iterator[psycopg.Connection]:
         with psycopg.connect(url, autocommit=True, row_factory=dict_row) as conn:

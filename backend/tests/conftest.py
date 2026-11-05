@@ -6,12 +6,31 @@ from pathlib import Path
 
 import psycopg
 import pytest
+from dotenv import dotenv_values
 
 BACKEND_DIR = Path(__file__).resolve().parent.parent
 PROCESSED_JSON = BACKEND_DIR / "data" / "processed" / "actuators.json"
 GOLDEN_DRAFT = Path(__file__).resolve().parent / "fixtures" / "golden_draft.json"
 SCHEMA_SQL = Path(__file__).resolve().parent.parent / "app" / "db" / "schema.sql"
-DEFAULT_TEST_URL = "postgresql://series76:series76@localhost:5432/series76_test"
+REPO_ENV = BACKEND_DIR.parent / ".env"
+# Only the DB-related keys are taken from the root .env (override=False semantics: a real
+# environment variable wins); the LLM key must never leak into the tests.
+for _k, _v in dotenv_values(REPO_ENV).items():
+    if _k in ("DB_PORT", "TEST_DATABASE_URL") and _v:
+        os.environ.setdefault(_k, _v)
+
+
+def get_test_db_url(db: str = "series76_test") -> str:
+    """The single source of the test DB URL: TEST_DATABASE_URL, else built from DB_PORT."""
+    explicit = os.environ.get("TEST_DATABASE_URL")
+    if explicit:
+        return explicit
+    port = os.environ.get("DB_PORT", "5432")
+    return f"postgresql://series76:series76@localhost:{port}/{db}"
+
+
+# Evaluated after the .env load above; kept for modules that import the constant.
+DEFAULT_TEST_URL = get_test_db_url()
 TRUNCATE_TABLES = ("messages", "sessions", "actuators", "catalog_tables")
 
 
@@ -23,7 +42,7 @@ def golden_rows() -> list[dict]:
 
 @pytest.fixture(scope="session")
 def pg_conn():
-    url = os.environ.get("TEST_DATABASE_URL", DEFAULT_TEST_URL)
+    url = get_test_db_url()
     try:
         conn = psycopg.connect(url, autocommit=True, connect_timeout=3)
     except psycopg.OperationalError as exc:

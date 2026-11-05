@@ -24,6 +24,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOf
 import kotlinx.coroutines.flow.map
 import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 const val SEARCH_DEBOUNCE_MS = 300L
@@ -46,6 +47,8 @@ sealed interface SearchUiState {
     data class NoResults(val query: String) : SearchUiState
     data class Error(val message: String) : SearchUiState
 }
+
+internal const val MENU_CLOSE_MS = 120L
 
 @OptIn(FlowPreview::class, kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class ConversationsViewModel(
@@ -88,8 +91,9 @@ class ConversationsViewModel(
 
     fun onQueryChange(q: String) { _query.value = q }
 
+    /** Applied after [MENU_CLOSE_MS] so the menu closes first; lives in viewModelScope so leaving the screen can't drop it. */
     fun setThemeMode(mode: ThemeMode) {
-        viewModelScope.launch { themePreferences.setThemeMode(mode) }
+        viewModelScope.launch { delay(MENU_CLOSE_MS); themePreferences.setThemeMode(mode) }
     }
 
     private suspend fun searchState(q: String): SearchUiState = when (val r = repo.searchSessions(q)) {

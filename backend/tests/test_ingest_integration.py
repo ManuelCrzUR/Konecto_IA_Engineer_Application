@@ -7,7 +7,6 @@ existed). These run main() end to end on the test database.
 
 from __future__ import annotations
 
-import os
 import shutil
 from pathlib import Path
 
@@ -17,7 +16,7 @@ import pytest
 import ingest
 from app.domain.models import Catalog
 from app.ingestion.pipeline import ExtractionReport
-from tests.conftest import DEFAULT_TEST_URL
+from tests.conftest import get_test_db_url
 
 BACKEND = Path(__file__).resolve().parents[1]
 REAL_JSON = BACKEND / "data" / "processed" / "actuators.json"
@@ -28,7 +27,7 @@ pytestmark = pytest.mark.integration
 def db_url(pg: psycopg.Connection) -> str:
     """Test DB URL, with every table dropped: what a first run on a new machine sees."""
     pg.execute("DROP TABLE IF EXISTS messages, sessions, actuators, catalog_tables CASCADE")
-    return os.environ.get("TEST_DATABASE_URL") or DEFAULT_TEST_URL  # info.dsn hides the password
+    return get_test_db_url()  # info.dsn hides the password
 
 
 @pytest.fixture
@@ -46,10 +45,11 @@ def _count(url: str) -> int:
 
 
 def test_reset_on_brand_new_database(db_url: str, json_copy: Path, capsys) -> None:
-    code = ingest.main(["--reset", "--no-escalation", "--json", str(json_copy),
-                        "--database-url", db_url])
+    code = ingest.main(
+        ["--reset", "--no-escalation", "--json", str(json_copy), "--database-url", db_url]
+    )
     assert code == 0, capsys.readouterr().err
-    assert "rows=68" in capsys.readouterr().out
+    assert "Data ready: 68 actuators" in capsys.readouterr().out
     assert _count(db_url) == 68
 
 
@@ -67,15 +67,23 @@ def test_from_pdf_replaces_stale_rows(
     assert ingest.main(args) == 0
     catalog = Catalog.model_validate_json(REAL_JSON.read_text())
     smaller = catalog.model_copy(update={"rows": catalog.rows[1:]})  # one PN dropped
-    monkeypatch.setattr(ingest, "extract_with_report",
-                        lambda pdf, esc: (smaller, ExtractionReport()))
+    monkeypatch.setattr(
+        ingest, "extract_with_report", lambda pdf, esc: (smaller, ExtractionReport())
+    )
     assert ingest.main(["--from-pdf", "--force", *args]) == 0
     assert _count(db_url) == 67  # the dropped PN does not linger
 
 
 def test_database_down_is_a_clean_error(json_copy: Path, capsys) -> None:
-    code = ingest.main(["--no-escalation", "--json", str(json_copy),
-                        "--database-url", "postgresql://series76:series76@localhost:1/none"])
+    code = ingest.main(
+        [
+            "--no-escalation",
+            "--json",
+            str(json_copy),
+            "--database-url",
+            "postgresql://series76:series76@localhost:1/none",
+        ]
+    )
     assert code == 1
     assert "docker compose up -d db" in capsys.readouterr().err
 

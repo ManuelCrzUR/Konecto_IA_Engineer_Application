@@ -28,8 +28,12 @@ android {
 
     buildTypes {
         release {
-            isMinifyEnabled = false
+            isMinifyEnabled = true
+            isShrinkResources = true
             proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"), "proguard-rules.pro")
+            // Debug keystore ONLY so the release build can be installed locally for testing.
+            // A real release needs its own keystore.
+            signingConfig = signingConfigs.getByName("debug")
         }
     }
 

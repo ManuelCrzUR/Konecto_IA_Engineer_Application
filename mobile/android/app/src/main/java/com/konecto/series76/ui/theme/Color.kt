@@ -1,14 +1,12 @@
 package com.konecto.series76.ui.theme
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.material3.ColorScheme
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.ReadOnlyComposable
-import androidx.compose.runtime.staticCompositionLocalOf
+import androidx.compose.runtime.compositionLocalOf
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.dp
 
 /** Tokens from DESIGN.md section 2 that Material 3 has no slot for. */
 data class AxelColors(
@@ -19,15 +17,18 @@ data class AxelColors(
     val accentText: Color,
     val surfaceViolet: Color,
     val divider: Color,
-    /** Shadow color of the dark glow; Transparent in light (use a 1 dp primary border). */
+    /** Shadow color of the dark glow; fully transparent in light (alpha 0 keeps the tween clean). */
     val glow: Color,
     /** Header band: background in dark, white surface in light. */
     val headerBand: Color,
-    /** Bottom divider of the header band; null in light, where the band is a raised surface. */
-    val headerDivider: Color?,
-    /** Outline of plain cards: none in dark, 1 dp divider in light. */
-    val cardBorder: BorderStroke?,
+    /** Bottom divider of the header band; transparent in light, where the band is a raised surface. */
+    val headerDivider: Color,
+    /** Outline colour of plain cards (consumers draw it as 1 dp): transparent in dark. */
+    val cardBorder: Color,
+    /** Target theme flag (not animated). */
     val isDark: Boolean,
+    /** Animated blend: 0 = light palette, 1 = dark palette. */
+    val darkFraction: Float = if (isDark) 1f else 0f,
 )
 
 val DarkAxelColors = AxelColors(
@@ -41,7 +42,7 @@ val DarkAxelColors = AxelColors(
     glow = Color(0xFF412C64),
     headerBand = Color(0xFF0E0E0E),
     headerDivider = Color(0xFF2A2A2A),
-    cardBorder = null,
+    cardBorder = Color(0x00E7E2EE),
     isDark = true,
 )
 
@@ -53,10 +54,10 @@ val LightAxelColors = AxelColors(
     accentText = Color(0xFF6A3FA0),
     surfaceViolet = Color(0xFFF3EAFE),
     divider = Color(0xFFE7E2EE),
-    glow = Color.Transparent,
+    glow = Color(0x00412C64),
     headerBand = Color(0xFFFFFFFF),
-    headerDivider = null,
-    cardBorder = BorderStroke(1.dp, Color(0xFFE7E2EE)),
+    headerDivider = Color(0x002A2A2A),
+    cardBorder = Color(0xFFE7E2EE),
     isDark = false,
 )
 
@@ -88,7 +89,7 @@ val LightScheme: ColorScheme = lightColorScheme(
     error = LightAxelColors.caution,
 )
 
-val LocalAxelColors = staticCompositionLocalOf { DarkAxelColors }
+val LocalAxelColors = compositionLocalOf { DarkAxelColors }
 
 object AxelTheme {
     val colors: AxelColors

@@ -1,6 +1,5 @@
 """sessions_repo against a real Postgres (skipped when unreachable)."""
 
-import os
 import uuid
 
 import psycopg
@@ -9,7 +8,7 @@ import pytest
 from app.db import sessions_repo as repo
 from app.db import sessions_search
 from app.domain.models import Actuator, Product, ToolTrace
-from tests.conftest import DEFAULT_TEST_URL
+from tests.conftest import get_test_db_url
 
 
 def _product(golden_rows: list[dict]) -> Product:
@@ -108,7 +107,7 @@ def test_unknown_session_fk_rolls_back(pg):
 def test_persistence_across_connections(pg, golden_rows):
     s = repo.create_session(pg, "persist")
     repo.add_message(pg, s.id, "assistant", "kept", [_product(golden_rows)])
-    url = os.environ.get("TEST_DATABASE_URL", DEFAULT_TEST_URL)
+    url = get_test_db_url()
     with psycopg.connect(url) as fresh:
         assert repo.get_session(fresh, s.id) is not None
         (m,) = repo.list_messages(fresh, s.id)

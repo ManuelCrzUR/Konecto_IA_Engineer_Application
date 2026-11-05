@@ -1,6 +1,10 @@
 package com.konecto.series76.chat
 
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.imeNestedScroll
+import androidx.compose.foundation.layout.isImeVisible
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -26,6 +30,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
@@ -64,6 +70,8 @@ fun ChatContent(
     onBack: () -> Unit,
     onTitleTapsFired: () -> Unit,
 ) {
+    // Scaffold's default contentWindowInsets = systemBars (status + nav bar, no IME): inner already clears
+    // the nav bar; imePadding() after consumeWindowInsets(inner) adds only the IME's extra height (no double padding).
     Scaffold(topBar = { ChatHeader(onBack, onTitleTapsFired) }) { inner ->
         Column(Modifier.fillMaxSize().padding(inner).consumeWindowInsets(inner).imePadding()) {
             Box(Modifier.weight(1f).fillMaxWidth()) {
@@ -80,24 +88,42 @@ fun ChatContent(
     }
 }
 
+/**
+ * Newest-first list with reverseLayout: index 0 (typing indicator or last message) is anchored to the
+ * bottom, so the viewport shrinking with the IME keeps it visible frame by frame.
+ */
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 private fun MessageList(state: ChatUiState) {
     val listState = rememberLazyListState()
+    val reversed = remember(state.messages) { state.messages.asReversed() }
     val count = state.messages.size + if (state.sending) 1 else 0
-    LaunchedEffect(count) { if (count > 0) listState.scrollToItem(count - 1) }
+    // reverseLayout: index 0 is the newest item. Follow it only when already near it or after the user's own send.
+    val nearNewest = { listState.firstVisibleItemIndex <= 1 }
+    LaunchedEffect(count) {
+        if (count > 0 && (nearNewest() || state.messages.lastOrNull()?.isUser == true)) listState.animateScrollToItem(0)
+    }
+    val imeVisible = WindowInsets.isImeVisible
+    // Keyed on the IME state: the effect restarts when the keyboard opens (not on first composition).
+    var imeSeen by remember { mutableStateOf(imeVisible) }
+    LaunchedEffect(imeVisible) {
+        if (imeVisible && !imeSeen && nearNewest()) listState.animateScrollToItem(0)
+        imeSeen = imeVisible
+    }
     // Messages present on first composition (history) never animate; new ones animate once.
     val skip = remember { state.messages.mapTo(mutableSetOf()) { it.key } }
     LazyColumn(
-        Modifier.fillMaxSize().testTag("chat_list"),
+        Modifier.fillMaxSize().imeNestedScroll().testTag("chat_list"),
         state = listState,
+        reverseLayout = true,
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        items(state.messages, key = { it.key }, contentType = { it.role }) { item ->
-            MessageItem(item, animate = item.key !in skip, onAnimated = { skip.add(item.key) })
-        }
         if (state.sending) {
             item(key = "typing", contentType = "typing") { ThinkingRow() }
+        }
+        items(reversed, key = { it.key }, contentType = { it.role }) { item ->
+            MessageItem(item, animate = item.key !in skip, onAnimated = { skip.add(item.key) })
         }
     }
 }

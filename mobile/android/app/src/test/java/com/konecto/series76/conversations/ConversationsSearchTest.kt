@@ -123,6 +123,8 @@ class ConversationsSearchTest {
         runCurrent()
         assertEquals(ThemeMode.DARK, vm.themeMode.value)
         vm.setThemeMode(ThemeMode.LIGHT); runCurrent()
+        assertEquals(ThemeMode.DARK, vm.themeMode.value) // delayed until the menu has closed
+        advanceTimeBy(MENU_CLOSE_MS + 1); runCurrent()
         assertEquals(ThemeMode.LIGHT, vm.themeMode.value)
         assertEquals(ThemeMode.LIGHT, prefs.themeMode.first())
     }

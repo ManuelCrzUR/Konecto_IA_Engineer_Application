@@ -55,6 +55,10 @@ class DataStatus(BaseModel):
     source: Literal["db", "json", "pdf"]
     rows: int
 
+    def summary(self) -> str:
+        """The one 'data ready' line shared by the API log, the CLI and ingest."""
+        return f"Data ready: {self.rows} actuators (source: {self.source})"
+
 
 def _load_valid_json(json_path: Path) -> tuple[Catalog | None, bool]:
     """(catalog, corrupt). catalog is None when missing or unusable."""

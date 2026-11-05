@@ -4,7 +4,6 @@ Only ``deps.get_agent`` is faked; the DB, repos, routes and error handlers are r
 Run with TEST_DATABASE_URL pointing at a throwaway DB.
 """
 
-import os
 import uuid
 
 import psycopg
@@ -17,10 +16,9 @@ from app.api.main import create_app
 from app.domain.conversation import AgentResult
 from app.domain.models import Actuator, Product, ToolTrace
 from app.llm import LLMConfigError
+from tests.conftest import get_test_db_url
 
-DB_URL = os.environ.get(
-    "TEST_DATABASE_URL", "postgresql://series76:series76@localhost:5432/series76_t_api_d"
-)
+DB_URL = get_test_db_url("series76_t_api_d")
 
 PRODUCT_KEYS = {
     "part_number", "enclosure", "voltage", "phase", "service",

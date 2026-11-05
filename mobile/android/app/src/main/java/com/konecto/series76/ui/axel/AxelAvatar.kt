@@ -32,7 +32,7 @@ fun AxelAvatar(
     state: AxelState,
     modifier: Modifier = Modifier,
     size: Dp = 32.dp,
-    colors: AxelPalette = if (AxelTheme.colors.isDark) AxelPalette.dark else AxelPalette.light,
+    colors: AxelPalette = AxelPalette.blend(AxelTheme.colors.darkFraction),
 ) {
     val animate = LocalAnimationsEnabled.current
     val phase = remember { Animatable(0f) }

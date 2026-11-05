@@ -31,7 +31,18 @@ reset: ## Stop the stack AND DELETE the Postgres data volume (all data and conve
 logs: ## Follow the API container logs
 	docker compose logs -f api
 
-test: ## Run the backend test suite (needs the db up: make db)
+# Idempotent creation of the test DB, independent of the initdb bind mount (which is empty
+# on Colima when the repo lives outside $$HOME). Waits for the db to be healthy first.
+define ENSURE_TEST_DB
+	@docker compose up -d --wait db
+	@u=$$(docker compose exec -T db printenv POSTGRES_USER); d=$$(docker compose exec -T db printenv POSTGRES_DB); \
+	t="$${d}_test"; \
+	docker compose exec -T db psql -U "$$u" -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='$$t'" | grep -q 1 \
+	|| docker compose exec -T db psql -U "$$u" -d postgres -c "CREATE DATABASE \"$$t\" OWNER \"$$u\""
+endef
+
+test: ## Run the backend test suite (starts the db and creates series76_test if missing)
+	$(ENSURE_TEST_DB)
 	cd backend && uv run pytest -q
 
 eval: ## Run the agent evaluation set
@@ -43,8 +54,8 @@ chat: ## Interactive CLI chat (pass traces with: make chat ARGS=--debug)
 ingest: ## Run the PDF ingestion script (e.g. make ingest ARGS=--force)
 	cd backend && uv run python ingest.py $(ARGS)
 
-db: ## Start only the Postgres container
-	docker compose up -d db
+db: ## Start only the Postgres container (and create the series76_test database if missing)
+	$(ENSURE_TEST_DB)
 
 android-reverse: ## Let the emulator / USB phone reach the API at localhost:$(API_PORT) (adb reverse)
 	adb reverse tcp:$(API_PORT) tcp:$(API_PORT) && adb reverse --list

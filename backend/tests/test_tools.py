@@ -3,7 +3,6 @@
 from __future__ import annotations
 
 import json
-import os
 from pathlib import Path
 
 import pytest
@@ -13,7 +12,7 @@ from app.db import actuators_repo as repo
 from app.db import connection
 from app.domain.models import Catalog
 from app.domain.search import SearchFilters
-from tests.conftest import DEFAULT_TEST_URL, PROCESSED_JSON
+from tests.conftest import PROCESSED_JSON, get_test_db_url
 
 CATALOG = Catalog.model_validate_json(PROCESSED_JSON.read_text())
 SCHEMAS = Path(__file__).parent / "fixtures" / "tool_schemas.json"
@@ -175,7 +174,7 @@ def test_describe(db):
 # ---- make_tools -------------------------------------------------------------
 @pytest.fixture
 def toolset(db):
-    url = os.environ.get("TEST_DATABASE_URL", DEFAULT_TEST_URL)
+    url = get_test_db_url()
     return {t.name: t for t in tools.make_tools(connection.conn_factory(url))}
 
 
@@ -212,26 +211,30 @@ def test_as_printed_drops_trailing_zero_only() -> None:
     from app.agent.tools import as_printed
 
     assert as_printed({"a": 750.0, "b": [1.1, 2.0], "c": {"d": 0.0}, "e": True, "f": None}) == {
-        "a": 750, "b": [1.1, 2], "c": {"d": 0}, "e": True, "f": None
+        "a": 750,
+        "b": [1.1, 2],
+        "c": {"d": 0},
+        "e": True,
+        "f": None,
     }
     assert isinstance(as_printed(750.0), int)
 
 
 def test_tool_output_has_printed_integers(db) -> None:
-    import os
 
     from app.agent.tools import make_tools
     from app.db.connection import conn_factory
-    from tests.conftest import DEFAULT_TEST_URL
+    from tests.conftest import get_test_db_url
 
-    url = os.environ.get("TEST_DATABASE_URL", DEFAULT_TEST_URL)
+    url = get_test_db_url()
     out = make_tools(conn_factory(url))[0].invoke({"part_number": "764A00-11300000/A"})
     torque = out["actuator"]["onoff_torque_nm"]
     assert torque == 750 and isinstance(torque, int)
 
 
 @pytest.mark.parametrize(
-    ("raw", "norm"), [("761A001130", "761A00-1130"), ("761a0011", "761A00-11"), ("764A00", "764A00")]
+    ("raw", "norm"),
+    [("761A001130", "761A00-1130"), ("761a0011", "761A00-11"), ("764A00", "764A00")],
 )
 def test_normalize_dashless_partial(raw: str, norm: str) -> None:
     from app.agent.tools import normalize_part_number

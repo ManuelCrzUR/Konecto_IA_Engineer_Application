@@ -127,14 +127,17 @@ splash only.
   (codeBackground, the result collapsed to 6 lines with "Show all N lines"). The
   number guard is a caution-bordered card "Number guard fired".
 
-## 7. Motion (300 ms, `EaseOutExpo`-like emphasized decelerate `CubicBezierEasing(0.05f, 0.7f, 0.1f, 1f)`)
+## 7. Motion (specs live in `NavMotion`, `ui/theme/Motion.kt`)
 
-- Conversations ↔ Chat: shared X axis. Enter: `slideInHorizontally { it / 3 } +
-  fadeIn(tween(300, Emphasized))`. Exit: `slideOutHorizontally { -it / 3 } +
-  fadeOut(tween(200))`. Pop reverses it. Predictive back follows the finger.
-- Chat → Debug: fade-through. Exit `fadeOut(tween(90))`; enter
-  `fadeIn(tween(210, delayMillis = 90)) + scaleIn(initialScale = 0.92f)`.
-- Splash → Conversations: a plain fade (300 ms).
+- Conversations <-> Chat: Material 3 shared X axis, 400 ms `FastOutSlowInEasing`.
+  Enter: `slideInHorizontally { it / 4 }` + `fadeIn(tween(210, delayMillis = 90,
+  LinearOutSlowInEasing))`. Exit: `slideOutHorizontally { -it / 4 }` +
+  `fadeOut(tween(90, FastOutLinearInEasing))`. Pop reverses the directions.
+  Predictive back follows the finger.
+- Chat -> Debug: fade-through. Exit `fadeOut(tween(90))`; enter
+  `fadeIn(tween(210, delayMillis = 90)) + scaleIn(initialScale = 0.92f,
+  tween(300, FastOutSlowInEasing))`.
+- Splash -> Conversations: a plain fade (300 ms).
 - In-screen: new messages fade in and rise 12 dp. Expand/collapse takes 250 ms
   ease-out. List rows use `Modifier.animateItem()`. Animate only alpha and
   translation.

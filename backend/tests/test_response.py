@@ -184,7 +184,13 @@ def test_template_variants():
 
 @pytest.mark.parametrize(
     "text",
-    ["the Series 76 catalog", "series-76 actuators", "SERIES 76", "actuadores Serie 76", "la série 76"],
+    [
+        "the Series 76 catalog",
+        "series-76 actuators",
+        "SERIES 76",
+        "actuadores Serie 76",
+        "la série 76",
+    ],
 )
 def test_family_name_is_not_a_number(text: str) -> None:
     # Found in the real eval: "Series 76" in a correct answer tripped the guard.

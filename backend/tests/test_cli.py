@@ -9,6 +9,7 @@ import pytest
 
 import cli
 from app.agent import agent as agent_mod
+from app.bootstrap import DataStatus
 from app.domain.conversation import AgentResult, HistoryTurn
 from app.domain.models import Product, ToolTrace
 from app.llm import LLMConfigError
@@ -63,8 +64,9 @@ def prepared(monkeypatch: pytest.MonkeyPatch) -> dict[str, Any]:
     def fake_connect(url: str | None = None) -> FakeConn:
         return seen["conn"]
 
-    def fake_ensure(conn: Any, **kwargs: Any) -> None:
+    def fake_ensure(conn: Any, **kwargs: Any) -> DataStatus:
         seen["ensure_kwargs"] = kwargs
+        return DataStatus(source="db", rows=68)
 
     monkeypatch.setattr(cli, "connect", fake_connect)
     monkeypatch.setattr(cli, "apply_schema", lambda conn: None)

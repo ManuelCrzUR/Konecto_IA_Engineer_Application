@@ -1,6 +1,5 @@
 """Integration tests for app/db/schema.sql (needs a reachable Postgres)."""
 
-import os
 from collections.abc import Iterator
 from pathlib import Path
 
@@ -8,16 +7,17 @@ import psycopg
 import pytest
 from psycopg import errors
 
+from tests.conftest import get_test_db_url
+
 pytestmark = pytest.mark.integration
 
 SCHEMA_SQL = Path(__file__).resolve().parents[1] / "app" / "db" / "schema.sql"
-DEFAULT_URL = "postgresql://series76:series76@localhost:5432/series76_test"
 TEST_SCHEMA = "schema_test"
 
 
 @pytest.fixture
 def conn() -> Iterator[psycopg.Connection]:
-    url = os.environ.get("TEST_DATABASE_URL", DEFAULT_URL)
+    url = get_test_db_url()
     try:
         c = psycopg.connect(url, autocommit=True, connect_timeout=3)
     except psycopg.OperationalError as exc:
@@ -32,7 +32,9 @@ def conn() -> Iterator[psycopg.Connection]:
     c.close()
 
 
-def insert_actuator(conn: psycopg.Connection, part_number: str = "764A", **overrides: object) -> None:
+def insert_actuator(
+    conn: psycopg.Connection, part_number: str = "764A", **overrides: object
+) -> None:
     row: dict[str, object] = {
         "part_number": part_number,
         "table_id": "t1",

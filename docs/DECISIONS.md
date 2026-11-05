@@ -455,7 +455,7 @@ Already in place:
 
 **Alternatives.** An idempotency key per message, which needs a schema change. Disabling Retry entirely.
 
-**Trade-off.** Retrying a question stores it again in the history. That is the user's real retry, and the agent still answers once per attempt. The remaining lint warnings (no app icon, no data-extraction rules) are cosmetic or not applicable: `allowBackup=false` and the app stores nothing locally. The icon is a Sprint 6 polish item (done in Sprint 5.5).
+**Trade-off.** Retrying a question stores it again in the history. That is the user's real retry, and the agent still answers once per attempt. The remaining lint warnings (no app icon, no data-extraction rules) are cosmetic or not applicable: `allowBackup=false` and the app stores nothing locally. The icon was a polish item of the old delivery plan's Sprint 6 (now Sprint 7), and it was done early, in Sprint 5.5.
 
 **Status.** Accepted (Gate 5). 63 unit tests and 15 instrumented tests green on API 37; backend 1298 tests green.
 
@@ -516,3 +516,38 @@ Already in place:
 **Alternatives.** The strict variant now: closes the path, but recall answers that repeat a number the user typed earlier would fall back to the template, and the feature D-26 was added for would regress.
 
 **Trade-off.** Keeps the "what did I tell you?" behavior for the single-user case, at the cost of a documented integrity gap that becomes real only in a multi-user deployment.
+
+## D-41 Framework check against ecosystem-primer (Sprint 7)
+
+**Context.** The LangChain `ecosystem-primer` skill gives a decision order: Deep Agents (planning, files, subagents, memory), then LangGraph (custom control flow), then LangChain `create_agent` (single-purpose agent with a fixed tool set). We compared it with `app/agent/agent.py` and `pyproject.toml`.
+
+**Decision.** Keep `langchain.agents.create_agent` with the custom `TraceRecorder(AgentMiddleware)`. This is a single-purpose agent with three fixed tools, no planning, no long-session files and no custom branching, so the primer points to rung 3. Middleware is the supported hook for tracing and error shaping. Findings: no deprecated API (we do not use `create_react_agent` or `AgentExecutor`; `create_agent` is the current entry point); history lives in Postgres, so no checkpointer is needed; `recursion_limit` is the documented guard and `GraphRecursionError` is handled. Versions: `pyproject.toml` pins `langchain>=1.0.0`, the lock resolves 1.4.8 / langgraph 1.2.19, so `uv sync` is reproducible; `langgraph` is imported directly (errors, `Command`); it was only a transitive dependency, so it is now declared explicitly in `pyproject.toml` (`langgraph>=1.2`, Sprint 7.1).
+
+**Alternatives.** LangGraph `StateGraph` (more code, no benefit without branching); Deep Agents (planning and subagents we do not need).
+
+**Trade-off.** Floor-only pins rely on `uv.lock` for reproducibility (a fresh resolve without the lock could pick a newer minor). Interview point: LangChain agents already run on LangGraph, so "no custom graph" is a choice, not a missing runtime.
+
+**Status.** Accepted (Sprint 7.5).
+
+## D-42 Final agent model: openai/gpt-6-luna (Sprint 7)
+
+**Context.** We ran the 38-case eval (`backend/eval`) against 6 tool-capable models on OpenRouter:
+
+| Model | Passed | Time | Cost (USD) |
+|---|---|---|---|
+| openai/gpt-6-luna | 38/38 | 71 s | 0.011 |
+| deepseek-v4.1-flash | 36/38 | 48 s | 0.017 |
+| claude-haiku-5.5 | 34/38 | 75 s | 0.024 |
+| gemini-2.5-flash-lite | 34/38 | 33 s | 0.002 |
+| glm-5.3-flash | 30/38 | 246 s | 0.029 |
+| qwen3.8-flash | 27/38 | 413 s | 0.037 |
+
+The development model `stealth/crouton-alpha` (free) also scored 38/38 but is temporary.
+
+**Decision.** `AGENT_MODEL=openai/gpt-6-luna` is the documented default in `.env.example`. The official `backend/eval/report.md` was produced with it: 38/38 (100%), every category 100% (lookup 4/4, recommend 5/5, invalid_pn 3/3, na 2/2, impossible 3/3, ambiguous 3/3, out_of_subset 3/3, multi_turn 3/3, injection 12/12), 71 s wall time with 2 workers, real cost USD 0.0055 (key usage 0.122308 -> 0.127760). `EXTRACT_LLM_MODEL` stays as documented: vision escalation is not exercised by the eval.
+
+**Alternatives.** `stealth/crouton-alpha` (free, same score, but temporary and may vanish); `gemini-2.5-flash-lite` (cheapest and fastest, but 34/38); `deepseek-v4.1-flash` (36/38, faster, costlier per run).
+
+**Trade-off.** The best score at a negligible cost against the USD 10 budget, at the price of depending on a paid model and a single benchmark run (LLM output is not fully deterministic, so a rerun may differ by a case). Models are swappable through the environment variable.
+
+**Status.** Accepted (Sprint 7.1).

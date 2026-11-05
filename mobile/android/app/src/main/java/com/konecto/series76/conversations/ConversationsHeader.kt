@@ -1,5 +1,6 @@
 package com.konecto.series76.conversations
 
+import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -77,7 +78,9 @@ private fun ThemeButton(current: ThemeMode, onSelect: (ThemeMode) -> Unit) {
             modifier = Modifier.size(48.dp).background(MaterialTheme.colorScheme.surface, shape)
                 .border(1.dp, AxelTheme.colors.divider, shape).testTag("theme_button"),
         ) {
-            Icon(if (AxelTheme.colors.isDark) MoonIcon else SunIcon, contentDescription = "Theme", modifier = Modifier.size(22.dp))
+            Crossfade(AxelTheme.colors.isDark, label = "themeIcon") { dark ->
+                Icon(if (dark) MoonIcon else SunIcon, contentDescription = "Theme", modifier = Modifier.size(22.dp))
+            }
         }
         DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
             listOf(ThemeMode.DARK, ThemeMode.LIGHT, ThemeMode.SYSTEM).forEach { mode ->
@@ -86,7 +89,10 @@ private fun ThemeButton(current: ThemeMode, onSelect: (ThemeMode) -> Unit) {
                     trailingIcon = {
                         if (mode == current) Icon(Icons.Default.Check, contentDescription = "Selected", tint = MaterialTheme.colorScheme.primary)
                     },
-                    onClick = { open = false; onSelect(mode) },
+                    onClick = {
+                        open = false // the ViewModel delays the change so the menu closes first
+                        onSelect(mode)
+                    },
                     modifier = Modifier.testTag("theme_option_${mode.name}"),
                 )
             }

@@ -26,7 +26,6 @@ services:
 
   api:
     build: ./backend
-    image: series76-api
     restart: unless-stopped
     env_file:
       # Optional: a clean clone without .env still starts (LLM calls return 503 llm_not_configured)

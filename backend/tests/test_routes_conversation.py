@@ -1,6 +1,5 @@
 """POST /api/conversation against a real Postgres with a fake agent (no LLM)."""
 
-import os
 import uuid
 from contextlib import contextmanager
 
@@ -17,10 +16,9 @@ from app.api.routes_conversation import router, to_history
 from app.db import sessions_repo
 from app.domain.conversation import AgentResult, StoredMessage
 from app.domain.models import Product, ToolTrace
+from tests.conftest import get_test_db_url
 
-URL = os.environ.get(
-    "TEST_DATABASE_URL", "postgresql://series76:series76@localhost:5432/series76_test"
-)
+URL = get_test_db_url("series76_test")
 PRODUCT = Product(
     part_number="761C",
     enclosure="weatherproof",

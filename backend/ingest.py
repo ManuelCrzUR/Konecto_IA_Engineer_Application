@@ -18,7 +18,7 @@ from pathlib import Path
 
 import psycopg
 
-from app.bootstrap import DEFAULT_JSON, DEFAULT_PDF, ensure_data
+from app.bootstrap import DEFAULT_JSON, DEFAULT_PDF, DataStatus, ensure_data
 from app.db.actuators_repo import delete_all, upsert_catalog
 from app.db.connection import apply_schema, connect, database_url
 from app.ingestion.crops import CropError
@@ -74,7 +74,7 @@ def _run_ensure(args: argparse.Namespace, escalator: Escalator | None) -> int:
         status = ensure_data(conn, json_path=args.json, pdf_path=args.pdf, escalator=escalator)
     finally:
         conn.close()
-    print(f"source={status.source} rows={status.rows}")
+    print(status.summary())
     return EXIT_OK
 
 
@@ -98,7 +98,7 @@ def _run_from_pdf(args: argparse.Namespace, escalator: Escalator | None) -> int:
             upsert_catalog(conn, catalog)
     finally:
         conn.close()
-    print(f"source=pdf rows={len(catalog.rows)}")
+    print(DataStatus(source="pdf", rows=len(catalog.rows)).summary())
     return EXIT_OK
 
 
@@ -110,13 +110,23 @@ def main(argv: list[str] | None = None) -> int:
         if args.from_pdf:
             return _run_from_pdf(args, escalator)
         return _run_ensure(args, escalator)
-    except (ExtractionError, ValidationFailed, CatalogFileError, EscalationError, CropError,
-            OcrError, LLMConfigError, FileExistsError) as exc:
+    except (
+        ExtractionError,
+        ValidationFailed,
+        CatalogFileError,
+        EscalationError,
+        CropError,
+        OcrError,
+        LLMConfigError,
+        FileExistsError,
+    ) as exc:
         print(f"error: {exc}", file=sys.stderr)
         return EXIT_FAILED
     except psycopg.OperationalError as exc:
-        print(f"error: cannot reach Postgres ({exc}). Is it running? "
-              "Try: docker compose up -d db", file=sys.stderr)
+        print(
+            f"error: cannot reach Postgres ({exc}). Is it running? Try: docker compose up -d db",
+            file=sys.stderr,
+        )
         return EXIT_FAILED
 
 

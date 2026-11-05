@@ -8,7 +8,9 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -98,7 +100,7 @@ private fun ConversationsContent(
     Scaffold(
         topBar = { ConversationsHeader(themeMode, onThemeMode, query, onQueryChange) },
         floatingActionButton = {
-            ExtendedFloatingActionButton(
+            if (query.isBlank()) ExtendedFloatingActionButton(
                 onClick = { onOpenChat(null) },
                 icon = { Icon(Icons.Default.Add, contentDescription = null) },
                 text = { Text("New conversation") },
@@ -108,7 +110,8 @@ private fun ConversationsContent(
             )
         },
     ) { padding ->
-        Box(Modifier.fillMaxSize().padding(padding)) {
+        // Scaffold padding already clears the nav bar; imePadding adds only the keyboard so results stay reachable.
+        Box(Modifier.fillMaxSize().padding(padding).consumeWindowInsets(padding).imePadding()) {
             if (search != SearchUiState.Inactive) {
                 SearchBody(search, onRetrySearch, onOpenChat)
             } else {

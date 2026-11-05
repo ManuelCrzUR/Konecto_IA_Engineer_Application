@@ -538,13 +538,12 @@ def test_describe_combinations_cover_all_tables(db):
 
 @pytest.fixture
 def lc_tools(db, pg_conn):
-    import os
 
     import psycopg
 
-    from tests.conftest import DEFAULT_TEST_URL
+    from tests.conftest import get_test_db_url
 
-    url = os.environ.get("TEST_DATABASE_URL", DEFAULT_TEST_URL)
+    url = get_test_db_url()
 
     def factory():
         return psycopg.connect(url, autocommit=True)

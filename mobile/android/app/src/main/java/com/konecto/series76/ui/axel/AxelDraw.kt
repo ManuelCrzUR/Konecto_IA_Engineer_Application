@@ -8,6 +8,7 @@ import androidx.compose.ui.graphics.Path
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.DrawScope
 import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.graphics.drawscope.rotate
 import androidx.compose.ui.graphics.drawscope.scale
 import androidx.compose.ui.graphics.drawscope.translate
@@ -25,6 +26,18 @@ data class AxelPalette(
     val caution: Color,
 ) {
     companion object {
+        /** Blend of [light] (fraction 0) and [dark] (fraction 1). */
+        fun blend(fraction: Float): AxelPalette = when {
+            fraction <= 0f -> light
+            fraction >= 1f -> dark
+            else -> AxelPalette(
+                lerp(light.body, dark.body, fraction), lerp(light.stroke, dark.stroke, fraction),
+                lerp(light.knob, dark.knob, fraction), lerp(light.slot, dark.slot, fraction),
+                lerp(light.eyes, dark.eyes, fraction), lerp(light.mouth, dark.mouth, fraction),
+                lerp(light.caution, dark.caution, fraction),
+            )
+        }
+
         val dark = AxelPalette(
             body = Color(0xFF20152A), stroke = Color(0xFFBD7BFF), knob = Color(0xFFBD7BFF),
             slot = Color(0xFF0E0E0E), eyes = Color(0xFFFFFFFF), mouth = Color(0xFFD0ACE5),

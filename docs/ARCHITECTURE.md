@@ -31,7 +31,7 @@ Dependencies point only downward: `api → agent → db/domain`; `bootstrap → 
 
 ### Data model
 
-One row per (table, part number). Columns are typed and nullable. The field names are the flat schema of the benchmark (`bench/schema.py`), with the names below.
+One row per (table, part number). Columns are typed and nullable. The field names are the flat schema of the benchmark, with the names below. The benchmark itself lives outside this repo; its schema and golden copies are in `backend/app/ingestion/_reference/` (D-16).
 
 ```python
 class Actuator(BaseModel):
@@ -87,27 +87,32 @@ Conversations (same database, same `pgdata` volume):
   - `search_actuators(requirements)`: torque with unit Nm or in-lbs, voltage, phase, enclosure, service, speed and duty; sorted by the tightest match. If nothing matches, it says which constraint blocked the search and gives the closest available value.
   - `describe_catalog()`: used for ambiguous questions.
 - Multi-turn follow-up ("and how much power does it draw?"): when the history is built, a context line with the part numbers from the previous turn's `products` is added. The prompt requires the model to **call the tool again** for any number, because the LLM does not remember figures.
-- `agent/response.py` builds `products[]` from the tool outputs (code, not LLM). Guard: every number in the text must appear in the tool results. If one does not, a deterministic template answer is used and noted in `trace`.
-- Models are set by environment variable and by task: `AGENT_MODEL` (cheap while iterating, good for the final run) and `EXTRACT_LLM_MODEL` (OCR escalation, Sonnet 5.5). Development uses Google AI Studio through an OpenAI-compatible endpoint (`LLM_BASE_URL`). The OpenRouter key is used only with explicit permission. No LLM translation of titles and no embeddings (no pgvector).
+- Tool errors (`agent/agent.py`, `_tool_error`): argument errors (`ValueError`, `ToolException`) go back to the model with their message, so it can fix the call. Any other exception becomes `{"error": "internal_tool_error"}` in the tool message and in the stored trace; the real exception is logged on the server only (D-39).
+- `agent/response.py` builds `products[]` from the tool outputs (code, not LLM). Number guard: every number in the text must come from the tool results, the current query, or the user's earlier turns (D-26; the last part is an accepted risk while there is no login, D-40). The three-digit model size of a part number that a tool returned counts as verified, and the family name "Series/Serie/Série 76" is not a figure (D-38). If a number is not verified, a deterministic template answer is used and noted in `trace`.
+- Persona (`apply_persona()` in `agent/response.py`, D-39): after the number guard, the model's own name, derived from its model id, is replaced with "Axel". If anything was replaced, a `persona_guard` entry is added to `trace`, so the change is never silent. The prompt also defines the Axel identity and the small-talk rule.
+- Models are set by environment variable and by task: `AGENT_MODEL` (cheap while iterating, good for the final run) and `EXTRACT_LLM_MODEL` (OCR escalation, Sonnet 5.5). Development eval runs use OpenRouter's free `stealth/crouton-alpha` model (D-29); the Google AI Studio plan was dropped. The OpenRouter key is used only with explicit permission. No LLM translation of titles and no embeddings (no pgvector).
 - Language: the answer is in the user's language; numbers and part numbers are kept as they are.
 
 ## 4. API (FastAPI)
 
 - `POST /api/conversation` returns `{session_id, answer, products[], debug}`. Each item in `products[]` is `{part_number, enclosure, voltage, phase, service, fields:{...values with units...}, csa_certified, notes[]}`. The app shows them as comparable cards (one column per product). `debug` is a list of `{tool, params, result}`. It is **always present in the response**; the user-facing app does not show it.
-- `GET /api/sessions?q=&limit=` (id, title, date; with `q`, only matching sessions, each with `match {where, snippet}`, D-37) and `GET /api/sessions/{id}/messages` (includes `products` and `debug`).
+- `GET /api/sessions?q=&limit=` (id, title, date; with `q`, only matching sessions, each with `match {where, snippet}`, D-37) and `GET /api/sessions/{id}/messages` (includes `products` and `debug`). The search is `db/sessions_search.py` (case-insensitive `ILIKE` over titles and message contents, one query, `LIKE` wildcards escaped); the snippet is built by the pure function `db/snippet.py`. The route is in `api/routes_sessions.py`.
 - An unknown `session_id` returns **404** with a clear message. Sessions are never created by accident. With no `session_id`, a session is created and returned.
 - Login hook: a `get_current_user()` dependency that returns `None` today. The `sessions_repo` queries already accept `user_id`. Enabling login means implementing `POST /api/auth/login` and changing that dependency. The `users` table is created only if login is implemented.
 - Voice hook: **transcription on the device** (Android `SpeechRecognizer`). The text goes to the same endpoint. No budget cost and no backend change.
-- Errors: a uniform JSON body `{error, detail}`. A timeout or a dead LLM returns 503, without losing the user's message, which is already saved.
+- Errors: a uniform JSON body `{error, detail}` (`api/errors.py`). A timeout or a dead LLM returns a generic 503, without internal detail and without losing the user's message, which is already saved (D-34).
 
 ## 5. Android app (`mobile/android`)
 
-One Gradle module with packages by feature (KISS; the `android-development` skill and the `android-skills` plugin apply): `conversations/`, `chat/`, `debug/`, `data/` (Retrofit + kotlinx.serialization, one `ApiClient`), `ui/` (theme, `ProductCard`, `ComparisonTable`). MVVM: `ViewModel` + `StateFlow`; Navigation Compose; manual DI.
+One Gradle module with packages by feature (KISS; the `android-development` skill and the `android-skills` plugin apply): `splash/`, `conversations/` (list and search results), `chat/`, `debug/`, `data/` (Retrofit + kotlinx.serialization, one `ApiClient`, `ThemePreferences`), `ui/` (`theme/`, `axel/` character, `ProductCard`, `ComparisonTable`, `KeyFigures`). MVVM: `ViewModel` + `StateFlow`; Navigation Compose; manual DI.
 
-- Loading and error states on all 3 screens (backend down, timeout).
-- Backend URL in `BuildConfig`, read from `local.properties` (emulator: `http://10.0.2.2:8000`).
-- Debug: opened with a hidden gesture (5 taps on the chat title). It shows the `debug` of each response. Documented in the README.
+- Loading and error states on every screen (backend down, timeout).
+- Backend URL in `BuildConfig.API_BASE_URL`: default `http://localhost:8000/`, overridable with `api.baseUrl` in `local.properties`. The emulator or a USB phone reaches it through `adb reverse` (`make android-reverse`, D-35). The emulator alias `10.0.2.2` is not used.
+- Debug: opened with a hidden gesture (5 taps on the chat title within 3 seconds, `chat/TapCounter.kt`). It shows the `debug` of each response. Documented in the README.
 - The chat never shows tool names or traces.
+- Redesign ("Axel", Sprint 5.5): dark, light or system theme, chosen from the header menu and stored with DataStore (`data/ThemePreferences.kt`); a splash screen; the Axel character and launcher icon; conversation search, which calls `GET /api/sessions?q=` and shows the matching snippet.
+- Design references: `mobile/android/DESIGN.md` is the contract (themes, motion, states); `docs/design/` holds the visual reference in dark and light.
+- Tests: JVM unit tests in `app/src/test`, Compose UI tests in `app/src/androidTest` (run on the emulator).
 
 ## 6. Backend modules (≤ ~150 lines each, tested on their own)
 
@@ -115,35 +120,38 @@ One Gradle module with packages by feature (KISS; the `android-development` skil
 backend/
 ├── pyproject.toml
 ├── app/
-│   ├── domain/models.py            # Actuator (single contract), Product, ToolTrace
-│   ├── ingestion/{ocr,flags,escalate,normalize,validate,pipeline,store_json}.py
-│   ├── db/{schema.sql,connection.py,actuators_repo.py,sessions_repo.py}
+│   ├── domain/{models.py,conversation.py,search.py}   # Actuator (single contract), Product, ToolTrace; conversation and search contracts
+│   ├── ingestion/{ocr,flags,escalate,normalize,validate,pipeline,store_json,crops,table_meta}.py
+│   ├── ingestion/_reference/       # in-repo copies of the benchmark schema, cells and golden (D-16)
+│   ├── db/{schema.sql,connection.py,actuators_repo.py,search_sql.py,sessions_repo.py,sessions_search.py,snippet.py}
 │   ├── bootstrap.py                # ensure_data()
-│   ├── agent/{tools,llm,prompts,agent,response}.py
-│   └── api/{main.py,schemas.py,deps.py,routes_conversation.py,routes_sessions.py}
-├── cli.py   ingest.py
+│   ├── llm.py                      # get_llm(task) (D-19)
+│   ├── agent/{tools,prompts,agent,response}.py
+│   └── api/{main.py,schemas.py,deps.py,errors.py,routes_conversation.py,routes_sessions.py}
+├── Dockerfile   pyproject.toml   cli.py   ingest.py
 ├── data/{raw/series_76_electric_data.pdf, processed/actuators.json}
-├── bench/   eval/   tests/
+├── eval/   tests/   docker/initdb/
 mobile/android/
-docs/{ARCHITECTURE.md, DECISIONS.md, TOOLING.md}
-docker-compose.yml  Dockerfile  Makefile  .env.example  README.md
+docs/{ARCHITECTURE.md, DECISIONS.md, TOOLING.md, security/REPORT.md}
+docker-compose.yml  Makefile  .env.example  README.md
 ```
 
-No ORM (`psycopg` with parameterized SQL). No `DataSource` or `Extractor` interfaces, and no `EXTRACTORS=...` setting: there is one extractor. One `pyproject.toml`, installed with `pip install -e .`.
+No ORM (`psycopg` with parameterized SQL). No `DataSource` or `Extractor` interfaces, and no `EXTRACTORS=...` setting: there is one extractor. One `pyproject.toml`, managed with `uv` (D-12).
 
 ## 7. Infrastructure
 
 - `docker-compose.yml`: `db` (postgres:16, `pgdata` volume, `pg_isready` healthcheck) and `api` (`depends_on: service_healthy`; at start it runs `ensure_data()` and then uvicorn).
-- `Dockerfile`: python slim. `rapidocr-onnxruntime` ships the ONNX models, so OCR works offline.
-- `.env.example`: `DATABASE_URL`, `LLM_BASE_URL`, `LLM_API_KEY`, `AGENT_MODEL`, `EXTRACT_LLM_MODEL`. No secrets.
-- `Makefile` (shortcuts only): `up`, `reset` (deletes the volume and reloads), `ingest-force`, `test`, `chat`, `eval`.
+- `backend/Dockerfile`: `python:3.12-slim`. `rapidocr-onnxruntime` ships the ONNX models, so OCR works offline. It uses the headless OpenCV build, so no GUI libraries are installed (D-33).
+- `db` publishes Postgres and `api` publishes the API only on `127.0.0.1` by default (`DB_BIND`, `API_BIND`; D-34). Physical phones need `API_BIND=0.0.0.0`.
+- `.env.example`: `DB_PORT`, `API_PORT`, `API_BIND`, `DB_BIND`, `DATABASE_URL`, `TEST_DATABASE_URL`, `LLM_BASE_URL`, `LLM_API_KEY`, `AGENT_MODEL`, `EXTRACT_LLM_MODEL`, `STARTUP_ESCALATION`. No secrets.
+- `Makefile` (shortcuts only): `up` (waits for a healthy API), `down`, `reset` (deletes the volume and reloads), `logs`, `db`, `ingest` (`ARGS=--force`), `test`, `eval`, `chat` (`ARGS=--debug`), `android-reverse` (`adb reverse` for the app, D-35), `recovery` (self-healing check on the real stack). `make help` lists them.
 - Recovery documented in the README: database deleted → `make up`; JSON deleted → `make up` (re-extracts); everything broken → `make reset`.
 
 ## 8. Testing and evaluation
 
 - Unit tests per module, without a real LLM: `validate`, `flags`, `normalize`, repositories (test Postgres), tools, `response` (number guard), and the API with a simulated agent.
 - Self-recovery test (main acceptance criterion): (a) `docker compose down -v && make up` → 68 rows; (b) delete `actuators.json` → it is regenerated and validated; (c) delete rows in Postgres → the count is corrected; (d) corrupt JSON → detected and re-extracted; (e) restart the API → conversations still there.
-- `eval/`: 20–30 questions (point lookup, recommendation, invalid part number, N/A, impossible requirement, ambiguity, data outside the subset, multi-turn follow-up). Deterministic assertions on the tool called and on the numbers in `products`. Cheap model while iterating; the good model only in the final run.
+- `eval/`: 38 cases in `eval/cases.yaml`, by category: lookup 4, recommend 5, ambiguous 3, impossible 3, invalid_pn 3, na 2, out_of_subset 3, multi_turn 3, and injection 12 (prompt-injection and persona cases, 38/38 with the development model, `docs/security/REPORT.md`). Deterministic assertions on the tool called, its status, the part numbers in `products`, the exact numbers in the answer, `answer_includes` (required phrases, used for the persona cases), and whether the number guard fired. Cheap model while iterating; the good model only in the final run (Sprint 7).
 - Final test from scratch on a clean machine, following only the README (mandatory requirement).
 
 ## 9. Build order and parallel tracks
@@ -181,8 +189,8 @@ Seven sprints, in order (plus 5.5, the UI redesign). Each one ends at a human ga
 3. **Tools, LLM and agent**: `get_actuator`, `search_actuators`, `describe_catalog`, LLM selection, prompts, response builder with number guard, `run_agent`, `cli.py`, and the evaluation set and runner.
 4. **API, persistence and Docker**: FastAPI routes and error format, conversation and session persistence, Dockerfile, the `api` service with the startup sequence, and recovery tests.
 5. **Android app**: Gradle project, API client, product cards and comparison table, Conversations, Chat and Debug screens, and an end-to-end run on the emulator.
-5.5. **UI redesign ("Axel")**: dark and light themes, splash, the Axel character and launcher icon, conversation search (`GET /api/sessions?q=`), transitions. Visual reference in `docs/design/`, contract in `mobile/android/DESIGN.md`.
-6. **Security**: a multi-phase audit with Cloudflare's `security-audit` skill (prompt injection, agent and tool abuse, API exposure, operator spend, mobile, supply chain), adversarial evaluation cases, remediation and a re-audit. Report in `docs/security/`.
+5.5. **UI redesign ("Axel")**: dark, light and system themes, splash, the Axel character and launcher icon, conversation search (`GET /api/sessions?q=`), transitions. Visual reference in `docs/design/`, contract in `mobile/android/DESIGN.md`.
+6. **Security**: a multi-phase audit with Cloudflare's `security-audit` skill (prompt injection, agent and tool abuse, API exposure, operator spend, mobile, supply chain), adversarial evaluation cases, remediation and a re-audit. Two runs; no confirmed vulnerability, three leads that need a deployment fact. The committed report is `docs/security/REPORT.md` (raw runs in `docs/security/runs/` are gitignored). Decisions: D-39 (persona, generic tool errors) and D-40 (accepted number-guard risk while single-user).
 7. **Integration and delivery**: final evaluation run with the good model, code review, README, decisions and tooling docs, clean-machine test, and a checklist of the brief.
 
 Optional work (login and voice) is done only if there is time left, after sprint 7.

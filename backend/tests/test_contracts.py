@@ -82,7 +82,11 @@ def test_tool_names_fixed():
 
 def test_api_schema_exports():
     assert set(schemas.__all__) == {
-        "ConversationRequest", "ConversationResponse", "ErrorOut", "MessageOut", "SearchMatch",
+        "ConversationRequest",
+        "ConversationResponse",
+        "ErrorOut",
+        "MessageOut",
+        "SearchMatch",
         "SessionOut",
     }
 

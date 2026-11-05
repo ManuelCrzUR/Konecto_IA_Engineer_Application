@@ -1,3 +1,5 @@
+> **Superseded:** historical first plan (Spanish), kept for reference. The current design is [`ARCHITECTURE.md`](ARCHITECTURE.md).
+
 # Plan: arquitectura completa, modular y simple (Series 76 Technical Assistant)
 
 ## Context

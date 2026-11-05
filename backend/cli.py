@@ -125,7 +125,8 @@ def main(argv: list[str] | None = None) -> int:
     try:
         with connect() as conn:  # ensure_data runs with escalator=None: no paid vision call
             apply_schema(conn)
-            ensure_data(conn, escalator=None)
+            status = ensure_data(conn, escalator=None)
+            print(status.summary(), file=sys.stderr)
         if args.question is not None:
             try:
                 result = agent_mod.run_agent(args.question, [])

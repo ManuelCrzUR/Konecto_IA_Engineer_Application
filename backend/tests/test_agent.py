@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import os
 from contextlib import contextmanager
 from typing import Any
 
@@ -17,7 +16,7 @@ from app.db import actuators_repo as repo
 from app.db import connection
 from app.domain.conversation import HistoryTurn
 from app.domain.models import Catalog
-from tests.conftest import DEFAULT_TEST_URL, PROCESSED_JSON
+from tests.conftest import PROCESSED_JSON, get_test_db_url
 
 CATALOG = Catalog.model_validate_json(PROCESSED_JSON.read_text())
 PN = "764A00-11300000/A"
@@ -48,7 +47,7 @@ def call(name: str, args: dict, cid: str = "c1") -> AIMessage:
 @pytest.fixture
 def factory(pg):
     repo.upsert_catalog(pg, CATALOG)
-    return connection.conn_factory(os.environ.get("TEST_DATABASE_URL", DEFAULT_TEST_URL))
+    return connection.conn_factory(get_test_db_url())
 
 
 def test_get_actuator_trace_and_products(factory):

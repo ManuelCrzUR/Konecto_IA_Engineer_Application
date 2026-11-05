@@ -52,7 +52,7 @@ def test_default_runs_ensure_data_and_prints_summary(
 ) -> None:
     assert ingest.main([]) == 0
     assert calls == ["connect", "ensure_data"]
-    assert "source=json rows=68" in capsys.readouterr().out
+    assert "Data ready: 68 actuators (source: json)" in capsys.readouterr().out
 
 
 def test_reset_deletes_before_ensure_data(calls: list[str]) -> None:
@@ -114,7 +114,7 @@ def test_from_pdf_with_force_extracts_and_writes(
     extract.assert_called_once_with(pdf_path, "VISION")
     write.assert_called_once_with(catalog, json_path, force=True)
     upsert.assert_called_once()
-    assert "source=pdf rows=0" in capsys.readouterr().out
+    assert "Data ready: 0 actuators (source: pdf)" in capsys.readouterr().out
 
 
 def test_no_escalation_passes_none(

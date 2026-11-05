@@ -58,7 +58,7 @@ fun TraceCard(turnIndex: Int, traceIndex: Int, trace: ToolTrace) {
         ),
         border = when {
             guard -> BorderStroke(1.dp, colors.caution)
-            else -> colors.cardBorder
+            else -> BorderStroke(1.dp, colors.cardBorder)
         },
     ) {
         Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
