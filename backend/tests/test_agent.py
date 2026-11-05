@@ -113,7 +113,7 @@ def test_tool_error_is_recorded_and_run_completes():
 
     llm = fake(call("get_actuator", {"part_number": PN}), AIMessage(content="Sorry, no data."))
     r = run_agent("details of 764A00", llm=llm, conn_factory=broken)
-    assert r.trace[0].result == {"error": "db down"}
+    assert r.trace[0].result == agent_mod.INTERNAL_TOOL_ERROR
     assert r.answer  # run completed
     # the model received an error ToolMessage
     tool_msgs = [m for m in llm.seen[-1] if m.type == "tool"]
@@ -199,3 +199,43 @@ def test_earlier_user_numbers_verified_assistant_numbers_not(factory):
     assert not ok.guard_triggered
     bad = run_agent("repeat", hist, llm=fake(AIMessage(content="999 Nm")), conn_factory=factory)
     assert bad.guard_triggered
+
+
+def _run_with_failing_tool(exc: Exception, caplog: pytest.LogCaptureFixture):
+    @contextmanager
+    def broken():
+        raise exc
+        yield  # pragma: no cover
+
+    llm = fake(call("get_actuator", {"part_number": PN}), AIMessage(content="ok"))
+    with caplog.at_level("ERROR", logger="series76.agent"):
+        r = run_agent("details", llm=llm, conn_factory=broken)
+    return r, llm
+
+
+def test_internal_tool_error_hides_host_but_logs_it(caplog):
+    import psycopg
+
+    exc = psycopg.OperationalError('connection to server at "db.secret.internal" failed')
+    r, llm = _run_with_failing_tool(exc, caplog)
+    assert r.trace[0].result == agent_mod.INTERNAL_TOOL_ERROR
+    tool_msgs = [m for m in llm.seen[-1] if m.type == "tool"]
+    assert tool_msgs[0].status == "error"
+    assert "db.secret.internal" not in str(r.trace) + str(tool_msgs[0].content)
+    assert "db.secret.internal" in caplog.text  # detail kept in the server log
+
+
+def test_validation_error_message_is_preserved(caplog):
+    from pydantic import BaseModel, ValidationError
+
+    class M(BaseModel):
+        x: int
+
+    try:
+        M(x="not a number")  # type: ignore[arg-type]
+    except ValidationError as exc:
+        err = exc
+    r, llm = _run_with_failing_tool(err, caplog)
+    assert "valid integer" in str(r.trace[0].result)
+    tool_msgs = [m for m in llm.seen[-1] if m.type == "tool"]
+    assert "valid integer" in str(tool_msgs[0].content)

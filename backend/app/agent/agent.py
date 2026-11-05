@@ -10,9 +10,11 @@ Contract:
   ToolTrace(tool=<tool name>, params=<tool call args>, result=<the tool's dict
   output, parsed back from the ToolMessage if it was serialized; the raw string
   if it is not JSON>, duration_ms). One recorder per run_agent call (no shared
-  state between calls). A tool that raises: the exception text is recorded as
-  result {"error": "<message>"} and returned to the model as an error
-  ToolMessage, so the model can recover (no crash).
+  state between calls). A tool that raises is returned to the model as an error
+  ToolMessage (no crash) and recorded in the trace. Argument problems
+  (ValueError incl. pydantic ValidationError, ToolException) keep their message
+  so the model can correct the call; anything else (psycopg, OSError, bugs)
+  becomes the generic INTERNAL_TOOL_ERROR and the real exception is only logged.
 - run_agent(query, history=None, *, llm=None, conn_factory=None) -> AgentResult
     1. messages = prompts.build_messages(query, history).
     2. agent = create_agent(llm, tools.make_tools(conn_factory),
@@ -20,7 +22,7 @@ Contract:
        config {"recursion_limit": RECURSION_LIMIT}.
     3. answer = text of the last AIMessage (string content, or the joined
        text blocks if content is a list).
-    4. return response.build_result(answer, recorder.trace, query, user_history)
+    4. return response.build_result(answer, recorder.trace, query, user_history, model_id)
        (user_history = the user turns of `history` joined by newlines).
   Errors:
     - GraphRecursionError (too many steps) -> not raised: result of
@@ -36,6 +38,7 @@ Contract:
 from __future__ import annotations
 
 import json
+import logging
 import time
 from collections.abc import Callable
 from typing import Any, cast
@@ -47,6 +50,7 @@ from langchain.agents.middleware.types import ToolCallRequest
 from langchain_core.language_models import BaseChatModel
 from langchain_core.messages import AIMessage, ToolMessage
 from langchain_core.runnables import RunnableConfig
+from langchain_core.tools import ToolException
 from langgraph.errors import GraphRecursionError
 from langgraph.types import Command
 from openai import APIError
@@ -62,6 +66,11 @@ from app.llm import get_llm
 # follow-up re-checking 5 products plus a search still fits).
 RECURSION_LIMIT = 25
 LOOP_ANSWER = "I could not complete the lookup. Please rephrase or give more detail."
+INTERNAL_TOOL_ERROR = {
+    "error": "internal_tool_error",
+    "detail": "The catalog lookup failed. Try again.",
+}
+logger = logging.getLogger("series76.agent")
 
 
 # Failures of the LLM provider call (network, auth, rate limit, timeout). Anything
@@ -92,6 +101,14 @@ def _parse(content: Any) -> Any:
     return content
 
 
+def _tool_error(exc: Exception, tool: str) -> dict[str, str]:
+    """Model-safe error payload: argument errors keep their text, the rest is generic."""
+    if isinstance(exc, ValueError | ToolException):  # pydantic ValidationError is a ValueError
+        return {"error": str(exc)}
+    logger.exception("tool %s failed", tool)
+    return dict(INTERNAL_TOOL_ERROR)
+
+
 def _requested_order(messages: list[Any]) -> list[str]:
     return [str(c["id"]) for m in messages if isinstance(m, AIMessage) for c in m.tool_calls]
 
@@ -120,7 +137,7 @@ class TraceRecorder(AgentMiddleware):
             out = handler(request)
             result = _parse(out.content) if isinstance(out, ToolMessage) else str(out)
         except Exception as exc:  # noqa: BLE001 - the model gets to recover
-            result = {"error": str(exc)}
+            result = _tool_error(exc, call["name"])
             out = ToolMessage(
                 content=json.dumps(result),
                 tool_call_id=call["id"],
@@ -142,8 +159,10 @@ def run_agent(
 ) -> AgentResult:
     user_history = "\n".join(h.content for h in history or [] if h.role == "user")
     recorder = TraceRecorder()
+    llm = llm or get_llm("agent")
+    model_id = str(getattr(llm, "model_name", "") or getattr(llm, "model", "") or "")
     agent = create_agent(
-        llm or get_llm("agent"),
+        llm,
         tools.make_tools(conn_factory or default_conn_factory()),
         middleware=[recorder],
     )
@@ -154,7 +173,7 @@ def run_agent(
             config=RunnableConfig(recursion_limit=RECURSION_LIMIT),
         )
     except GraphRecursionError:
-        return response.build_result(LOOP_ANSWER, recorder.trace, query, user_history)
+        return response.build_result(LOOP_ANSWER, recorder.trace, query, user_history, model_id)
     except PROVIDER_ERRORS as exc:
         raise AgentError(f"LLM call failed: {exc}") from exc
     # parallel tool calls finish in any order: report them as the model requested them
@@ -165,4 +184,4 @@ def run_agent(
     trace = [t for _, t in sorted(recorder.calls, key=lambda p: rank(p[0]))]
     ai = [m for m in state["messages"] if isinstance(m, AIMessage)]
     answer = _text(ai[-1].content) if ai else ""
-    return response.build_result(answer, trace, query, user_history)
+    return response.build_result(answer, trace, query, user_history, model_id)

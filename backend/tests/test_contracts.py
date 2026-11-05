@@ -60,7 +60,7 @@ CONTRACTS = {
         "unverified_part_numbers": ["answer", "trace", "query", "user_history"],
         "detect_lang": ["query"],
         "template_answer": ["trace", "query"],
-        "build_result": ["answer", "trace", "query", "user_history"],
+        "build_result": ["answer", "trace", "query", "user_history", "model_id"],
     },
     agent: {"run_agent": ["query", "history", "llm", "conn_factory"]},
 }

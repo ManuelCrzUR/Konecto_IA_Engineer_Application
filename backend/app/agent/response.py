@@ -48,7 +48,9 @@ Contract:
     please rephrase" line. Every number in it comes from the trace.
 - detect_lang(query) -> "es" | "en"   (cheap heuristic: Spanish accents/¿¡ñ
     or common Spanish words -> "es")
-- build_result(answer, trace, query, user_history="") -> AgentResult
+- apply_persona(answer, model_id) -> (answer, replaced): rewrites the model's own
+  display name (derived from its id) to Axel; pure.
+- build_result(answer, trace, query, user_history="", model_id="") -> AgentResult
     (`query` alone drives language detection; `user_history` is passed to the checks.)
     unverified = unverified_numbers + unverified_part_numbers.
     If it is empty: answer unchanged, guard_triggered False.
@@ -69,6 +71,13 @@ from app.domain.conversation import AgentResult
 from app.domain.models import Actuator, Product, ToolTrace
 
 GUARD_TOOL = "number_guard"
+PERSONA_TOOL = "persona_guard"
+PERSONA_NAME = "Axel"
+# Tokens of a model id that are not a distinctive name (so never rewritten).
+_GENERIC_TOKENS = frozenset(
+    {"free", "chat", "instruct", "preview", "beta", "latest", "turbo", "mini", "base",
+     "online", "thinking", "exp", "experimental", "large", "small", "medium"}
+)  # fmt: skip
 # Small integers (list counts, "option 2") and the 90° stroke.
 ALWAYS_ALLOWED: frozenset[float] = frozenset({*map(float, range(11)), 90.0})
 
@@ -242,8 +251,35 @@ def template_answer(trace: list[ToolTrace], query: str) -> str:
     return tx["none"]
 
 
+def _model_name_pattern(model_id: str) -> re.Pattern[str] | None:
+    """Regex for the model's own display name, from its id ("vendor/crouton-alpha").
+
+    Uses the last path segment, split on - _ space or dot. Tokens with digits
+    (versions) and generic words are dropped. Needs a multi-token name, or one
+    distinctive token of 4+ letters; otherwise None (nothing is rewritten).
+    """
+    segment = model_id.rsplit("/", 1)[-1].split(":")[0]
+    tokens = [
+        t for t in re.split(r"[-_ .]+", segment)
+        if t.isalpha() and t.lower() not in _GENERIC_TOKENS
+    ]  # fmt: skip
+    if not tokens or (len(tokens) == 1 and len(tokens[0]) < 4):
+        return None
+    body = r"[-_ ]?".join(re.escape(t) for t in tokens)
+    return re.compile(rf"(?<![A-Za-z0-9]){body}(?![A-Za-z0-9])", re.IGNORECASE)
+
+
+def apply_persona(answer: str, model_id: str) -> tuple[str, list[str]]:
+    """Replace the model's own name with Axel. Returns (answer, replaced terms)."""
+    pattern = _model_name_pattern(model_id or "")
+    if pattern is None:
+        return answer, []
+    found = [m.group(0) for m in pattern.finditer(answer)]
+    return (pattern.sub(PERSONA_NAME, answer), found) if found else (answer, [])
+
+
 def build_result(
-    answer: str, trace: list[ToolTrace], query: str, user_history: str = ""
+    answer: str, trace: list[ToolTrace], query: str, user_history: str = "", model_id: str = ""
 ) -> AgentResult:
     bad = unverified_numbers(answer, trace, query, user_history)
     bad += unverified_part_numbers(answer, trace, query, user_history)
@@ -253,6 +289,10 @@ def build_result(
     if triggered:
         params = {"unverified": bad, "original_answer": answer}
         out.append(ToolTrace(tool=GUARD_TOOL, params=params, result="template answer used"))
+    final, replaced = apply_persona(final, model_id)
+    if replaced:
+        result = f"model name replaced with {PERSONA_NAME}"
+        out.append(ToolTrace(tool=PERSONA_TOOL, params={"replaced": replaced}, result=result))
     return AgentResult(
         answer=final,
         products=products_from_trace(trace, final),

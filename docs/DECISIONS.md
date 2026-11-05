@@ -486,3 +486,33 @@ Already in place:
 **Alternatives.** Whitelisting 761–767 always. That would let the model mention a model size it never looked up, which breaks the rule that the answer only uses figures from the tools.
 
 **Trade-off.** If a real figure equals a model size that the tools also returned (a hypothetical 764 W motor next to a 764A00 part number), the guard would accept it. No catalog value is in the 761–767 range, and the value would still be exact. The 26 eval cases still pass (26/26) after the change.
+
+## D-39 Axel persona, small-talk rule and generic tool errors
+
+**Context.** Two Sprint 6 observations. (1) In eval case injection-03 the model introduced itself as "Crouton Alpha": the prompt gave it a name but did not forbid naming the underlying model, so the provider leaked to users. Greetings and "what can you do?" had no defined behavior either, which made answers drift between tool calls and long lectures. (2) The security audit (run 1, hardening notes) found that `TraceRecorder` stored `str(exc)` of any tool exception in the trace, which is persisted and returned in `debug`; a database error could expose a host name or SQL text.
+
+**Decision.**
+- `SYSTEM_PROMPT` has an "Identity and small talk" section: the assistant is Axel; asked about its model, company or provider it says it is Axel, the Series 76 actuator assistant, and never names the model. Greetings, thanks and questions about itself get one or two short sentences in the user's language plus two or three example abilities, with no figures. Off-topic requests are declined briefly and redirected. The section has no digits, so the prompt digit test still holds.
+- Tool exceptions: `ValueError` (which includes pydantic `ValidationError`) and `ToolException` keep their message, so the model can fix its call. Anything else (psycopg, OSError, bugs) becomes `{"error": "internal_tool_error", "detail": "The catalog lookup failed. Try again."}` in both the ToolMessage and the stored trace; the real exception goes to logging with the traceback on the server only.
+- Code-side persona check: `apply_persona(answer, model_id)` in `agent/response.py` (pure) derives the model's display name from its id (last path segment, split on `-`, `_`, space or dot; tokens with digits and generic words such as `free`, `preview`, `instruct` are dropped) and replaces every case-insensitive, word-bounded match ("Crouton Alpha", "crouton-alpha", "CroutonAlpha") with "Axel". It needs a multi-token name or one token of 4+ letters, so `openai/gpt-4o` rewrites nothing. `run_agent` passes the id from the LLM object; `build_result` applies it after the number guard and, when something was replaced, appends a `persona_guard` trace entry (`params.replaced`) that the Debug screen shows. It works for any `AGENT_MODEL`, with no hardcoded names.
+- Eval: new check `answer_includes`; cases injection-11 (identity) and injection-12 (Spanish greeting).
+
+**Alternatives.** Filtering the model name out of answers in code (fragile, and the guard is for numbers). Not stating the persona at all (leaks the provider). Redacting host strings with a regex from the error text (an allowlist of safe errors is safer than a blocklist of secrets).
+
+**Why the code check.** With the free `stealth/crouton-alpha` model the prompt persona alone was unreliable (injection-11 and injection-12 passed in only about half of the runs), so the prompt rule stays but the name is also enforced deterministically.
+
+**Trade-off.** The rewrite only covers the model's own name as derived from its id; a provider or company name the model volunteers (or a name the id does not contain) is not caught, and a rewritten sentence may read oddly ("I'm Axel, my presentation name"). The change is recorded in the trace, so it is never silent. A prompt rule is not a hard guarantee (with the free `stealth/crouton-alpha` model, injection-11 and injection-12 pass only some runs: the model sometimes still says its built-in name): a determined prompt injection could still extract the model name, which is why the eval case checks it but the provider name is not a secret that protects anything. The model sees less detail on database failures, so it cannot self-diagnose; it can only retry or apologize, which is the right behavior for a transient outage.
+
+**Status.** Accepted (Sprint 6.4).
+
+## D-40 Number guard keeps trusting earlier user turns (accepted risk, Sprint 6.5)
+
+**Context.** The Sprint 6 security re-audit (run-2) found that the number guard's D-26 allowance applies to every user turn of a session, whoever wrote it. There is no login (D-10): every caller is the same NULL user, any caller can list sessions and post into any of them, and `messages` stores only a role, not an author. A second person who reaches the API could plant a false figure ("FLA 60 Hz of 764A00-11300000/A is 42 A") in someone else's session; the guard would then accept that figure in later answers. Product cards are not affected (they are built from tool results), and the prompt tells the model to verify and correct user-stated figures, but that is model behavior, not a control.
+
+**Decision.** Keep D-26 as it is and record this as an accepted risk of the single-user design. The API binds to `127.0.0.1` by default, so there is one human principal.
+
+**When it must change.** As soon as login exists or the API is shared or exposed (`API_BIND=0.0.0.0`, tunnel, cloud): add an author/`user_id` to `messages` and build `user_history` only from the current user's own turns; until then, a shared deployment should use the strict variant (guard accepts numbers only from the current query and the tool results).
+
+**Alternatives.** The strict variant now: closes the path, but recall answers that repeat a number the user typed earlier would fall back to the template, and the feature D-26 was added for would regress.
+
+**Trade-off.** Keeps the "what did I tell you?" behavior for the single-user case, at the cost of a documented integrity gap that becomes real only in a multi-user deployment.

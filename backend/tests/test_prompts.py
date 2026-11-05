@@ -40,6 +40,11 @@ def test_prompt_introduces_assistant_as_axel() -> None:
     assert "Axel" in SYSTEM_PROMPT
 
 
+def test_prompt_hides_model_and_handles_small_talk() -> None:
+    assert "never name" in SYSTEM_PROMPT
+    assert "Greetings" in SYSTEM_PROMPT and "Off-topic" in SYSTEM_PROMPT
+
+
 def test_prompt_has_no_catalog_digits() -> None:
     # Only the family name and the printed stroke unit ("per 90°") may contain digits.
     assert "Series 76" in SYSTEM_PROMPT and "per 90°" in SYSTEM_PROMPT

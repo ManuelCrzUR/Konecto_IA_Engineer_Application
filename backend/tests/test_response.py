@@ -248,3 +248,37 @@ def test_model_size_of_a_returned_part_number_is_not_a_figure() -> None:
 def test_model_size_without_that_product_in_the_trace_is_flagged() -> None:
     trace = [tr("get_actuator", {"status": "found"}, part_number="763A00-11320000/A")]
     assert R.unverified_numbers("The 765 is larger.", trace, "q") == ["765"]
+
+
+def test_apply_persona_variants_and_untouched_text() -> None:
+    mid = "stealth/crouton-alpha"
+    for text in ("I'm Crouton Alpha.", "I'm crouton-alpha.", "CROUTON ALPHA here", "CroutonAlpha"):
+        out, found = R.apply_persona(text, mid)
+        assert "Axel" in out and found and "routon" not in out
+    text = "Torque 750 Nm, part 764A00-11300000/A; a crouton is food."
+    assert R.apply_persona(text, mid) == (text, [])
+
+
+def test_apply_persona_ignores_short_generic_ids() -> None:
+    text = "The gpt and chat and free text, 4o, claude."
+    for mid in ("openai/gpt-4o", "vendor/chat", "x/free", "x/model-preview", "", "a/b-1.5"):
+        assert R.apply_persona(text, mid) == (text, [])
+
+
+def test_apply_persona_distinctive_single_token_and_suffix() -> None:
+    out, found = R.apply_persona("I am Mistral.", "mistralai/mistral:free")
+    assert out == "I am Axel." and found == ["Mistral"]
+    out, _ = R.apply_persona("I am Claude Sonnet", "anthropic/claude-3.5-sonnet")
+    assert out == "I am Axel"
+    # word boundary: no rewrite inside a longer word
+    assert R.apply_persona("Mistrals", "mistralai/mistral")[1] == []
+
+
+def test_build_result_persona_trace_only_when_replaced() -> None:
+    res = R.build_result("I'm Crouton Alpha.", [], "who?", model_id="stealth/crouton-alpha")
+    assert res.answer == "I'm Axel."
+    assert [t.tool for t in res.trace] == ["persona_guard"]
+    assert res.trace[0].params == {"replaced": ["Crouton Alpha"]}
+    assert res.guard_triggered is False
+    clean = R.build_result("I'm Axel.", [], "who?", model_id="stealth/crouton-alpha")
+    assert clean.trace == []

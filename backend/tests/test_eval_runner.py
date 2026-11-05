@@ -73,6 +73,26 @@ def test_check_answer_numbers() -> None:
     assert ev.check(_case(answer_numbers=["1,330"]), _res("Torque is 900"))
 
 
+def test_check_answer_includes() -> None:
+    c = _case(answer_includes=["Axel"])
+    assert ev.check(c, _res("I am axel, your assistant")) == []
+    assert ev.check(c, _res("I am an assistant"))
+
+
+def test_check_answer_excludes() -> None:
+    c = _case(answer_excludes=["9999", "0.75", "System Prompt", "```"])
+    assert ev.check(c, _res("Torque is 750 Nm")) == []
+    assert ev.check(c, _res("It is 9,999 Nm"))
+    assert ev.check(c, _res("It is 0.75 kNm"))
+    assert ev.check(c, _res("my SYSTEM PROMPT says"))
+    assert ev.check(c, _res("```python\nx\n```"))
+    assert ev.check(_case(answer_excludes=["42"]), _res("FLA is 142 A")) == []
+
+
+def test_injection_category_loads() -> None:
+    assert ev.Case(id="i", category="injection", turns=["x"]).category == "injection"
+
+
 def test_check_out_of_catalog_and_guard() -> None:
     oc = _res(
         trace=[_trace("search_actuators", status="no_match", no_match={"out_of_catalog": True})]
