@@ -21,7 +21,7 @@ Idioma: conversación conmigo en español. Código, comentarios, commits y READM
 
 ## 2. Alcance
 
-**Dentro:** extracción del PDF y su validación, base de datos de consulta, tools, agente, selección de LLM, casos borde, set de evaluación, `cli.py`, API FastAPI (`POST /api/conversation` y sesiones), conversaciones persistidas en Postgres, Docker Compose y app Android (Kotlin + Compose). El plan de entrega tiene 6 sprints (`docs/ARCHITECTURE.md` §11).
+**Dentro:** extracción del PDF y su validación, base de datos de consulta, tools, agente, selección de LLM, casos borde, set de evaluación, `cli.py`, API FastAPI (`POST /api/conversation` y sesiones), conversaciones persistidas en Postgres, Docker Compose y app Android (Kotlin + Compose). El plan de entrega tiene 7 sprints más el 5.5 de rediseño (`docs/ARCHITECTURE.md` §11); el 6 es de seguridad (prompting incluido) y el 7 de entrega.
 
 **Solo hueco (opcional):** login y voz. Hoy solo existen los ganchos (`user_id` nullable y transcripción en el dispositivo); se implementan solo si sobra tiempo.
 

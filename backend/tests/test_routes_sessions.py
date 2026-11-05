@@ -132,3 +132,25 @@ def test_messages_malformed_id_is_422(client):
     r = client.get("/api/sessions/no-es-uuid/messages")
     assert r.status_code == 422
     assert r.json()["error"] == "validation_error"
+
+
+def test_search_returns_match(client, pg):
+    s = repo.create_session(pg, "Chat")
+    repo.add_message(pg, s.id, "assistant", "The torque is 6650 in-lbs")
+    repo.create_session(pg, "unrelated")
+    body = client.get("/api/sessions", params={"q": "TORQUE"}).json()
+    assert len(body) == 1 and body[0]["id"] == str(s.id)
+    assert body[0]["match"] == {"where": "message", "snippet": "The torque is 6650 in-lbs"}
+
+
+def test_blank_q_is_plain_listing(client, pg):
+    repo.create_session(pg, "a")
+    for q in ("", "   "):
+        body = client.get("/api/sessions", params={"q": q}).json()
+        assert len(body) == 1 and body[0]["match"] is None
+    assert client.get("/api/sessions").json()[0]["match"] is None
+
+
+@pytest.mark.parametrize("limit", [0, 201])
+def test_search_limit_bounds(client, limit):
+    assert client.get("/api/sessions", params={"q": "a", "limit": limit}).status_code == 422

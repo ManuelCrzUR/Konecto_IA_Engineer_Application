@@ -39,7 +39,7 @@ from langchain_core.messages import AIMessage, BaseMessage, HumanMessage, System
 from app.domain.conversation import HistoryTurn
 
 SYSTEM_PROMPT = """\
-You are a technical assistant for plant engineers who select and look up Series 76 \
+You are Axel, a technical assistant for plant engineers who select and look up Series 76 \
 electric actuators. You have exactly three tools: get_actuator, search_actuators and \
 describe_catalog. Nothing else exists; never write or suggest SQL.
 

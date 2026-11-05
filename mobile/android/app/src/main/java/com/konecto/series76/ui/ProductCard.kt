@@ -4,12 +4,21 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.clickable
-import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Card
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.core.FastOutSlowInEasing
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.expandVertically
+import androidx.compose.animation.shrinkVertically
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.Surface
+import com.konecto.series76.ui.theme.AxelTheme
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -35,34 +44,37 @@ internal fun serviceLabel(service: String): String = when (service) {
     else -> service
 }
 
-internal fun subtitle(p: Product): String =
-    listOfNotNull(
-        p.voltage,
-        p.phase?.let { "${it}φ" },
-        p.enclosure,
-        serviceLabel(p.service),
-    ).joinToString(" · ")
-
 @Composable
 fun ProductCard(product: Product, modifier: Modifier = Modifier) {
     var notesOpen by remember { mutableStateOf(false) }
-    Card(modifier = modifier.fillMaxWidth().testTag("product_card_${product.partNumber}")) {
-        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
-            Text(product.partNumber, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
-            Text(subtitle(product), style = MaterialTheme.typography.bodySmall)
-            if (!product.csaCertified) {
-                AssistChip(onClick = {}, label = { Text("Not CSA certified") })
-            }
+    Surface(
+        modifier = modifier.fillMaxWidth().testTag("product_card_${product.partNumber}"),
+        shape = RoundedCornerShape(28.dp),
+        color = MaterialTheme.colorScheme.surface,
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(product.partNumber, style = AxelTheme.typography.partNumber)
+            ProductChips(product)
             if (!product.hasData) {
-                Text("No data (N/A)", style = MaterialTheme.typography.bodyMedium, color = MaterialTheme.colorScheme.error)
+                Text(
+                    "No data in the catalog", style = MaterialTheme.typography.bodyMedium,
+                    color = AxelTheme.colors.caution,
+                )
             } else {
-                orderedFields(product.fields).forEach { row ->
+                val (figures, rest) = remember(product.fields) { splitKeyFigures(orderedFields(product.fields)) }
+                if (figures.isNotEmpty()) {
+                    Row(Modifier.fillMaxWidth().height(IntrinsicSize.Max), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        figures.forEach { KeyFigureTile(it, Modifier.weight(1f)) }
+                        repeat(MAX_KEY_FIGURES - figures.size) { Spacer(Modifier.weight(1f)) }
+                    }
+                }
+                rest.forEach { row ->
                     Row(Modifier.fillMaxWidth(), verticalAlignment = Alignment.CenterVertically) {
-                        Text(row.label, Modifier.weight(1f), style = MaterialTheme.typography.bodyMedium)
+                        Text(row.label, Modifier.weight(1f), style = AxelTheme.typography.label)
                         Text(
                             row.value,
                             Modifier.testTag("field_${row.key}_value"),
-                            style = MaterialTheme.typography.bodyMedium,
+                            style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"),
                             fontWeight = FontWeight.SemiBold,
                         )
                         Text(
@@ -73,7 +85,7 @@ fun ProductCard(product: Product, modifier: Modifier = Modifier) {
                 }
             }
             if (product.notes.isNotEmpty()) {
-                HorizontalDivider(Modifier.padding(top = 8.dp))
+                HorizontalDivider(color = AxelTheme.colors.divider)
                 Box(
                     Modifier.fillMaxWidth().heightIn(min = 48.dp)
                         .clickable { notesOpen = !notesOpen }.testTag("notes_toggle"),
@@ -85,7 +97,15 @@ fun ProductCard(product: Product, modifier: Modifier = Modifier) {
                         color = MaterialTheme.colorScheme.primary,
                     )
                 }
-                if (notesOpen) product.notes.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+                AnimatedVisibility(
+                    notesOpen,
+                    enter = expandVertically(tween(250, easing = FastOutSlowInEasing)),
+                    exit = shrinkVertically(tween(250, easing = FastOutSlowInEasing)),
+                ) {
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
+                        product.notes.forEach { Text(it, style = MaterialTheme.typography.bodySmall) }
+                    }
+                }
             }
         }
     }

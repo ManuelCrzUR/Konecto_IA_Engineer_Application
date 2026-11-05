@@ -3,6 +3,7 @@ package com.konecto.series76.chat
 import androidx.lifecycle.SavedStateHandle
 import com.konecto.series76.data.ApiResult
 import com.konecto.series76.data.AssistantRepository
+import com.konecto.series76.data.StubRepository
 import com.konecto.series76.data.ConversationResponse
 import com.konecto.series76.data.FailureKind
 import com.konecto.series76.data.MessageOut
@@ -32,7 +33,7 @@ class ChatViewModelTest {
         service = "on_off_and_modulating", hasData = true, fields = mapOf("onoff_torque_nm" to JsonPrimitive(800)),
     )
 
-    private class FakeRepo : AssistantRepository {
+    private class FakeRepo : StubRepository() {
         val sent = mutableListOf<Pair<String?, String>>()
         var sendResults = ArrayDeque<ApiResult<ConversationResponse>>()
         var history: ApiResult<List<MessageOut>> = ApiResult.Success(emptyList())

@@ -1,0 +1,34 @@
+{
+  "v": 3,
+  "createdOnFiles": {"v": 1, "at": "2026-11-04T16:30:00Z"},
+  "title": "Series 76 Assistant — App Design",
+  "launch": {"view": "canvas"},
+  "pages": [],
+  "boards": {
+    "Main.dc.html": {"x": 0, "y": 0, "w": 1280, "h": 900, "title": "Style guide — tokens, type, components, icon"},
+    "Conversations.dc.html": {"x": 0, "y": 1300, "w": 390, "h": 844, "is_interactive": true, "title": "1 · Conversations"},
+    "ChatEmpty.dc.html": {"x": 470, "y": 1300, "w": 390, "h": 844, "is_interactive": true, "title": "2 · New chat (suggested prompts)"},
+    "ChatLookup.dc.html": {"x": 940, "y": 1300, "w": 390, "h": 844, "is_interactive": true, "title": "3 · Lookup answer + product card"},
+    "ChatCompare.dc.html": {"x": 1410, "y": 1300, "w": 390, "h": 844, "is_interactive": true, "title": "4 · Recommendation + comparison"},
+    "Debug.dc.html": {"x": 1880, "y": 1300, "w": 390, "h": 844, "is_interactive": true, "title": "5 · Debug (hidden, 5 taps)"},
+    "States.dc.html": {"x": 2350, "y": 1300, "w": 390, "h": 844, "is_interactive": true, "title": "6 · Thinking + offline states"},
+    "Character.dc.html": {"x": 3440, "y": 0, "w": 1280, "h": 900, "title": "Axel — character, states, app icon", "is_interactive": true},
+    "Splash.dc.html": {"x": -470, "y": 1300, "w": 390, "h": 844, "is_interactive": true, "title": "0 · Splash / loading"},
+    "LightSplash.dc.html": {"x": -470, "y": 2600, "w": 390, "h": 844, "is_interactive": true, "title": "0 · Splash / loading (light)"},
+    "Search.dc.html": {"x": 2820, "y": 1300, "w": 390, "h": 844, "is_interactive": true, "title": "7 · Search in chats"},
+    "Motion.dc.html": {"x": 1360, "y": 0, "w": 1280, "h": 900, "title": "Motion — screen transitions and in-screen animation", "is_interactive": true},
+    "LightTokens.dc.html": {"x": 2720, "y": 0, "w": 640, "h": 900, "title": "Light theme palette"},
+    "LightConversations.dc.html": {"x": 0, "y": 2600, "w": 390, "h": 844, "is_interactive": true, "title": "1 · Conversations (light)"},
+    "LightChatEmpty.dc.html": {"x": 470, "y": 2600, "w": 390, "h": 844, "is_interactive": true, "title": "2 · New chat (light)"},
+    "LightChatLookup.dc.html": {"x": 940, "y": 2600, "w": 390, "h": 844, "is_interactive": true, "title": "3 · Lookup + product card (light)"},
+    "LightChatCompare.dc.html": {"x": 1410, "y": 2600, "w": 390, "h": 844, "is_interactive": true, "title": "4 · Recommendation + comparison (light)"},
+    "LightDebug.dc.html": {"x": 1880, "y": 2600, "w": 390, "h": 844, "is_interactive": true, "title": "5 · Debug (light)"},
+    "LightStates.dc.html": {"x": 2350, "y": 2600, "w": 390, "h": 844, "is_interactive": true, "title": "6 · Thinking + offline (light)"}
+  },
+  "order": ["Main.dc.html", "Motion.dc.html", "LightTokens.dc.html", "Character.dc.html", "Splash.dc.html", "LightSplash.dc.html", "Search.dc.html", "Conversations.dc.html", "ChatEmpty.dc.html", "ChatLookup.dc.html", "ChatCompare.dc.html", "Debug.dc.html", "States.dc.html", "LightConversations.dc.html", "LightChatEmpty.dc.html", "LightChatLookup.dc.html", "LightChatCompare.dc.html", "LightDebug.dc.html", "LightStates.dc.html"],
+  "notes": {
+    "screens": {"x": -470, "y": 1040, "text": "Axel — dark theme (default, 390 × 844)", "kind": "title1", "maxW": 3680},
+    "screensLight": {"x": -470, "y": 2340, "text": "Axel — light theme (chosen in Conversations › Theme)", "kind": "title1", "maxW": 3680}
+  },
+  "designSystems": []
+}

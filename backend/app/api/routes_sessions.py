@@ -1,9 +1,13 @@
 """Conversation history endpoints (mounted under "/api").
 
 Contract (router = APIRouter(); sync `def` endpoints):
-- GET /sessions?limit=50 (1..200) -> list[SessionOut]
-    sessions_repo.list_sessions(conn, user_id=get_current_user(), limit),
-    most recently updated first. Empty list when there are none.
+- GET /sessions?q=&limit=50 (1..200) -> list[SessionOut]
+    No q (or blank after strip): sessions_repo.list_sessions(conn,
+    user_id=get_current_user(), limit), most recently updated first; every
+    item has match=null. Empty list when there are none.
+    With q: sessions_search.search_sessions (case-insensitive substring over the
+    title and message contents, same scoping and order); each item carries
+    match={where: "title"|"message", snippet}.
 - GET /sessions/{session_id}/messages -> list[MessageOut]
     404 ApiError("session_not_found", "No conversation with id <id>") when
     get_session(conn, id, user) is None; else list_messages oldest first,
@@ -21,9 +25,9 @@ from psycopg import Connection
 
 from app.api.deps import get_conn, get_current_user
 from app.api.errors import ApiError
-from app.api.schemas import MessageOut, SessionOut
-from app.db import sessions_repo
-from app.domain.conversation import SessionInfo, StoredMessage
+from app.api.schemas import MessageOut, SearchMatch, SessionOut
+from app.db import sessions_repo, sessions_search
+from app.domain.conversation import StoredMessage
 
 router = APIRouter()
 
@@ -32,9 +36,14 @@ router = APIRouter()
 def list_sessions(
     conn: Annotated[Connection, Depends(get_conn)],
     user_id: Annotated[str | None, Depends(get_current_user)],
+    q: Annotated[str | None, Query(max_length=200)] = None,
     limit: Annotated[int, Query(ge=1, le=200)] = 50,
-) -> list[SessionInfo]:
-    return sessions_repo.list_sessions(conn, user_id=user_id, limit=limit)
+) -> list[SessionOut]:
+    if q is None or not q.strip():
+        found = sessions_repo.list_sessions(conn, user_id=user_id, limit=limit)
+        return [SessionOut(**s.model_dump()) for s in found]
+    hits = sessions_search.search_sessions(conn, q, user_id=user_id, limit=limit)
+    return [SessionOut(**s.model_dump(), match=SearchMatch(**h.model_dump())) for s, h in hits]
 
 
 @router.get("/sessions/{session_id}/messages", response_model=list[MessageOut])

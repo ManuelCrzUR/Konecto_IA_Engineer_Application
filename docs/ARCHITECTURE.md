@@ -94,7 +94,7 @@ Conversations (same database, same `pgdata` volume):
 ## 4. API (FastAPI)
 
 - `POST /api/conversation` returns `{session_id, answer, products[], debug}`. Each item in `products[]` is `{part_number, enclosure, voltage, phase, service, fields:{...values with units...}, csa_certified, notes[]}`. The app shows them as comparable cards (one column per product). `debug` is a list of `{tool, params, result}`. It is **always present in the response**; the user-facing app does not show it.
-- `GET /api/sessions` (id, title, date) and `GET /api/sessions/{id}/messages` (includes `products` and `debug`).
+- `GET /api/sessions?q=&limit=` (id, title, date; with `q`, only matching sessions, each with `match {where, snippet}`, D-37) and `GET /api/sessions/{id}/messages` (includes `products` and `debug`).
 - An unknown `session_id` returns **404** with a clear message. Sessions are never created by accident. With no `session_id`, a session is created and returned.
 - Login hook: a `get_current_user()` dependency that returns `None` today. The `sessions_repo` queries already accept `user_id`. Enabling login means implementing `POST /api/auth/login` and changing that dependency. The `users` table is created only if login is implemented.
 - Voice hook: **transcription on the device** (Android `SpeechRecognizer`). The text goes to the same endpoint. No budget cost and no backend change.
@@ -174,13 +174,15 @@ The active delivery plan is §11. This section describes the dependency structur
 
 ## 11. Delivery plan
 
-Six sprints, in order. Each one ends at a human gate.
+Seven sprints, in order (plus 5.5, the UI redesign). Each one ends at a human gate.
 
 1. **Foundations and contracts**: project setup, `Actuator` model, schema, Postgres in compose, test fixtures, data seed, and the signature stubs for every module.
 2. **Data (ingestion and database)**: crops, normalization, validation, JSON store, OCR and flags, escalation, pipeline and `ensure_data()`, repositories and the ingestion CLI.
 3. **Tools, LLM and agent**: `get_actuator`, `search_actuators`, `describe_catalog`, LLM selection, prompts, response builder with number guard, `run_agent`, `cli.py`, and the evaluation set and runner.
 4. **API, persistence and Docker**: FastAPI routes and error format, conversation and session persistence, Dockerfile, the `api` service with the startup sequence, and recovery tests.
 5. **Android app**: Gradle project, API client, product cards and comparison table, Conversations, Chat and Debug screens, and an end-to-end run on the emulator.
-6. **Integration and delivery**: final evaluation run with the good model, code and security review, README, decisions and tooling docs, clean-machine test, and a checklist of the brief.
+5.5. **UI redesign ("Axel")**: dark and light themes, splash, the Axel character and launcher icon, conversation search (`GET /api/sessions?q=`), transitions. Visual reference in `docs/design/`, contract in `mobile/android/DESIGN.md`.
+6. **Security**: a multi-phase audit with Cloudflare's `security-audit` skill (prompt injection, agent and tool abuse, API exposure, operator spend, mobile, supply chain), adversarial evaluation cases, remediation and a re-audit. Report in `docs/security/`.
+7. **Integration and delivery**: final evaluation run with the good model, code review, README, decisions and tooling docs, clean-machine test, and a checklist of the brief.
 
-Optional work (login and voice) is done only if there is time left, after sprint 6.
+Optional work (login and voice) is done only if there is time left, after sprint 7.

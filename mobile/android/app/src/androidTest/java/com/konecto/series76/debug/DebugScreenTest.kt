@@ -14,6 +14,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.JsonPrimitive
+import com.konecto.series76.ui.theme.Series76Theme
 import org.junit.Rule
 import org.junit.Test
 
@@ -28,12 +29,12 @@ class DebugScreenTest {
 
     @Test fun showsToolNamesAndDurations() {
         val turns = buildTurns(messages)
-        rule.setContent { DebugContent(DebugUiState.Success(turns), {}, {}) }
+        rule.setContent { Series76Theme { DebugContent(DebugUiState.Success(turns), {}, {}) } }
         rule.onNodeWithTag("debug_turn_0").assertIsDisplayed()
         rule.onNodeWithTag("trace_0_0").assertIsDisplayed()
         rule.onNodeWithText("search_actuators").assertIsDisplayed()
         rule.onNodeWithText(formatDuration(turns[0].traces[0].durationMs)).assertIsDisplayed()
-        rule.onNodeWithText(turns[1].question).assertIsDisplayed()
+        rule.onNodeWithText(turns[1].question, substring = true).assertIsDisplayed()
         rule.onNodeWithText("get_actuator").assertIsDisplayed()
         rule.onAllNodesWithTag("guard_badge").assertCountEquals(0)
     }
@@ -41,19 +42,19 @@ class DebugScreenTest {
     @Test fun numberGuardTraceIsHighlighted() {
         val guard = ToolTrace("number_guard", JsonObject(emptyMap()), JsonPrimitive("replaced"), 1.0)
         rule.setContent {
-            DebugContent(DebugUiState.Success(listOf(DebugTurn(0, "q", listOf(guard)))), {}, {})
+            Series76Theme { DebugContent(DebugUiState.Success(listOf(DebugTurn(0, "q", listOf(guard)))), {}, {}) }
         }
         rule.onNodeWithTag("guard_badge").assertIsDisplayed()
         rule.onNode(hasText("Number guard fired")).assertIsDisplayed()
     }
 
     @Test fun noSessionText() {
-        rule.setContent { DebugContent(DebugUiState.NoSession, {}, {}) }
+        rule.setContent { Series76Theme { DebugContent(DebugUiState.NoSession, {}, {}) } }
         rule.onNodeWithText(NO_SESSION_TEXT).assertIsDisplayed()
     }
 
     @Test fun errorShowsRetry() {
-        rule.setContent { DebugContent(DebugUiState.Error("Cannot reach the server"), {}, {}) }
+        rule.setContent { Series76Theme { DebugContent(DebugUiState.Error("Cannot reach the server"), {}, {}) } }
         rule.onNodeWithText("Cannot reach the server").assertIsDisplayed()
         rule.onNodeWithText("Retry").assertIsDisplayed()
     }

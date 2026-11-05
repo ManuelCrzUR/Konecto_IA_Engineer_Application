@@ -7,6 +7,7 @@ import psycopg
 import pytest
 
 from app.db import sessions_repo as repo
+from app.db import sessions_search
 from app.domain.models import Actuator, Product, ToolTrace
 from tests.conftest import DEFAULT_TEST_URL
 
@@ -112,3 +113,65 @@ def test_persistence_across_connections(pg, golden_rows):
         assert repo.get_session(fresh, s.id) is not None
         (m,) = repo.list_messages(fresh, s.id)
     assert m.content == "kept" and m.products == [_product(golden_rows)]
+
+
+# --- search_sessions -------------------------------------------------------
+
+
+def _search(pg, q, **kw):
+    return [(s.title, h.where, h.snippet) for s, h in sessions_search.search_sessions(pg, q, **kw)]
+
+
+def test_search_title_match(pg):
+    repo.create_session(pg, "Torque for 764A")
+    repo.create_session(pg, "Other")
+    assert _search(pg, "TORQUE") == [("Torque for 764A", "title", "Torque for 764A")]
+
+
+def test_search_message_match_and_first_message_wins(pg):
+    s = repo.create_session(pg, "Chat")
+    repo.add_message(pg, s.id, "user", "nothing here")
+    repo.add_message(pg, s.id, "assistant", "The Speed is 15 s")
+    repo.add_message(pg, s.id, "assistant", "another speed note")
+    assert _search(pg, "speed") == [("Chat", "message", "The Speed is 15 s")]
+
+
+def test_search_title_wins_over_message(pg):
+    s = repo.create_session(pg, "speed question")
+    repo.add_message(pg, s.id, "user", "speed")
+    assert _search(pg, "speed")[0][1] == "title"
+
+
+def test_search_wildcards_are_literal(pg):
+    a = repo.create_session(pg, "100% duty")
+    repo.create_session(pg, "1000 duty")
+    c = repo.create_session(pg, "a_b")
+    repo.create_session(pg, "axb")
+    d = repo.create_session(pg, "path")
+    repo.add_message(pg, d.id, "user", r"back\slash")
+    assert [t for t, _, _ in _search(pg, "100%")] == ["100% duty"]
+    assert [t for t, _, _ in _search(pg, "a_b")] == ["a_b"]
+    assert [t for t, _, _ in _search(pg, "%")] == ["100% duty"]
+    assert [t for t, _, _ in _search(pg, "\\")] == ["path"]
+    assert a and c
+
+
+def test_search_user_scoping(pg):
+    repo.create_session(pg, "shared word", user_id="a")
+    repo.create_session(pg, "shared word")
+    assert len(sessions_search.search_sessions(pg, "shared", user_id="a")) == 1
+    assert len(sessions_search.search_sessions(pg, "shared")) == 1
+    assert sessions_search.search_sessions(pg, "shared", user_id="b") == []
+
+
+def test_search_order_and_limit(pg):
+    a = repo.create_session(pg, "x one")
+    repo.create_session(pg, "x two")
+    repo.add_message(pg, a.id, "user", "bump")
+    assert [t for t, _, _ in _search(pg, "x")] == ["x one", "x two"]
+    assert len(_search(pg, "x", limit=1)) == 1
+
+
+def test_search_no_results(pg):
+    repo.create_session(pg, "abc")
+    assert _search(pg, "zzz") == []

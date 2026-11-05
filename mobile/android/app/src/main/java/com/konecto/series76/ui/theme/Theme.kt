@@ -1,52 +1,41 @@
 package com.konecto.series76.ui.theme
 
+import android.provider.Settings
 import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.graphics.Color
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.remember
+import androidx.compose.ui.platform.LocalContext
 
-// Industrial look: neutral greys, one steel-blue accent. Dynamic color is intentionally off.
-private val Accent = Color(0xFF1F5F8B)
-private val AccentDark = Color(0xFF8CC4EC)
+enum class ThemeMode { SYSTEM, LIGHT, DARK }
 
-private val LightColors = lightColorScheme(
-    primary = Accent,
-    onPrimary = Color.White,
-    primaryContainer = Color(0xFFD6E8F5),
-    onPrimaryContainer = Color(0xFF0B2A3F),
-    secondary = Color(0xFF55606A),
-    background = Color(0xFFF4F5F6),
-    onBackground = Color(0xFF1B1D1F),
-    surface = Color(0xFFFFFFFF),
-    onSurface = Color(0xFF1B1D1F),
-    surfaceVariant = Color(0xFFE6E8EA),
-    onSurfaceVariant = Color(0xFF454B50),
-    outline = Color(0xFF8A9096),
-    error = Color(0xFFB3261E),
-)
-
-private val DarkColors = darkColorScheme(
-    primary = AccentDark,
-    onPrimary = Color(0xFF06283D),
-    primaryContainer = Color(0xFF184A6B),
-    onPrimaryContainer = Color(0xFFD6E8F5),
-    secondary = Color(0xFFB4BEC7),
-    background = Color(0xFF121415),
-    onBackground = Color(0xFFE3E5E7),
-    surface = Color(0xFF1B1E20),
-    onSurface = Color(0xFFE3E5E7),
-    surfaceVariant = Color(0xFF2A2E31),
-    onSurfaceVariant = Color(0xFFC2C7CB),
-    outline = Color(0xFF8A9096),
-    error = Color(0xFFF2B8B5),
-)
-
+/** Resolves SYSTEM against the device setting; the result is always dark or light. */
 @Composable
-fun Series76Theme(darkTheme: Boolean = isSystemInDarkTheme(), content: @Composable () -> Unit) {
-    MaterialTheme(colorScheme = if (darkTheme) DarkColors else LightColors) {
-        Surface(color = MaterialTheme.colorScheme.background, content = content)
+fun ThemeMode.isDark(): Boolean = when (this) {
+    ThemeMode.SYSTEM -> isSystemInDarkTheme()
+    ThemeMode.LIGHT -> false
+    ThemeMode.DARK -> true
+}
+
+/** Dynamic color is intentionally off: the Axel palette is fixed (DESIGN.md section 2). */
+@Composable
+fun Series76Theme(themeMode: ThemeMode = ThemeMode.DARK, content: @Composable () -> Unit) {
+    val dark = themeMode.isDark()
+    val resolver = LocalContext.current.contentResolver
+    val animations = remember {
+        Settings.Global.getFloat(resolver, Settings.Global.ANIMATOR_DURATION_SCALE, 1f) != 0f
+    }
+    CompositionLocalProvider(
+        LocalAxelColors provides if (dark) DarkAxelColors else LightAxelColors,
+        LocalAnimationsEnabled provides animations,
+    ) {
+        MaterialTheme(
+            colorScheme = if (dark) DarkScheme else LightScheme,
+            typography = Series76Typography,
+        ) {
+            Surface(color = MaterialTheme.colorScheme.background, content = content)
+        }
     }
 }

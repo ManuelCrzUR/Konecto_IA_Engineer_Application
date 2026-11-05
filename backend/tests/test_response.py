@@ -182,7 +182,10 @@ def test_template_variants():
     assert "reformular" in R.template_answer([], "¿qué hay?")
 
 
-@pytest.mark.parametrize("text", ["the Series 76 catalog", "series-76 actuators", "SERIES 76"])
+@pytest.mark.parametrize(
+    "text",
+    ["the Series 76 catalog", "series-76 actuators", "SERIES 76", "actuadores Serie 76", "la série 76"],
+)
 def test_family_name_is_not_a_number(text: str) -> None:
     # Found in the real eval: "Series 76" in a correct answer tripped the guard.
     assert R.extract_numbers(text) == []
@@ -233,3 +236,15 @@ def test_user_history_numbers_count_as_verified():
 def test_user_history_part_number_passes():
     assert R.unverified_part_numbers("Pediste 764A00", [], "y eso?") == ["764A00"]
     assert R.unverified_part_numbers("Pediste 764A00", [], "y eso?", "dame 764A00-11300000") == []
+
+
+# ---- Gate 5.5: model size named in the answer ---------------------------------
+def test_model_size_of_a_returned_part_number_is_not_a_figure() -> None:
+    trace = [tr("get_actuator", {"status": "found"}, part_number="764A00-11320000/A")]
+    answer = "Of the two, the 764 is the larger frame."
+    assert R.unverified_numbers(answer, trace, "compare them") == []
+
+
+def test_model_size_without_that_product_in_the_trace_is_flagged() -> None:
+    trace = [tr("get_actuator", {"status": "found"}, part_number="763A00-11320000/A")]
+    assert R.unverified_numbers("The 765 is larger.", trace, "q") == ["765"]

@@ -14,8 +14,14 @@ class Repository(private val api: ApiService) : AssistantRepository {
 
     override suspend fun sessions(): ApiResult<List<SessionOut>> = call { api.sessions() }
 
+    override suspend fun searchSessions(q: String): ApiResult<List<SessionOut>> =
+        call { api.sessions(q) }
+
     override suspend fun messages(sessionId: String): ApiResult<List<MessageOut>> =
         call { api.messages(sessionId) }
+
+    override suspend fun health(): Boolean =
+        call { api.health() }.let { it is ApiResult.Success && it.value.isSuccessful }
 
     private suspend fun <T> call(block: suspend () -> T): ApiResult<T> =
         try {

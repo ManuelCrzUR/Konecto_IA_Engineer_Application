@@ -36,6 +36,10 @@ def test_prompt_mentions_rule_keys(key: str) -> None:
     assert key in SYSTEM_PROMPT
 
 
+def test_prompt_introduces_assistant_as_axel() -> None:
+    assert "Axel" in SYSTEM_PROMPT
+
+
 def test_prompt_has_no_catalog_digits() -> None:
     # Only the family name and the printed stroke unit ("per 90°") may contain digits.
     assert "Series 76" in SYSTEM_PROMPT and "per 90°" in SYSTEM_PROMPT

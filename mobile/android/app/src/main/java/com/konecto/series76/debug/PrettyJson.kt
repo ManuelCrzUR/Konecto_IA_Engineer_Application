@@ -16,3 +16,9 @@ fun formatDuration(ms: Double?): String = when {
     ms < 1.0 -> "<1 ms"
     else -> "${ms.roundToLong()} ms"
 }
+
+/** First [max] lines of [text]; the whole text when it is not longer. */
+fun collapsedLines(text: String, max: Int): String {
+    val lines = text.lines()
+    return if (lines.size <= max) text else lines.take(max).joinToString("\n")
+}

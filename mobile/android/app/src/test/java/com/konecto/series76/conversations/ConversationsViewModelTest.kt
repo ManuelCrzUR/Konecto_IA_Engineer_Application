@@ -2,6 +2,7 @@ package com.konecto.series76.conversations
 
 import com.konecto.series76.data.ApiResult
 import com.konecto.series76.data.AssistantRepository
+import com.konecto.series76.data.StubRepository
 import com.konecto.series76.data.ConversationResponse
 import com.konecto.series76.data.FailureKind
 import com.konecto.series76.data.MessageOut
@@ -17,12 +18,12 @@ import org.junit.Assert.assertEquals
 import org.junit.Before
 import org.junit.Test
 
-private class FakeRepo(var next: suspend () -> ApiResult<List<SessionOut>>) : AssistantRepository {
+private class FakeRepo(var next: suspend () -> ApiResult<List<SessionOut>>) : StubRepository() {
     var calls = 0
     override suspend fun sessions(): ApiResult<List<SessionOut>> { calls++; return next() }
-    override suspend fun sendMessage(sessionId: String?, query: String): ApiResult<ConversationResponse> = error("unused")
-    override suspend fun messages(sessionId: String): ApiResult<List<MessageOut>> = error("unused")
 }
+
+private fun vm(repo: AssistantRepository) = ConversationsViewModel(repo, testThemePreferences())
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class ConversationsViewModelTest {
@@ -33,20 +34,20 @@ class ConversationsViewModelTest {
 
     @Test fun loadingThenSuccess() {
         val gate = CompletableDeferred<ApiResult<List<SessionOut>>>()
-        val vm = ConversationsViewModel(FakeRepo { gate.await() })
+        val vm = vm(FakeRepo { gate.await() })
         assertEquals(ConversationsUiState.Loading, vm.state.value)
         gate.complete(ApiResult.Success(listOf(s)))
         assertEquals(ConversationsUiState.Success(listOf(s)), vm.state.value)
     }
 
     @Test fun emptyList() {
-        val vm = ConversationsViewModel(FakeRepo { ApiResult.Success(emptyList<SessionOut>()) })
+        val vm = vm(FakeRepo { ApiResult.Success(emptyList<SessionOut>()) })
         assertEquals(ConversationsUiState.Empty, vm.state.value)
     }
 
     @Test fun errorThenRefreshSuccess() {
         val repo = FakeRepo { ApiResult.Failure(FailureKind.Network, "No connection") }
-        val vm = ConversationsViewModel(repo)
+        val vm = vm(repo)
         assertEquals(ConversationsUiState.Error("No connection"), vm.state.value)
         repo.next = { ApiResult.Success(listOf(s)) }
         vm.refresh()
@@ -57,7 +58,7 @@ class ConversationsViewModelTest {
     @Test fun resumeReloadsAndPicksUpNewSession() {
         val newer = SessionOut("b", null, "New chat", "2026-11-04T11:00:00Z", "2026-11-04T11:00:00Z")
         val repo = FakeRepo { ApiResult.Success(listOf(s)) }
-        val vm = ConversationsViewModel(repo)
+        val vm = vm(repo)
         vm.onResume() // first resume: initial load already finished, harmless reload
         repo.next = { ApiResult.Success(listOf(newer, s)) }
         vm.onResume()
@@ -67,7 +68,7 @@ class ConversationsViewModelTest {
     @Test fun resumeWhileLoadInFlightDoesNotDuplicate() {
         val gate = CompletableDeferred<ApiResult<List<SessionOut>>>()
         val repo = FakeRepo { gate.await() }
-        val vm = ConversationsViewModel(repo)
+        val vm = vm(repo)
         vm.onResume()
         vm.onResume()
         assertEquals(1, repo.calls)
@@ -79,7 +80,7 @@ class ConversationsViewModelTest {
     @Test fun isRefreshingResetsAfterFailureAndSuccess() {
         val gate = CompletableDeferred<ApiResult<List<SessionOut>>>()
         val repo = FakeRepo { ApiResult.Failure(FailureKind.Network, "No connection") }
-        val vm = ConversationsViewModel(repo)
+        val vm = vm(repo)
         repo.next = { gate.await() }
         vm.refresh()
         assertEquals(true, vm.isRefreshing.value)
@@ -96,7 +97,7 @@ class ConversationsViewModelTest {
 
     @Test fun refreshKeepsListAndFlagsRefreshing() {
         val repo = FakeRepo { ApiResult.Success(listOf(s)) }
-        val vm = ConversationsViewModel(repo)
+        val vm = vm(repo)
         val gate = CompletableDeferred<ApiResult<List<SessionOut>>>()
         repo.next = { gate.await() }
         vm.refresh()

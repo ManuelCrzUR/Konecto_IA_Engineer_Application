@@ -3,6 +3,8 @@
 user_id is accepted everywhere and is None until login exists (hook).
 With user_id=None only sessions whose user_id IS NULL are visible; with a
 value only that user's sessions are.
+
+Search lives in app.db.sessions_search (D-37).
 """
 
 from __future__ import annotations
@@ -21,7 +23,7 @@ TITLE_MAX = 50
 _SESSION_COLS = "id, user_id, title, created_at, updated_at"
 _MESSAGE_COLS = "id, session_id, role, content, products, trace, created_at"
 # `IS NOT DISTINCT FROM` matches NULL = NULL, so one query serves both cases.
-_USER_MATCH = "user_id IS NOT DISTINCT FROM %s"
+USER_MATCH = "user_id IS NOT DISTINCT FROM %s"
 
 
 def _clean_title(title: str) -> str:
@@ -62,7 +64,7 @@ def get_session(
     """None when the id does not exist (or belongs to another user)."""
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
-            f"SELECT {_SESSION_COLS} FROM sessions WHERE id = %s AND {_USER_MATCH}",
+            f"SELECT {_SESSION_COLS} FROM sessions WHERE id = %s AND {USER_MATCH}",
             (session_id, user_id),
         )
         row = cur.fetchone()
@@ -75,7 +77,7 @@ def list_sessions(
     """Most recently updated first."""
     with conn.cursor(row_factory=dict_row) as cur:
         cur.execute(
-            f"SELECT {_SESSION_COLS} FROM sessions WHERE {_USER_MATCH} "
+            f"SELECT {_SESSION_COLS} FROM sessions WHERE {USER_MATCH} "
             "ORDER BY updated_at DESC, id LIMIT %s",
             (user_id, limit),
         )

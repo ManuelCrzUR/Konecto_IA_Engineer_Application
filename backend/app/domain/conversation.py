@@ -44,6 +44,13 @@ class SessionInfo(BaseModel):
     updated_at: datetime
 
 
+class SearchHit(BaseModel):
+    """Where a search query matched and a short text window around it."""
+
+    where: Literal["title", "message"]
+    snippet: str
+
+
 class StoredMessage(BaseModel):
     id: int
     session_id: uuid.UUID

@@ -26,7 +26,7 @@ PRODUCT_KEYS = {
     "part_number", "enclosure", "voltage", "phase", "service",
     "csa_certified", "has_data", "fields", "notes",
 }  # fmt: skip
-SESSION_KEYS = {"id", "user_id", "title", "created_at", "updated_at"}
+SESSION_KEYS = {"id", "user_id", "title", "created_at", "updated_at", "match"}
 MESSAGE_KEYS = {"id", "session_id", "role", "content", "products", "trace", "created_at"}
 TRACE_KEYS = {"tool", "params", "result", "duration_ms"}
 

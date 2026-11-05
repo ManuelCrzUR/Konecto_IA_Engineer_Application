@@ -21,7 +21,7 @@ Contract:
 - extract_numbers(text) -> list[str]
     Numeric tokens in `text` after removing every part-number-like token
     (regex r"76\\d[A-Z]\\d{2}(?:-[0-9A-Z]{8}(?:/A)?)?\\*?", case-insensitive)
-    and the product family name ("Series 76", case-insensitive).
+    and the product family name ("Series 76", "Serie 76", "Série 76"; case-insensitive).
     A token is digits with optional ',' or '.' separators: '1,330', '2.3',
     '17', '2,3'. Returned as written.
 - token_values(token) -> set[float]
@@ -73,7 +73,7 @@ GUARD_TOOL = "number_guard"
 ALWAYS_ALLOWED: frozenset[float] = frozenset({*map(float, range(11)), 90.0})
 
 _PN = re.compile(r"76\d[A-Z]\d{2}(?:-[0-9A-Z]{8}(?:/A)?)?\*?", re.IGNORECASE)
-_FAMILY = re.compile(r"\bSeries[\s-]*76\b", re.IGNORECASE)  # product name, not a figure
+_FAMILY = re.compile(r"\bS[eé]ries?[\s-]*76\b", re.IGNORECASE)  # product name, not a figure
 _NUM = re.compile(r"\d+(?:[.,]\d+)*")
 _ES_WORDS = frozenset(
     {"que", "cual", "cuales", "el", "la", "los", "las", "un", "una", "necesito", "quiero"}
@@ -168,6 +168,10 @@ def allowed_numbers(trace: list[ToolTrace], query: str, user_history: str = "") 
     out = set(ALWAYS_ALLOWED)
     for tok in tokens:
         out |= token_values(tok)
+    # A model size ("the 764") names a product a tool returned; it is not a figure.
+    for t in trace:
+        for pn in _pn_tokens(f"{t.params} {t.result}"):
+            out.add(float(pn[:3]))
     return out
 
 

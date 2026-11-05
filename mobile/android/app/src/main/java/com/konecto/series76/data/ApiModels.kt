@@ -49,7 +49,12 @@ data class SessionOut(
     val title: String,
     @SerialName("created_at") val createdAt: String,
     @SerialName("updated_at") val updatedAt: String,
+    val match: SearchMatch? = null,
 )
+
+/** Present only on `GET /api/sessions?q=`: where the query matched and a backend-cut snippet. */
+@Serializable
+data class SearchMatch(val where: String, val snippet: String)
 
 @Serializable
 data class MessageOut(

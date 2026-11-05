@@ -20,4 +20,10 @@ class PrettyJsonTest {
         assertEquals("<1 ms", formatDuration(0.4))
         assertEquals("12 ms", formatDuration(12.2))
     }
+
+    @Test fun collapsesToFirstLines() {
+        val text = (1..10).joinToString("\n") { "line$it" }
+        assertEquals((1..6).joinToString("\n") { "line$it" }, collapsedLines(text, 6))
+        assertEquals("a\nb", collapsedLines("a\nb", 6))
+    }
 }

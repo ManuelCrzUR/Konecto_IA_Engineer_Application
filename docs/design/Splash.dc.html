@@ -1,0 +1,51 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Splash</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+.ax-knob{transform-box:view-box;transform-origin:32px 10px;animation:ax-stroke 1.6s .5s 1 ease-in-out both}
+.ax-eyes{animation:ax-glance 1.6s .5s 1 ease-in-out both}
+.bar{transform-origin:left center;animation:fill 2.6s .3s 1 ease-out both}
+@keyframes ax-stroke{0%{transform:rotate(0deg)}45%,60%{transform:rotate(90deg)}100%{transform:rotate(0deg)}}
+@keyframes ax-glance{0%{transform:translate(0,0)}25%,75%{transform:translate(1.6px,-1.6px)}100%{transform:translate(0,0)}}
+@keyframes fill{0%{transform:scaleX(.08)}100%{transform:scaleX(.72)}}
+@media (prefers-reduced-motion: reduce){.ax-knob,.ax-eyes,.bar{animation:none}.bar{transform:scaleX(.6)}}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #0E0E0E; color: #FFFFFF; font-family: 'DM Sans', system-ui, sans-serif; display: flex; flex-direction: column; align-items: center">
+  <div style="flex-grow: 1; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px; padding-bottom: 40px">
+    <div style="position: relative; width: 120px; height: 120px; margin-bottom: 20px">
+      <div style="position: absolute; left: 20px; top: 24px; width: 80px; height: 72px; border-radius: 30px; box-shadow: 0 4px 90px 24px #412C64" aria-hidden="true"></div>
+      <svg width="120" height="120" viewBox="0 0 64 64" role="img" aria-label="Axel" style="position: relative">
+        <rect x="8" y="16" width="48" height="40" rx="16" fill="#20152A" stroke="#BD7BFF" stroke-width="2.5"></rect>
+        <g class="ax-knob"><rect x="26" y="5" width="12" height="11" rx="3" fill="#BD7BFF"></rect><rect x="31" y="3" width="2" height="6" rx="1" fill="#0E0E0E"></rect></g>
+        <g class="ax-eyes"><circle cx="24" cy="34" r="4.5" fill="#FFFFFF"></circle><circle cx="40" cy="34" r="4.5" fill="#FFFFFF"></circle></g>
+        <path d="M23 45 Q32 52 41 45" stroke="#D0ACE5" stroke-width="3" fill="none" stroke-linecap="round"></path>
+      </svg>
+    </div>
+    <h1 style="margin: 0; font-size: 40px; font-weight: 700; letter-spacing: -0.022em; line-height: 1.1">Axel</h1>
+    <p style="margin: 0; font-size: 15px; color: #CCCCCC">Series 76 actuator assistant</p>
+  </div>
+  <div style="width: 100%; box-sizing: border-box; padding: 0 48px 64px; display: flex; flex-direction: column; align-items: center; gap: 12px" role="status">
+    <span style="font-size: 13px; font-weight: 500; color: #8A8A8A">Loading catalog…</span>
+    <div style="width: 100%; height: 4px; border-radius: 2px; background: #2A2A2A; overflow: hidden"><div class="bar" style="width: 100%; height: 4px; border-radius: 2px; background: #BD7BFF"></div></div>
+    <a href="Conversations.dc.html" style="font-size: 14px; color: #BD7BFF; text-decoration: none; cursor: pointer; margin-top: 4px">Tap to continue</a>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

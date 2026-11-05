@@ -1,7 +1,7 @@
 package com.konecto.series76.debug
 
 import com.konecto.series76.data.ApiResult
-import com.konecto.series76.data.AssistantRepository
+import com.konecto.series76.data.StubRepository
 import com.konecto.series76.data.ConversationResponse
 import com.konecto.series76.data.FailureKind
 import com.konecto.series76.data.MessageOut
@@ -29,11 +29,8 @@ class DebugViewModelTest {
         javaClass.getResource("/contract/messages.json")!!.readText(),
     )
 
-    private class FakeRepo(var next: ApiResult<List<MessageOut>>) : AssistantRepository {
+    private class FakeRepo(var next: ApiResult<List<MessageOut>>) : StubRepository() {
         var calls = 0
-        override suspend fun sendMessage(sessionId: String?, query: String): ApiResult<ConversationResponse> =
-            error("unused")
-        override suspend fun sessions(): ApiResult<List<SessionOut>> = error("unused")
         override suspend fun messages(sessionId: String): ApiResult<List<MessageOut>> {
             calls++
             return next
@@ -82,9 +79,7 @@ class DebugViewModelTest {
         val slow = CompletableDeferred<ApiResult<List<MessageOut>>>()
         val fast = CompletableDeferred<ApiResult<List<MessageOut>>>()
         val queue = ArrayDeque(listOf(slow, fast))
-        val repo = object : AssistantRepository {
-            override suspend fun sendMessage(sessionId: String?, query: String): ApiResult<ConversationResponse> = error("unused")
-            override suspend fun sessions(): ApiResult<List<SessionOut>> = error("unused")
+        val repo = object : StubRepository() {
             override suspend fun messages(sessionId: String) = queue.removeFirst().await()
         }
         val vm = DebugViewModel(repo, "s1") // call 1 pending (slow)

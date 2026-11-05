@@ -1,0 +1,83 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Conversations (light)</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#7B2CBF}a:hover{color:#5A189A}
+input::placeholder{color:#6E6878;opacity:1}
+</style>
+</helmet>
+<div style="width: 390px; height: 844px; box-sizing: border-box; background: #FAF8FC; color: #16121C; font-family: 'DM Sans', system-ui, sans-serif; display: flex; flex-direction: column; position: relative; overflow: hidden">
+  <div style="padding: 48px 20px 8px; display: flex; flex-direction: column; gap: 16px; position: relative; z-index: 2">
+    <div style="display: flex; align-items: center; gap: 12px">
+      <span style="flex-shrink: 0; display: flex"><svg width="40" height="40" viewBox="0 0 64 64" aria-hidden="true"><rect x="8" y="16" width="48" height="40" rx="16" fill="#F3EAFE" stroke="#7B2CBF" stroke-width="2.5"></rect><rect x="26" y="5" width="12" height="11" rx="3" fill="#7B2CBF"></rect><rect x="31" y="3" width="2" height="6" rx="1" fill="#FFFFFF"></rect><circle cx="24" cy="34" r="4.5" fill="#16121C"></circle><circle cx="40" cy="34" r="4.5" fill="#16121C"></circle><path d="M23 45 Q32 52 41 45" stroke="#7B2CBF" stroke-width="3" fill="none" stroke-linecap="round"></path></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 1px; flex-grow: 1; min-width: 0"><span style="font-size: 22px; font-weight: 700; letter-spacing: -0.02em; line-height: 1.2">Axel</span><span style="font-size: 13px; color: #4A4458">Your conversations</span></span>
+      <button aria-label="Theme" style="width: 48px; height: 48px; flex-shrink: 0; border: 1px solid #E7E2EE; border-radius: 16px; background: #F3EAFE; display: flex; align-items: center; justify-content: center"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#16121C" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="4"></circle><path d="M12 2v2M12 20v2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M2 12h2M20 12h2M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"></path></svg></button>
+    </div>
+    <a href="Search.dc.html" aria-label="Search conversations" style="position: relative; display: flex; align-items: center; width: 100%; height: 48px; box-sizing: border-box; padding: 0 16px 0 44px; border: 1px solid #E7E2EE; border-radius: 16px; background: #FFFFFF; text-decoration: none; cursor: pointer">
+      <span style="position: absolute; left: 14px; top: 14px; display: flex"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6E6878" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></span>
+      <span style="color: #6E6878; font: 400 15px 'DM Sans', sans-serif">Search chats, part numbers…</span>
+    </a>
+  </div>
+  <div style="display: flex; flex-direction: column; padding: 4px 12px 0; gap: 4px">
+    <span style="padding: 12px 8px 6px; font-size: 13px; font-weight: 500; color: #6E6878">Today</span>
+    <a href="LightChatCompare.dc.html" style="display: flex; gap: 12px; align-items: flex-start; padding: 14px 12px; border: 1px solid #E7E2EE; border-radius: 20px; background: #FFFFFF; color: inherit; text-align: left; font-family: inherit; box-shadow: 0 6px 24px -12px rgba(123,44,191,0.30); text-decoration: none; cursor: pointer">
+      <span style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 14px; background: #F3EAFE; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#7B2CBF" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M21 12a9 9 0 1 1-9-9"></path><path d="M12 12l6-6"></path></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex-grow: 1">
+        <span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">600 Nm modulating, 220V explosionproof</span><span style="font-size: 12px; color: #6E6878; flex-shrink: 0">just now</span></span>
+        <span style="font-size: 13px; color: #4A4458; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Best match 764X30-11320000/A · 4 options</span>
+      </span>
+    </a>
+    <a href="LightChatLookup.dc.html" style="display: flex; gap: 12px; align-items: flex-start; padding: 14px 12px; border: none; border-radius: 20px; background: transparent; color: inherit; text-align: left; font-family: inherit; text-decoration: none; cursor: pointer">
+      <span style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 14px; background: #FFFFFF; border: 1px solid #E7E2EE; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6A3FA0" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex-grow: 1">
+        <span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">On/off torque of the 764A00-11300000/A?</span><span style="font-size: 12px; color: #6E6878; flex-shrink: 0">2 h ago</span></span>
+        <span style="font-size: 13px; color: #4A4458; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">750 Nm (6650 in-lbs) · FLA 50 Hz 6.5 A</span>
+      </span>
+    </a>
+    <span style="padding: 16px 8px 6px; font-size: 13px; font-weight: 500; color: #6E6878">Yesterday</span>
+    <a href="LightChatLookup.dc.html" style="display: flex; gap: 12px; align-items: flex-start; padding: 14px 12px; border: none; border-radius: 20px; background: transparent; color: inherit; text-align: left; font-family: inherit; text-decoration: none; cursor: pointer">
+      <span style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 14px; background: #FFFFFF; border: 1px solid #E7E2EE; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6A3FA0" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex-grow: 1">
+        <span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Torque of the 761A00-11330C00/A</span><span style="font-size: 12px; color: #6E6878; flex-shrink: 0">yesterday</span></span>
+        <span style="font-size: 13px; color: #4A4458; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Listed in the tables without data (N/A)</span>
+      </span>
+    </a>
+    <a href="LightStates.dc.html" style="display: flex; gap: 12px; align-items: flex-start; padding: 14px 12px; border: none; border-radius: 20px; background: transparent; color: inherit; text-align: left; font-family: inherit; text-decoration: none; cursor: pointer">
+      <span style="flex-shrink: 0; width: 40px; height: 40px; border-radius: 14px; background: #FFFFFF; border: 1px solid #E7E2EE; display: flex; align-items: center; justify-content: center"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#6A3FA0" stroke-width="2" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"></circle><path d="M20 20l-4-4"></path></svg></span>
+      <span style="display: flex; flex-direction: column; gap: 4px; min-width: 0; flex-grow: 1">
+        <span style="display: flex; justify-content: space-between; gap: 8px"><span style="font-size: 15px; font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Specs of the 999Z please</span><span style="font-size: 12px; color: #6E6878; flex-shrink: 0">yesterday</span></span>
+        <span style="font-size: 13px; color: #4A4458; white-space: nowrap; overflow: hidden; text-overflow: ellipsis">Part number not in the catalog</span>
+      </span>
+    </a>
+  </div>
+  <div role="dialog" aria-label="Theme menu" style="position: absolute; z-index: 5; top: 100px; right: 20px; width: 264px; box-sizing: border-box; padding: 14px; border-radius: 20px; background: #FFFFFF; border: 1px solid #E7E2EE; box-shadow: 0 16px 40px -12px rgba(123,44,191,0.35); display: flex; flex-direction: column; gap: 10px">
+    <span style="font-size: 13px; font-weight: 600; color: #16121C">Theme</span>
+    <div role="radiogroup" aria-label="Theme" style="display: flex; gap: 2px; padding: 3px; border: 1px solid #E7E2EE; border-radius: 16px; background: #FAF8FC">
+      <a href="LightConversations.dc.html" role="radio" aria-checked="false" style="flex: 1; min-width: 0; height: 44px; border: none; border-radius: 13px; background: transparent; color: #4A4458; font: 500 14px 'DM Sans', sans-serif; display: flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer">System</a>
+      <a href="LightConversations.dc.html" role="radio" aria-checked="true" style="flex: 1; min-width: 0; height: 44px; border: none; border-radius: 13px; background: #F3EAFE; color: #6A3FA0; font: 600 14px 'DM Sans', sans-serif; display: flex; align-items: center; justify-content: center; gap: 4px; text-decoration: none; cursor: pointer"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="#6A3FA0" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12.5l4.5 4.5L19 7"></path></svg>Light</a>
+      <a href="Conversations.dc.html" role="radio" aria-checked="false" style="flex: 1; min-width: 0; height: 44px; border: none; border-radius: 13px; background: transparent; color: #4A4458; font: 500 14px 'DM Sans', sans-serif; display: flex; align-items: center; justify-content: center; text-decoration: none; cursor: pointer">Dark</a>
+    </div>
+    <span style="font-size: 12px; color: #4A4458">Applies to all screens</span>
+  </div>
+  <a href="LightChatEmpty.dc.html" style="position: absolute; right: 20px; bottom: 32px; height: 56px; padding: 0 22px 0 18px; border: none; border-radius: 20px; background: #7B2CBF; color: #FFFFFF; font: 600 15px 'DM Sans', sans-serif; display: flex; align-items: center; gap: 8px; box-shadow: 0 6px 24px -8px rgba(123,44,191,0.45); box-sizing: border-box; text-decoration: none; cursor: pointer">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.4" stroke-linecap="round" aria-hidden="true"><path d="M12 5v14M5 12h14"></path></svg>
+    New conversation
+  </a>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":390,"height":844}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

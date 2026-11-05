@@ -157,3 +157,6 @@ Icon?
 logs/
 coverage/
 reports/
+
+# Raw security-audit runs (Sprint 6). Only docs/security/REPORT.md is committed.
+docs/security/runs/

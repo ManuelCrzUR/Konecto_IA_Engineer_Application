@@ -315,7 +315,7 @@ How the run works:
 
 **Alternatives.** Google AI Studio's free tier, the original plan for Gate 3: free, but with tighter rate limits and a different key. A paid model on OpenRouter would spend the budget, which is reserved for the final run.
 
-**Trade-off.** It is free and uses the same endpoint and code path as production. Stealth models are temporary: one can disappear or start charging. Before each run, check the pricing and the key usage, and switch `AGENT_MODEL` if the model changes. The final run with the chosen model (Sprint 6) must be reported separately, with its cost.
+**Trade-off.** It is free and uses the same endpoint and code path as production. Stealth models are temporary: one can disappear or start charging. Before each run, check the pricing and the key usage, and switch `AGENT_MODEL` if the model changes. The final run with the chosen model (Sprint 7) must be reported separately, with its cost.
 
 **Status.** Accepted (Sprint 3, Gate 3).
 
@@ -455,6 +455,34 @@ Already in place:
 
 **Alternatives.** An idempotency key per message, which needs a schema change. Disabling Retry entirely.
 
-**Trade-off.** Retrying a question stores it again in the history. That is the user's real retry, and the agent still answers once per attempt. The remaining lint warnings (no app icon, no data-extraction rules) are cosmetic or not applicable: `allowBackup=false` and the app stores nothing locally. The icon is a Sprint 6 polish item.
+**Trade-off.** Retrying a question stores it again in the history. That is the user's real retry, and the agent still answers once per attempt. The remaining lint warnings (no app icon, no data-extraction rules) are cosmetic or not applicable: `allowBackup=false` and the app stores nothing locally. The icon is a Sprint 6 polish item (done in Sprint 5.5).
 
 **Status.** Accepted (Gate 5). 63 unit tests and 15 instrumented tests green on API 37; backend 1298 tests green.
+
+## D-37 Conversation search with ILIKE and a code-built snippet
+
+**Decision.** `GET /api/sessions?q=&limit=` searches the title and the message contents of the user's sessions. Without `q`, or with a blank `q`, it is the plain listing and every item has `match: null`.
+
+- **Matching.** Case-insensitive substring (`ILIKE`) over `sessions.title` and `messages.content`. One query: a `LEFT JOIN LATERAL` picks the first matching message of each session (oldest first), so there is no N+1. Scoping by `user_id` and the order (`updated_at DESC, id`) are the same as the plain listing.
+- **Escaping.** The user text is bound as a parameter, never interpolated. In Python, `\`, `%` and `_` are prefixed with a backslash, and the SQL says `ESCAPE '\'`. So `100%` finds "100%" and not "1000", and `_` is not a wildcard.
+- **Result.** Each item is a `SessionOut` plus `match = {where, snippet}`. `where` is "title" if the title matches, else "message". The snippet is the title, or about 80 characters around the first match, built by a pure function (`db/snippet.py`). Its cut edges move outward to whitespace, so a number or part number is never split, and "…" marks a cut edge.
+
+**Alternatives.** `pg_trgm` with a GIN index, or full-text search (`tsvector`). Full-text search stems words and ignores punctuation, which is wrong for part numbers like `764A00-11300000/A` and for numbers. Trigram needs an extension and an index.
+
+**Trade-off.** `ILIKE '%x%'` cannot use a B-tree index, so it is a sequential scan of `messages`. For a single-user history of hundreds or a few thousand messages this takes milliseconds. If the history grows, add `pg_trgm` and a GIN index on `messages.content` without changing the API.
+
+**Status.** Accepted (Sprint 5.5).
+
+## D-38 Number guard: product names are not figures (Gate 5.5)
+
+**Context.** Two false positives showed up in real use on the device, and both replaced a correct answer with the template "I could not verify an answer from the data":
+- A Spanish greeting said "actuadores eléctricos **Serie 76**". The guard only stripped the English "Series 76", so it flagged `76`.
+- A comparison said "the **764** is the larger frame". The model size (the first three digits of a part number) was flagged as an unverified number.
+
+**Decision.**
+- The family-name pattern accepts `Series`, `Serie` and `Série` 76, in any case.
+- In `allowed_numbers`, the three-digit model size of every part number that appears in the tool trace counts as verified. A size that no tool returned (for example "the 765" when only 763 was looked up) is still flagged.
+
+**Alternatives.** Whitelisting 761–767 always. That would let the model mention a model size it never looked up, which breaks the rule that the answer only uses figures from the tools.
+
+**Trade-off.** If a real figure equals a model size that the tools also returned (a hypothetical 764 W motor next to a 764A00 part number), the guard would accept it. No catalog value is in the 761–767 range, and the value would still be exact. The 26 eval cases still pass (26/26) after the change.

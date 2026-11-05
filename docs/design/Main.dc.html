@@ -1,0 +1,98 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<title>Style guide</title>
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600;9..40,700&amp;family=JetBrains+Mono:wght@400;500&amp;display=swap" rel="stylesheet">
+<style>
+body{margin:0}
+a{color:#BD7BFF}a:hover{color:#D0ACE5}
+</style>
+</helmet>
+<div style="width: 1280px; height: 900px; box-sizing: border-box; padding: 56px 64px; background: #0E0E0E; color: #FFFFFF; font-family: 'DM Sans', system-ui, sans-serif; display: flex; flex-direction: column; gap: 40px">
+  <div style="display: flex; justify-content: space-between; align-items: flex-end">
+    <div style="display: flex; flex-direction: column; gap: 8px">
+      <span style="font-size: 14px; font-weight: 500; color: #BD7BFF; letter-spacing: 0.02em">Axel · Series 76 actuator assistant · Design system v1</span>
+      <h1 style="margin: 0; font-size: 44px; font-weight: 700; letter-spacing: -0.022em; line-height: 1.1">Dark, precise, violet-lit</h1>
+      <p style="margin: 0; font-size: 16px; line-height: 1.5; color: #CCCCCC; max-width: 640px">Near-black grounds, one violet accent with a lilac edge, DM Sans throughout and tabular numerals for every technical figure. Numbers are always shown exactly as the catalog prints them.</p>
+    </div>
+    <div style="display: flex; flex-direction: column; align-items: center; gap: 10px">
+      <svg width="112" height="112" viewBox="0 0 112 112" role="img" aria-label="App icon">
+        <rect x="0" y="0" width="112" height="112" rx="28" fill="#20152A"></rect>
+        <rect x="0.5" y="0.5" width="111" height="111" rx="27.5" fill="none" stroke="#412C64"></rect>
+        <svg x="20" y="20" width="72" height="72" viewBox="0 0 64 64">
+          <rect x="8" y="16" width="48" height="40" rx="16" fill="#20152A" stroke="#BD7BFF" stroke-width="2.5"></rect>
+          <g><rect x="26" y="5" width="12" height="11" rx="3" fill="#BD7BFF"></rect><rect x="31" y="3" width="2" height="6" rx="1" fill="#0E0E0E"></rect></g>
+          <circle cx="24" cy="34" r="4.5" fill="#FFFFFF"></circle><circle cx="40" cy="34" r="4.5" fill="#FFFFFF"></circle>
+          <path d="M23 45 Q32 52 41 45" stroke="#D0ACE5" stroke-width="3" fill="none" stroke-linecap="round"></path>
+        </svg>
+      </svg>
+      <span style="font-size: 12px; color: #8A8A8A">Axel · app icon</span>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 32px; flex-grow: 1">
+    <div style="display: flex; flex-direction: column; gap: 16px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600">Color</h2>
+      <div style="display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px">
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 44px; height: 44px; border-radius: 12px; background: #0E0E0E; border: 1px solid #2A2A2A"></div><div style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 500">Background</span><span style="font-size: 12px; color: #8A8A8A; font-family: 'JetBrains Mono', monospace">#0E0E0E</span></div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 44px; height: 44px; border-radius: 12px; background: #1D1D1D"></div><div style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 500">Surface</span><span style="font-size: 12px; color: #8A8A8A; font-family: 'JetBrains Mono', monospace">#1D1D1D</span></div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 44px; height: 44px; border-radius: 12px; background: #20152A"></div><div style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 500">Surface violet</span><span style="font-size: 12px; color: #8A8A8A; font-family: 'JetBrains Mono', monospace">#20152A</span></div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 44px; height: 44px; border-radius: 12px; background: #2A2A2A"></div><div style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 500">Divider</span><span style="font-size: 12px; color: #8A8A8A; font-family: 'JetBrains Mono', monospace">#2A2A2A</span></div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 44px; height: 44px; border-radius: 12px; background: #BD7BFF"></div><div style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 500">Primary</span><span style="font-size: 12px; color: #8A8A8A; font-family: 'JetBrains Mono', monospace">#BD7BFF</span></div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 44px; height: 44px; border-radius: 12px; background: #D0ACE5"></div><div style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 500">Lilac edge</span><span style="font-size: 12px; color: #8A8A8A; font-family: 'JetBrains Mono', monospace">#D0ACE5</span></div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 44px; height: 44px; border-radius: 12px; background: #CCCCCC"></div><div style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 500">Text secondary</span><span style="font-size: 12px; color: #8A8A8A; font-family: 'JetBrains Mono', monospace">#CCCCCC</span></div></div>
+        <div style="display: flex; gap: 10px; align-items: center"><div style="width: 44px; height: 44px; border-radius: 12px; background: #FFB86B"></div><div style="display: flex; flex-direction: column"><span style="font-size: 13px; font-weight: 500">Caution</span><span style="font-size: 12px; color: #8A8A8A; font-family: 'JetBrains Mono', monospace">#FFB86B</span></div></div>
+      </div>
+      <p style="margin: 0; font-size: 13px; line-height: 1.5; color: #8A8A8A">Glow for focus and the best match: shadow 0 4 34 −1 #412C64. Caution is for "Not CSA certified" and the number-guard badge only.</p>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600">Type · DM Sans</h2>
+      <div style="display: flex; flex-direction: column; gap: 12px; padding: 20px; border-radius: 28px; background: #1D1D1D">
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 28px; font-weight: 700; letter-spacing: -0.022em">Title 28 / 700</span><span style="font-size: 12px; color: #8A8A8A">screen titles</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 20px; font-weight: 700; letter-spacing: -0.01em">Part number 20</span><span style="font-size: 12px; color: #8A8A8A">card header</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 16px; font-weight: 400; line-height: 1.5">Body 16 / 400</span><span style="font-size: 12px; color: #8A8A8A">chat answers</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 32px; font-weight: 600; letter-spacing: -0.04em; font-variant-numeric: tabular-nums">750 <span style="font-size: 16px; font-weight: 500; color: #CCCCCC; letter-spacing: 0">Nm</span></span><span style="font-size: 12px; color: #8A8A8A">key figure, tnum</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 13px; font-weight: 500; color: #CCCCCC">Label 13 / 500</span><span style="font-size: 12px; color: #8A8A8A">field labels</span></div>
+        <div style="display: flex; justify-content: space-between; align-items: baseline"><span style="font-size: 13px; font-family: 'JetBrains Mono', monospace; color: #D0ACE5">"min_torque": 600</span><span style="font-size: 12px; color: #8A8A8A">Debug JSON</span></div>
+      </div>
+    </div>
+
+    <div style="display: flex; flex-direction: column; gap: 14px">
+      <h2 style="margin: 0; font-size: 18px; font-weight: 600">Components</h2>
+      <div style="display: flex; gap: 10px; flex-wrap: wrap">
+        <button style="height: 48px; padding: 0 22px; border: none; border-radius: 20px; background: #BD7BFF; color: #0E0E0E; font: 600 15px 'DM Sans', sans-serif; box-shadow: 0 4px 34px -1px #412C64">New conversation</button>
+        <button style="height: 48px; padding: 0 20px; border: 1px solid #D0ACE5; border-radius: 20px; background: #1D1D1D; color: #FFFFFF; font: 500 15px 'DM Sans', sans-serif">Retry</button>
+      </div>
+      <div style="display: flex; gap: 8px; flex-wrap: wrap">
+        <span style="height: 32px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: 16px; background: #20152A; color: #D0ACE5; font-size: 13px; font-weight: 500">110V · 1φ</span>
+        <span style="height: 32px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: 16px; background: #20152A; color: #D0ACE5; font-size: 13px; font-weight: 500">Weatherproof</span>
+        <span style="height: 32px; padding: 0 12px; display: inline-flex; align-items: center; border-radius: 16px; border: 1px solid #FFB86B; color: #FFB86B; font-size: 13px; font-weight: 500">Not CSA certified</span>
+      </div>
+      <div style="display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px">
+        <div style="padding: 12px; border-radius: 16px; background: #20152A; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #CCCCCC">On/off torque</span><span style="font-size: 22px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums">750 <span style="font-size: 12px; color: #CCCCCC; font-weight: 500; letter-spacing: 0">Nm</span></span></div>
+        <div style="padding: 12px; border-radius: 16px; background: #20152A; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #CCCCCC">Speed 60 Hz</span><span style="font-size: 22px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums">30 <span style="font-size: 12px; color: #CCCCCC; font-weight: 500; letter-spacing: 0">s / 90°</span></span></div>
+        <div style="padding: 12px; border-radius: 16px; background: #20152A; display: flex; flex-direction: column; gap: 4px"><span style="font-size: 12px; color: #CCCCCC">Duty</span><span style="font-size: 22px; font-weight: 600; letter-spacing: -0.03em; font-variant-numeric: tabular-nums">25 <span style="font-size: 12px; color: #CCCCCC; font-weight: 500; letter-spacing: 0">%</span></span></div>
+      </div>
+      <div style="display: flex; flex-direction: column; gap: 6px; padding: 16px; border-radius: 20px; background: #1D1D1D">
+        <span style="font-size: 13px; font-weight: 600">Radius · motion</span>
+        <span style="font-size: 13px; line-height: 1.6; color: #CCCCCC">28 cards · 20 buttons, bubbles · 16 tiles · 999 chips<br>300 ms fade + 12 dp rise for new messages · 3-dot pulse 1.2 s · expand 250 ms ease-out · alpha/translate only</span>
+      </div>
+    </div>
+  </div>
+</div>
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props='{"$preview":{"width":1280,"height":900}}'>
+class Component extends DCLogic {
+  renderVals() { return {}; }
+}
+</script>
+</body>
+</html>

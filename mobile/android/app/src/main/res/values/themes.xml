@@ -1,3 +1,12 @@
 <resources>
-    <style name="Theme.Series76" parent="android:Theme.Material.Light.NoActionBar" />
+    <style name="Theme.Series76" parent="android:Theme.Material.NoActionBar">
+        <!-- Dark by default: avoids a white flash before Compose draws. -->
+        <item name="android:windowBackground">@color/axel_window_background</item>
+    </style>
+    <style name="Theme.App.Starting" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">#0E0E0E</item>
+        <item name="windowSplashScreenAnimatedIcon">@drawable/ic_launcher_foreground</item>
+        <item name="windowSplashScreenIconBackgroundColor">#20152A</item>
+        <item name="postSplashScreenTheme">@style/Theme.Series76</item>
+    </style>
 </resources>
