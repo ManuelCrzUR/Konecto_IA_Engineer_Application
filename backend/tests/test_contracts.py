@@ -62,8 +62,16 @@ CONTRACTS = {
         "unverified_numbers": ["answer", "trace", "query", "user_history", "referent"],
         "unverified_part_numbers": ["answer", "trace", "query", "user_history"],
         "detect_lang": ["query"],
-        "template_answer": ["trace", "query"],
-        "build_result": ["answer", "trace", "query", "user_history", "model_id", "referent"],
+        "template_answer": ["trace", "query", "candidates"],
+        "build_result": [
+            "answer",
+            "trace",
+            "query",
+            "user_history",
+            "model_id",
+            "referent",
+            "candidates",
+        ],
     },
     agent: {"run_agent": ["query", "history", "llm", "conn_factory"]},
 }

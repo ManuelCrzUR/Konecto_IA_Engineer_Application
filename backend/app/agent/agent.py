@@ -165,6 +165,12 @@ def run_agent(
 ) -> AgentResult:
     user_history = "\n".join(h.content for h in history or [] if h.role == "user")
     pn = referent.resolve_referent(query, history)  # D-47: the guard binds figures to it
+    # Several products shown before and none named: the template asks which one (D-47).
+    which = (
+        None
+        if pn or referent.query_names_part_number(query)
+        else referent.referent_candidates(history)
+    )
     recorder = TraceRecorder()
     llm = llm or get_llm("agent")
     model_id = str(getattr(llm, "model_name", "") or getattr(llm, "model", "") or "")
@@ -181,7 +187,13 @@ def run_agent(
         )
     except GraphRecursionError:
         return response.build_result(
-            LOOP_ANSWER, recorder.trace, query, user_history, model_id, referent=pn
+            LOOP_ANSWER,
+            recorder.trace,
+            query,
+            user_history,
+            model_id,
+            referent=pn,
+            candidates=which,
         )
     except PROVIDER_ERRORS as exc:
         raise AgentError(f"LLM call failed: {exc}") from exc
@@ -194,4 +206,6 @@ def run_agent(
     trace = [t for _, t in sorted(recorder.calls, key=lambda p: rank(p[0]))]
     ai = [m for m in state["messages"] if isinstance(m, AIMessage)]
     answer = _text(ai[-1].content) if ai else ""
-    return response.build_result(answer, trace, query, user_history, model_id, referent=pn)
+    return response.build_result(
+        answer, trace, query, user_history, model_id, referent=pn, candidates=which
+    )

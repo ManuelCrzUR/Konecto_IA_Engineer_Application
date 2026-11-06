@@ -121,18 +121,32 @@ def test_estimate_usd() -> None:
     assert estimate_usd(1000, 500, 1e-6, 2e-6) == pytest.approx(0.002)
 
 
-def test_waits_once_for_delayed_usage(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
-    """OpenRouter reports usage late: with calls made and no movement, re-read after settle_s."""
+def test_polls_the_whole_window_for_late_costs(
+    tmp_path: Path, monkeypatch: pytest.MonkeyPatch
+) -> None:
+    """OpenRouter books costs late and in parts: keep polling for settle_s, log the last read."""
     from app import spend
 
     slept: list[float] = []
     monkeypatch.setattr(spend.time, "sleep", slept.append)
-    values = iter([5.0, 5.0, 5.4])
+    monkeypatch.setattr(spend, "POLL_S", 10.0)
+    values = iter([5.0, 5.1, 5.1, 5.4, 5.4])  # before, first after-read, then three polls
     reader = lambda: spend.KeyStatus(
         usage_usd=next(values), limit_remaining_usd=9.0, expires_at=None
     )
     log = tmp_path / "l.md"
-    with budgeted("v", 1.0, log_path=log, reader=reader, settle_s=3.0) as b:
+    with budgeted("v", 1.0, log_path=log, reader=reader, settle_s=30.0) as b:
         b.calls = 1
-    assert slept == [3.0]
+    assert slept == [10.0, 10.0, 10.0]
     assert "| 0.400000 |" in log.read_text()
+
+
+def test_no_wait_without_calls(tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
+    from app import spend
+
+    slept: list[float] = []
+    monkeypatch.setattr(spend.time, "sleep", slept.append)
+    reader = lambda: spend.KeyStatus(usage_usd=5.0, limit_remaining_usd=9.0, expires_at=None)
+    with budgeted("v", 1.0, log_path=tmp_path / "l.md", reader=reader, settle_s=30.0):
+        pass
+    assert slept == []

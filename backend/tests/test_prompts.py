@@ -144,4 +144,4 @@ def test_context_line_several_products_asks_which() -> None:
 
 
 def test_small_talk_section_not_forced_intro() -> None:
-    assert "only when the conversation has no previous turns" in SYSTEM_PROMPT
+    assert "is a greeting or a question about you" in SYSTEM_PROMPT

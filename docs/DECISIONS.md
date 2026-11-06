@@ -552,7 +552,7 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** The best score at a negligible cost against the USD 10 budget, at the price of depending on a paid model and a single benchmark run (LLM output is not fully deterministic, so a rerun may differ by a case). Models are swappable through the environment variable.
 
-**Status.** Accepted (Sprint 7.1).
+**Status.** Accepted (Sprint 7.1). Sprint 8 rerun on the 49-case set with the final code: 48/49 (98%), USD 0.008 (`docs/spend-log.md`).
 
 ## D-43 Login: opaque bearer tokens in Postgres, role-based trace (Sprint 8)
 
@@ -628,4 +628,21 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** Offline and deterministic for clean tables, paying only for doubtful ones.
 
-**Status.** Accepted (Sprint 8, wave 1). Result: Verified on 2026-11-06 (Sprint 8): offline OCR reads all 68 rows at 99.75% cell accuracy and flags 8 cells in 4 tables; vision (`anthropic/claude-sonnet-5.5`) re-read those 4 tables in 4 calls for USD 0.029, and the output was byte-identical to the committed `actuators.json` (0 cells differ from the golden file). Costs are logged in `docs/spend-log.md`. Two fixes were needed on the way: the OCR dropped two T3 rows (letter O read for zero in the part-number suffix) and flagged the merged N/A block, and the Docker image lacked `poppler-utils` (`pdfimages`), so PDF re-extraction had never worked inside the container.
+**Status.** Accepted (Sprint 8, wave 1). Result: Verified on 2026-11-06 (Sprint 8): offline OCR reads all 68 rows at 99.75% cell accuracy and flags 8 cells in 4 tables; vision (`anthropic/claude-sonnet-5.5`) re-read those 4 tables in 4 calls for about USD 0.12 (about USD 0.03 per call; OpenRouter books costs late, see the notes in `docs/spend-log.md`), and the output was byte-identical to the committed `actuators.json` (0 cells differ from the golden file). Costs are logged in `docs/spend-log.md`. Two fixes were needed on the way: the OCR dropped two T3 rows (letter O read for zero in the part-number suffix) and flagged the merged N/A block, and the Docker image lacked `poppler-utils` (`pdfimages`), so PDF re-extraction had never worked inside the container.
+
+## D-50 Agent output cap, empty answers and computed comparisons (Sprint 8, wave 3)
+
+**Context.** The first eval rehearsal after wave 1 scored 39/49: 17 of 71 turns came back empty. The cause was the new `AGENT_MAX_TOKENS=1024` spend cap: reasoning models spend part of the cap thinking and can run out before answering. The paid eval also showed the model writing a computed difference ("1250 Nm more") in a comparison, and answering a multi-product follow-up from memory.
+
+**Decision.**
+- `AGENT_MAX_TOKENS` defaults to 4096 (worst case about USD 0.002 per call with the default model).
+- An empty model answer never reaches the user: `build_result` uses the deterministic template and records `empty_answer_guard` in the trace.
+- The prompt forbids differences, ratios, percentages and totals between products: each value is given as printed and the higher one is named in words. The number guard already rejected such figures.
+- When the guard fires with no tool data and the previous answer showed several products, the template asks which product is meant (D-47) instead of "could not verify".
+- Small talk calls no tools.
+
+**Alternatives.** Keep 1024 and disable reasoning per request (provider-specific); let the model compute differences and verify them in code (a new class of computed numbers to check).
+
+**Trade-off.** A higher per-call ceiling, still bounded, in exchange for no empty answers; comparisons read slightly less fluent ("the 765A00 is higher") but every figure stays printed data.
+
+**Status.** Accepted (Sprint 8, wave 3).

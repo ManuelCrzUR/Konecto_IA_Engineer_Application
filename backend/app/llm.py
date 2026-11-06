@@ -4,7 +4,8 @@ ingestion/ (vision escalation), so it lives at the app root.
 Env (OpenAI-compatible; OpenRouter by default, Google AI Studio for dev):
   LLM_BASE_URL, LLM_API_KEY, AGENT_MODEL (task "agent"), EXTRACT_LLM_MODEL
   (task "extract"). Optional per task: AGENT_TEMPERATURE (default 0).
-  Output cap per call (spend control): AGENT_MAX_TOKENS (default 1024),
+  Output cap per call (spend control): AGENT_MAX_TOKENS (default 4096: reasoning models spend part of
+  the cap thinking, and 1024 left 17 of 71 eval turns empty),
   EXTRACT_MAX_TOKENS (default 4096); positive integers, else LLMConfigError.
   Retries are limited to 1 so a failing call cannot silently triple the cost.
 Missing key or model -> LLMConfigError with the variable name; never a
@@ -26,7 +27,7 @@ MODEL_ENV: dict[str, str] = {"agent": "AGENT_MODEL", "extract": "EXTRACT_LLM_MOD
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 AGENT_TEMPERATURE_ENV = "AGENT_TEMPERATURE"
 MAX_TOKENS: dict[str, tuple[str, int]] = {
-    "agent": ("AGENT_MAX_TOKENS", 1024),
+    "agent": ("AGENT_MAX_TOKENS", 4096),
     "extract": ("EXTRACT_MAX_TOKENS", 4096),
 }
 

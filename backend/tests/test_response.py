@@ -419,3 +419,31 @@ def test_counts_of_tool_results_are_verified():
     absent = next(n for n in range(3, 100) if float(n) not in allowed)
     bad = R.build_result(f"Encontré {absent} opciones: {names}.", trace, "busco un actuador")
     assert bad.guard_triggered
+
+
+def test_empty_answer_falls_back_to_template():
+    """A reasoning model can return no text at all; the user still gets an answer from the data."""
+    row = next(r for r in ROWS if r["part_number"] == "761A00-11300000/A")
+    trace = [ToolTrace(tool="get_actuator", params={"part_number": "761A00-11300000/A"},
+                       result={"status": "found", "actuator": row, "notes": []})]  # fmt: skip
+    res = R.build_result("   ", trace, "datos del 761A00-11300000/A")
+    assert res.answer.strip() and "761A00" in res.answer
+    assert res.guard_triggered
+    assert res.trace[-1].tool == R.EMPTY_TOOL
+
+
+def test_empty_answer_without_tools_is_a_polite_line():
+    res = R.build_result("", [], "hola")
+    assert res.answer.strip()
+    assert res.trace[-1].tool == R.EMPTY_TOOL
+
+
+def test_guard_without_data_asks_which_product_when_several_were_shown():
+    """'and its power?' after three products, answered from memory: ask which one (D-47)."""
+    pns = ["761B00-11300000/A", "762A00-11300000/A", "762B00-11300000/A"]
+    es = R.build_result("Consume 40 W.", [], "¿y la potencia?", candidates=pns)
+    assert es.guard_triggered and "¿De cuál producto" in es.answer and pns[1] in es.answer
+    en = R.build_result("It draws 40 W.", [], "and its power?", candidates=pns)
+    assert en.answer.startswith("Which product do you mean")
+    plain = R.build_result("It draws 40 W.", [], "and its power?")
+    assert plain.answer == R._TEXT["en"]["none"]

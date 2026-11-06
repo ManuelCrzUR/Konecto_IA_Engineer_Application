@@ -5,8 +5,8 @@ Contract:
   env LLM_API_KEY. http_get(url, headers) -> dict is injectable. Any problem
   raises SpendError; messages never contain the key.
 - budgeted(step, max_usd, *, model="", log_path=SPEND_LOG, reader=read_key_status, settle_s=SETTLE_S)
-  (all resolved at call time). If calls were made but usage has not moved, it waits settle_s
-  once and re-reads (OpenRouter reports usage with a delay):
+  (all resolved at call time). After paid calls it polls the usage for settle_s seconds
+  (OpenRouter books costs late, sometimes in parts) and logs the last value:
   context manager. Fails closed: if usage cannot be read, or the key's remaining
   limit is below max_usd, the step does not run (SpendError). Yields a Budget
   with a settable `.calls` and `.check()` (raises BudgetExceeded when the spend
@@ -121,16 +121,23 @@ def _append_row(log_path: Path, row: str) -> None:
         fh.write(row + "\n")
 
 
-SETTLE_S = 20.0  # OpenRouter reports usage a few seconds after a call
+# OpenRouter books a call's cost late, sometimes in parts: measured 20-50 s for a chat call,
+# and well over a minute for vision calls (Sprint 8 logged 0.03 of 0.15). So after paid calls
+# the final read waits the whole window, polling, and keeps the last value.
+SETTLE_S = 120.0
+POLL_S = 15.0
 
 
 def _settled_usage(
     reader: Callable[[], KeyStatus], start: float, calls: int, settle_s: float
 ) -> float:
-    """Final usage. If calls were made but usage has not moved yet, wait once and re-read."""
+    """Final usage. After paid calls, poll for settle_s seconds and return the last read."""
     usage = reader().usage_usd
-    if calls and usage <= start and settle_s > 0:
-        time.sleep(settle_s)
+    waited = 0.0
+    while calls and waited < settle_s:
+        step = min(POLL_S, settle_s - waited)
+        time.sleep(step)
+        waited += step
         usage = reader().usage_usd
     return usage
 

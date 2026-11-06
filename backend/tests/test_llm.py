@@ -31,7 +31,7 @@ def test_agent_and_extract_models(monkeypatch):
     assert a.openai_api_base == DEFAULT_BASE_URL
     assert a.temperature == 0
     assert a.max_retries == 1
-    assert a.max_tokens == 1024 and e.max_tokens == 4096
+    assert a.max_tokens == 4096 and e.max_tokens == 4096
 
 
 def test_custom_base_url_and_temperature(monkeypatch):

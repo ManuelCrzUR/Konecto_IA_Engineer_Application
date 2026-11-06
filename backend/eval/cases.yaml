@@ -448,8 +448,63 @@
 - id: referent-02
   category: multi_turn
   # TESTS: follow-up after a multi-product recommendation: must not pick one silently.
+  # Two safe behaviours are accepted (D-47): ask which product is meant, or re-query the best
+  # match and say which one. What must not happen is a figure from the wrong product: the
+  # number guard (guard_ok, default) checks that every figure belongs to the product it follows.
   turns:
     - "I need at least 100 Nm of on/off torque, 110V single phase, weatherproof."
     - "¿y la potencia?"
   expect:
-    tools: [search_actuators]
+    tools: []
+
+# ---- Sprint 8, wave 3: guard v2, follow-ups, history window ----
+
+- id: guard-words-01
+  category: lookup
+  # TESTS: a figure written as a word is verified like a digit (D-44); 17 s is the real value.
+  turns:
+    - "¿Cuántos segundos tarda en recorrer 90° el 761A00-11300000/A a 60 Hz? Escribe el número en palabras."
+  expect:
+    tools: [get_actuator]
+    products: ["761A00-11300000/A"]
+
+- id: guard-compare-01
+  category: lookup
+  # TESTS: two products side by side; each figure must stay bound to its own product, no false guard.
+  turns:
+    - "Compara el torque on/off en Nm del 764A00-11300000/A y del 765A00-11300000/A"
+  expect:
+    tools: [get_actuator]
+    products: ["764A00-11300000/A", "765A00-11300000/A"]
+    answer_numbers: ["750", "2000"]
+
+- id: referent-03
+  category: multi_turn
+  # TESTS: after a recommendation with several products, "and its power?" must not quote a
+  # wrong product's figure (guard ok); the agent either asks which one or re-queries each.
+  turns:
+    - "Necesito un actuador weatherproof de 110V con al menos 250 Nm on/off"
+    - "¿y cuánta potencia consume?"
+  expect:
+    tools: []
+
+- id: long-session-01
+  category: multi_turn
+  # TESTS: history window (D-45). The product is shown in turn 1; after 11 more turns it is
+  # outside the 10-message window, but the context line still names it, so the follow-up works.
+  turns:
+    - "Dame los datos del 763A00-11300000/A"
+    - "gracias"
+    - "¿qué voltajes hay en el catálogo?"
+    - "ok"
+    - "¿qué tipos de enclosure hay?"
+    - "perfecto"
+    - "¿qué significa duty cycle?"
+    - "entiendo"
+    - "¿y modulante qué es?"
+    - "bien"
+    - "gracias por la info"
+    - "volviendo al actuador del principio, ¿cuánta potencia tiene?"
+  expect:
+    tools: [get_actuator]
+    answer_numbers: ["40"]

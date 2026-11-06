@@ -89,6 +89,7 @@ from app.domain.conversation import AgentResult
 from app.domain.models import Actuator, Product, ToolTrace
 
 GUARD_TOOL = "number_guard"
+EMPTY_TOOL = "empty_answer_guard"
 PERSONA_TOOL = "persona_guard"
 PERSONA_NAME = "Axel"
 # Tokens of a model id that are not a distinctive name (so never rewritten).
@@ -111,6 +112,7 @@ _TEXT = {
         "closest": "Closest part numbers: {x}.",
         "ambig": "That matches several part numbers: {x}. Which one do you mean?",
         "none": "I could not verify an answer from the data. Could you rephrase the question?",
+        "which": "Which product do you mean: {x}?",
     },
     "es": {
         "found": "Datos de las tablas:",
@@ -120,6 +122,7 @@ _TEXT = {
         "closest": "Números de parte cercanos: {x}.",
         "ambig": "Coincide con varios números de parte: {x}. ¿Cuál necesitas?",
         "none": "No pude verificar una respuesta con los datos. ¿Puedes reformular la pregunta?",
+        "which": "¿De cuál producto hablas: {x}?",
     },
 }
 
@@ -290,7 +293,9 @@ def _field(key: str, v: float) -> str:
     return f"{label} {_fmt(v)}{' ' + unit if unit else ''}"
 
 
-def template_answer(trace: list[ToolTrace], query: str) -> str:
+def template_answer(
+    trace: list[ToolTrace], query: str, *, candidates: list[str] | None = None
+) -> str:
     tx = _TEXT[detect_lang(query)]
     products = products_from_trace(trace, "")
     if products:
@@ -314,6 +319,8 @@ def template_answer(trace: list[ToolTrace], query: str) -> str:
             return tx["notfound"] + (" " + tx["closest"].format(x=sug) if sug else "")
         if r.get("status") == "ambiguous":
             return tx["ambig"].format(x=", ".join(c["part_number"] for c in r["candidates"]))
+    if candidates:  # a follow-up over several products shown before (D-47): ask which one
+        return tx["which"].format(x=", ".join(candidates))
     return tx["none"]
 
 
@@ -352,12 +359,22 @@ def build_result(
     model_id: str = "",
     *,
     referent: str | None = None,
+    candidates: list[str] | None = None,
 ) -> AgentResult:
+    out = list(trace)
+    if not answer.strip():
+        # An empty reply (e.g. a reasoning model that spent its token cap) never reaches the
+        # user: the deterministic template answers from the trace instead.
+        out.append(ToolTrace(tool=EMPTY_TOOL, params={}, result="template answer used"))
+        final = template_answer(trace, query, candidates=candidates)
+        return AgentResult(
+            answer=final, products=products_from_trace(trace, final), trace=out,
+            guard_triggered=True,
+        )  # fmt: skip
     bad = unverified_numbers(answer, trace, query, user_history, referent=referent)
     bad += unverified_part_numbers(answer, trace, query, user_history)
     triggered = bool(bad)
-    final = template_answer(trace, query) if triggered else answer
-    out = list(trace)
+    final = template_answer(trace, query, candidates=candidates) if triggered else answer
     if triggered:
         params = {"unverified": bad, "original_answer": answer}
         out.append(ToolTrace(tool=GUARD_TOOL, params=params, result="template answer used"))

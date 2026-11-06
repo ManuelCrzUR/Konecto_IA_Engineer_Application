@@ -32,7 +32,7 @@ We also found, by using the app, that small talk felt robotic: the agent re-intr
 | 0 | Contracts: auth module stubs, schema (`users`, `auth_tokens`, `sessions.busy_since`, FK), decisions, this plan | D-43 to D-49 | Done |
 | 1 | Spend control (1.0), OCR fix (T3) and real hybrid run ($), OCR in Docker with vision fallback, docs fixes, `_reference/` cleanup, history window, number guard v2, follow-up referent, natural small talk, per-session lock | D-44 to D-47, D-49 | Done |
 | 2 | Login backend: argon2 hashes, opaque tokens, 401 on every `/api` route, per-user isolation, trace only for `developer`, seeded test users | D-43 | Done |
-| 3 | Real eval with the final model ($), new cases (number words, wrong-product numbers, follow-ups with 1 and 3 products, 30-turn session, small talk) | — | Pending |
+| 3 | Real eval with the final model ($), new cases (number words, wrong-product numbers, follow-ups with 1 and 3 products, 30-turn session, small talk) | D-50 | Done |
 | 4 | Android: login screen and token, Debug only for `developer`, voice input (`SpeechRecognizer`), voice output (`TextToSpeech`), accessibility | D-48 | Pending |
 | 5 | Gate: full suites, brief checklist, `/simplify`, `/code-review`, scoped security audit of auth, real demo ($), README, clean-clone test | — | Pending |
 
@@ -63,7 +63,7 @@ We also found, by using the app, that small talk felt robotic: the agent re-intr
 |---|---|
 | 1.0 Spend control | `app/spend.py` `budgeted(step, max_usd)`: fails closed, refuses when the key has less than the cap left, logs each paid step to `docs/spend-log.md` (waits and re-reads, since OpenRouter reports usage late). `max_tokens` per task (agent 1024, extract 4096), `max_retries` 1, at most `VISION_MAX_CALLS` (7) vision calls per run, `eval/run.py --max-usd`. A conftest fixture blocks OpenRouter in every test. |
 | 1A OCR | Rows per table now exact (T3 9 -> 11: the suffix check dropped part numbers read with a letter O; the merged N/A box made 4 rows flag). Cell accuracy 95.2% -> 99.75%, flagged cells 78 -> 8 (all 5 real misreads among them), 4 tables still escalate. New slow test against the golden file. |
-| 1B Real vision run ($) | Ladder followed: fake-escalator rehearsal (0 cells differ), estimate (about USD 0.19 at most), one real call on T3 (11/11 rows, 0 differences, USD 0.0013), Docker OCR-only rehearsal, full Docker run: 4 calls, USD 0.029, output byte-identical to the committed `actuators.json`. |
+| 1B Real vision run ($) | Ladder followed: fake-escalator rehearsal (0 cells differ), estimate (about USD 0.19 at most), one real call on T3 (11/11 rows, 0 differences), Docker OCR-only rehearsal, full Docker run: 4 calls, output byte-identical to the committed `actuators.json`. |
 | 1C OCR in Docker | `STARTUP_ESCALATION=auto` by default; `make ingest-pdf` writes to `backend/data/rebuilt/` (bind mount, gitignored). Found and fixed: the image had no `poppler-utils`, so PDF re-extraction had never worked inside Docker. |
 | 1D Docs | README offline-command text and `debug`/`trace`, `ARCHITECTURE.md` sessions shape, benchmark copies removed (cells fixture moved to `tests/fixtures/`). |
 | 1E History window | `HISTORY_TURNS` (10); the product context still scans the whole history. |
@@ -72,7 +72,7 @@ We also found, by using the app, that small talk felt robotic: the agent re-intr
 | 1H Turn lock | `sessions.busy_since`; a concurrent turn gets 409 `turn_in_progress`; the assistant write is retried once. |
 | 1I Small talk | Introduces itself only on the first turn; later greetings get a short natural reply; 5 `small_talk` eval cases. |
 
-Tests: backend 1418 passed, plus 8 slow (OCR against golden). ruff, format and mypy clean. Spend in this wave: USD 0.031 (see `docs/spend-log.md`).
+Tests: backend 1418 passed, plus 8 slow (OCR against golden). ruff, format and mypy clean. Spend in this wave: about USD 0.149 for the five vision calls (first logged as USD 0.031 because OpenRouter books costs late; corrected in wave 3, see `docs/spend-log.md`).
 
 ### Wave 2: login backend
 
@@ -86,3 +86,21 @@ Tests: backend 1418 passed, plus 8 slow (OCR against golden). ruff, format and m
 Verified on the Docker stack (no LLM calls): no token 401, wrong password and unknown email give the same body, `/me`, logout then 401, `/health` public, hashes stored as `$argon2id$`. Note: sessions created before login have no owner and are not shown to anyone. One Docker build failed on a transient network error while installing the new dependency; the retry succeeded.
 
 Tests: backend 1489 passed, plus 8 slow. ruff, format and mypy clean. Spend in this wave: USD 0.
+
+### Wave 3: real evaluation
+
+| Step | Result | Cost |
+|---|---|---|
+| New cases | 4 more (number word, two-product comparison, follow-up after several products, 12-turn session past the 10-message window): 49 cases, 71 turns | — |
+| Rehearsal 1, free model | 39/49. 17 of 71 turns were empty: the wave-1 cap `AGENT_MAX_TOKENS=1024` ran out while the model reasoned. Confirmed on the 8 failing cases with 4096 (8/8). | USD 0 |
+| Fixes (D-50) | Cap 4096; an empty answer falls back to the template; the first answer to a technical question no longer starts with an introduction; one case expectation corrected | — |
+| Rehearsal 2, free model | 48/49 | USD 0 |
+| One real case, `gpt-6-luna` | 1/1 | USD 0.00006 |
+| Full run 1 | 47/49: the model computed a difference ("1250 Nm more", caught by the guard) and looked up a product for "lol ok" | USD 0.011 |
+| Fixes (D-50) | Comparison rule in the prompt (values as printed, no differences); no tools for small talk; a guard hit on a multi-product follow-up asks which product | — |
+| Full run 2 | 47/49 (model variance: a follow-up answered from memory, caught by the guard) | USD 0.012 |
+| Full run 3, final code | **48/49 (98%)**, 0 empty answers. The failure (`subset-02`) answers correctly but via `describe_catalog` | USD 0.008 |
+
+Spend control finding: OpenRouter books a call's cost late, sometimes in parts (20-50 s for chat, more than a minute for vision). The wave-1 log under-reported the vision run (USD 0.031 logged, about USD 0.149 real, matching the estimate). `budgeted` now polls the key for 2 minutes after paid calls; the log carries a correction note. Sprint spend so far: about USD 0.18 of the USD 1.00 cap.
+
+Tests: backend 1493 passed, plus 8 slow.
