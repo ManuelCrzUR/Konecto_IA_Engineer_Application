@@ -16,7 +16,7 @@ from app.api.routes_conversation import router, to_history
 from app.db import sessions_repo
 from app.domain.conversation import AgentResult, StoredMessage
 from app.domain.models import Product, ToolTrace
-from tests.conftest import get_test_db_url
+from tests.conftest import act_as, get_test_db_url
 
 URL = get_test_db_url("series76_test")
 PRODUCT = Product(
@@ -43,7 +43,7 @@ class FakeAgent:
 
 
 @pytest.fixture
-def env(pg):  # pg: schema applied + tables truncated
+def env(pg, dev_user):  # pg: schema applied + tables truncated
     conn = psycopg.connect(URL, autocommit=True, row_factory=dict_row)  # type: ignore[arg-type]
 
     @contextmanager
@@ -61,6 +61,7 @@ def env(pg):  # pg: schema applied + tables truncated
     app.dependency_overrides[deps.get_conn] = lambda: conn
     app.dependency_overrides[deps.get_conn_factory] = lambda: factory
     app.dependency_overrides[deps.get_agent] = lambda: agent
+    act_as(app, dev_user)
     yield TestClient(app, raise_server_exceptions=False), agent, conn, factory
     conn.close()
 
@@ -69,7 +70,7 @@ def _count(conn, table):
     return conn.execute(f"SELECT count(*) AS n FROM {table}").fetchone()["n"]
 
 
-def test_new_session_stores_both_messages(env):
+def test_new_session_stores_both_messages(env, dev_user):
     client, agent, conn, factory = env
     query = "x" * 80
     r = client.post("/api/conversation", json={"query": query})
@@ -79,7 +80,7 @@ def test_new_session_stores_both_messages(env):
     assert body["products"][0]["part_number"] == "761C"
     assert body["debug"][0]["tool"] == "get_actuator"
     sid = uuid.UUID(body["session_id"])
-    session = sessions_repo.get_session(conn, sid)
+    session = sessions_repo.get_session(conn, sid, dev_user.id)
     assert session and len(session.title) <= 50
     msgs = sessions_repo.list_messages(conn, sid)
     assert [m.role for m in msgs] == ["user", "assistant"]

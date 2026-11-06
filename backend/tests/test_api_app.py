@@ -12,12 +12,13 @@ from pydantic import BaseModel
 
 from app.agent.agent import AgentError, run_agent
 from app.api import main
-from app.api.deps import get_agent, get_current_user
+from app.api.deps import get_agent
 from app.api.errors import ApiError
 from app.api.main import create_app, startup_escalator
+from app.auth.repo import upsert_user
 from app.db.connection import SCHEMA_SQL
 from app.llm import LLMConfigError
-from tests.conftest import get_test_db_url
+from tests.conftest import act_as, get_test_db_url
 
 DB_URL = get_test_db_url("series76_t_api_a")
 
@@ -136,7 +137,6 @@ def test_request_validation_error(client):
 
 
 def test_dependencies():
-    assert get_current_user() is None
     assert get_agent() is run_agent
 
 
@@ -185,6 +185,8 @@ def test_no_connection_held_while_agent_runs(clean_db, monkeypatch):
         return AgentResult(answer="ok")
 
     app.dependency_overrides[deps.get_agent] = lambda: agent
+    with psycopg.connect(DB_URL, autocommit=True) as conn:
+        act_as(app, upsert_user(conn, "dev@konecto.test", "dev-series76", "developer"))
     with TestClient(app) as c:
         app.state.pool.timeout = 3  # fail fast instead of hanging if a conn is held
         r = c.post("/api/conversation", json={"query": "hello"})

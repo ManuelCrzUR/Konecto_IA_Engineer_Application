@@ -12,18 +12,26 @@ Contract:
 
 from __future__ import annotations
 
+import hashlib
+import secrets
 from datetime import timedelta
 
 TOKEN_TTL = timedelta(days=7)
 
 
 def new_token() -> str:
-    raise NotImplementedError  # Sprint 8, wave 2
+    return secrets.token_urlsafe(32)
 
 
 def hash_token(token: str) -> str:
-    raise NotImplementedError  # Sprint 8, wave 2
+    return hashlib.sha256(token.encode()).hexdigest()
 
 
 def parse_bearer(header: str | None) -> str | None:
-    raise NotImplementedError  # Sprint 8, wave 2
+    if not header:
+        return None
+    parts = header.strip().split(None, 1)
+    if len(parts) != 2 or parts[0].lower() != "bearer":
+        return None
+    token = parts[1].strip()
+    return token or None

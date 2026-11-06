@@ -24,7 +24,11 @@ from __future__ import annotations
 from typing import Literal
 
 import psycopg
+from psycopg.rows import dict_row
 from pydantic import BaseModel
+
+from app.auth.passwords import hash_password, verify_password
+from app.auth.tokens import TOKEN_TTL, hash_token, new_token
 
 Role = Literal["user", "developer"]
 
@@ -35,21 +39,63 @@ class CurrentUser(BaseModel):
     role: Role
 
 
+_COLS = "id, email, role"
+
+# Verified once per process; an unknown email still pays one argon2 verification.
+_DUMMY_HASH = hash_password("dummy-password-for-timing")
+
+
+def _to_user(row: dict | None) -> CurrentUser | None:
+    return CurrentUser(**row) if row else None
+
+
 def authenticate(conn: psycopg.Connection, email: str, password: str) -> CurrentUser | None:
-    raise NotImplementedError  # Sprint 8, wave 2
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            f"SELECT {_COLS}, password_hash FROM users WHERE email = %s",
+            (email.strip().lower(),),
+        )
+        row = cur.fetchone()
+    if row is None:
+        verify_password(password, _DUMMY_HASH)
+        return None
+    if not verify_password(password, row.pop("password_hash")):
+        return None
+    return CurrentUser(**row)
 
 
 def issue_token(conn: psycopg.Connection, user_id: str) -> str:
-    raise NotImplementedError  # Sprint 8, wave 2
+    token = new_token()
+    conn.execute(
+        "INSERT INTO auth_tokens (token_hash, user_id, expires_at) VALUES (%s, %s, now() + %s)",
+        (hash_token(token), user_id, TOKEN_TTL),
+    )
+    return token
 
 
 def user_for_token(conn: psycopg.Connection, token: str) -> CurrentUser | None:
-    raise NotImplementedError  # Sprint 8, wave 2
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(
+            "SELECT u.id, u.email, u.role FROM auth_tokens t JOIN users u ON u.id = t.user_id "
+            "WHERE t.token_hash = %s AND t.expires_at > now()",
+            (hash_token(token),),
+        )
+        return _to_user(cur.fetchone())
 
 
 def revoke_token(conn: psycopg.Connection, token: str) -> None:
-    raise NotImplementedError  # Sprint 8, wave 2
+    conn.execute("DELETE FROM auth_tokens WHERE token_hash = %s", (hash_token(token),))
 
 
 def upsert_user(conn: psycopg.Connection, email: str, password: str, role: Role) -> CurrentUser:
-    raise NotImplementedError  # Sprint 8, wave 2
+    email = email.strip().lower()
+    conn.execute(
+        "INSERT INTO users (email, password_hash, role) VALUES (%s, %s, %s) "
+        "ON CONFLICT (email) DO NOTHING",
+        (email, hash_password(password), role),
+    )
+    with conn.cursor(row_factory=dict_row) as cur:
+        cur.execute(f"SELECT {_COLS} FROM users WHERE email = %s", (email,))
+        user = _to_user(cur.fetchone())
+    assert user is not None
+    return user

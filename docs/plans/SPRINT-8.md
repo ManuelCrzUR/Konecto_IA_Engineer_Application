@@ -31,7 +31,7 @@ We also found, by using the app, that small talk felt robotic: the agent re-intr
 |---|---|---|---|
 | 0 | Contracts: auth module stubs, schema (`users`, `auth_tokens`, `sessions.busy_since`, FK), decisions, this plan | D-43 to D-49 | Done |
 | 1 | Spend control (1.0), OCR fix (T3) and real hybrid run ($), OCR in Docker with vision fallback, docs fixes, `_reference/` cleanup, history window, number guard v2, follow-up referent, natural small talk, per-session lock | D-44 to D-47, D-49 | Done |
-| 2 | Login backend: argon2 hashes, opaque tokens, 401 on every `/api` route, per-user isolation, trace only for `developer`, seeded test users | D-43 | Pending |
+| 2 | Login backend: argon2 hashes, opaque tokens, 401 on every `/api` route, per-user isolation, trace only for `developer`, seeded test users | D-43 | Done |
 | 3 | Real eval with the final model ($), new cases (number words, wrong-product numbers, follow-ups with 1 and 3 products, 30-turn session, small talk) | — | Pending |
 | 4 | Android: login screen and token, Debug only for `developer`, voice input (`SpeechRecognizer`), voice output (`TextToSpeech`), accessibility | D-48 | Pending |
 | 5 | Gate: full suites, brief checklist, `/simplify`, `/code-review`, scoped security audit of auth, real demo ($), README, clean-clone test | — | Pending |
@@ -73,3 +73,16 @@ We also found, by using the app, that small talk felt robotic: the agent re-intr
 | 1I Small talk | Introduces itself only on the first turn; later greetings get a short natural reply; 5 `small_talk` eval cases. |
 
 Tests: backend 1418 passed, plus 8 slow (OCR against golden). ruff, format and mypy clean. Spend in this wave: USD 0.031 (see `docs/spend-log.md`).
+
+### Wave 2: login backend
+
+| Task | Result |
+|---|---|
+| 2A `app/auth/` | argon2id hashes (`pwdlib`), opaque tokens stored as SHA-256 (7 days), `authenticate` with a dummy hash for unknown emails (no timing leak), idempotent seeding of the three test users. 26 tests. |
+| 2B API | `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`; 401 `unauthorized` + `WWW-Authenticate: Bearer` on every other `/api` route; `user.id` passed to every session query (another user's session answers 404); `debug`/`trace` empty for role `user`. Existing API tests act as a seeded developer. 25 tests. |
+| 2C Black-box tests | 20 HTTP tests written from the contract only. They found a real bug before wiring: `seed.py` read the count as a tuple, which fails on the API's `dict_row` connections (fixed, regression test added). |
+| Docs | README quick start logs in first, endpoint table, test users table; `.env.example` `SEED_TEST_USERS`; `recovery.sh` scenario (e) logs in as ana. |
+
+Verified on the Docker stack (no LLM calls): no token 401, wrong password and unknown email give the same body, `/me`, logout then 401, `/health` public, hashes stored as `$argon2id$`. Note: sessions created before login have no owner and are not shown to anyone. One Docker build failed on a transient network error while installing the new dependency; the retry succeeded.
+
+Tests: backend 1489 passed, plus 8 slow. ruff, format and mypy clean. Spend in this wave: USD 0.

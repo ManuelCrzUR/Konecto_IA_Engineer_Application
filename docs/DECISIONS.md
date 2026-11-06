@@ -564,7 +564,7 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** One indexed lookup per request, in exchange for instant logout and no secret to manage. Sessions created before login (`user_id` NULL) become invisible to everyone.
 
-**Status.** Proposed (Sprint 8, wave 2). Supersedes the hook in D-11.
+**Status.** Accepted (Sprint 8, wave 2). Supersedes the hook in D-11. Verified on the Docker stack: 401 with `WWW-Authenticate: Bearer` without a token, the same 401 body for a wrong password and an unknown email, logout revokes the token, passwords stored as `$argon2id$`.
 
 ## D-44 Number guard v2: no always-allowed integers, numbers bound to their product (Sprint 8)
 

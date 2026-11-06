@@ -18,6 +18,58 @@ and the `trace` of GET /api/sessions/{id}/messages are returned EMPTY; only
 
 from __future__ import annotations
 
-from fastapi import APIRouter
+from typing import Annotated
+
+from fastapi import APIRouter, Depends, Response
+from pydantic import BaseModel, Field
+
+from app.api.deps import get_conn_factory, get_current_user, get_token
+from app.api.errors import ApiError
+from app.auth import repo as auth_repo
+from app.auth.repo import CurrentUser, Role
+from app.db.connection import ConnFactory
 
 router = APIRouter()
+
+
+class LoginRequest(BaseModel):
+    email: str = Field(min_length=1, max_length=254)
+    password: str = Field(min_length=1, max_length=200)
+
+
+class UserOut(BaseModel):
+    email: str
+    role: Role
+
+
+class LoginResponse(BaseModel):
+    token: str
+    user: UserOut
+
+
+@router.post("/auth/login", response_model=LoginResponse)
+def login(
+    body: LoginRequest, conn_factory: Annotated[ConnFactory, Depends(get_conn_factory)]
+) -> LoginResponse:
+    with conn_factory() as conn:
+        user = auth_repo.authenticate(conn, body.email, body.password)
+        if user is None:
+            raise ApiError(401, "invalid_credentials", "Wrong email or password")
+        token = auth_repo.issue_token(conn, user.id)
+    return LoginResponse(token=token, user=UserOut(email=user.email, role=user.role))
+
+
+@router.post("/auth/logout", status_code=204)
+def logout(
+    token: Annotated[str, Depends(get_token)],
+    _user: Annotated[CurrentUser, Depends(get_current_user)],
+    conn_factory: Annotated[ConnFactory, Depends(get_conn_factory)],
+) -> Response:
+    with conn_factory() as conn:
+        auth_repo.revoke_token(conn, token)
+    return Response(status_code=204)
+
+
+@router.get("/auth/me", response_model=UserOut)
+def me(user: Annotated[CurrentUser, Depends(get_current_user)]) -> UserOut:
+    return UserOut(email=user.email, role=user.role)

@@ -7,7 +7,7 @@ Contract (router = APIRouter(); path "/conversation", mounted under "/api"):
 Steps (sync `def` endpoint; FastAPI runs it in its threadpool). DB steps use
 short `with conn_factory() as conn:` blocks (1-3, then 5, then the unlock); no connection is
 held while the agent runs, because its tools borrow from the same pool.
-  1. user = get_current_user(). If session_id is given: sessions_repo.get_session
+  1. user = get_current_user() (a CurrentUser; user.id scopes every repo call). If session_id is given: sessions_repo.get_session
      (conn, id, user) or ApiError(404, "session_not_found", "No conversation with
      id <id>"). Never create a session by accident. Without session_id:
      create_session(conn, title=query, user_id=user) (title cut to 50 chars by
@@ -32,7 +32,8 @@ held while the agent runs, because its tools borrow from the same pool.
      A client that got a 503 retries with that id instead of creating a duplicate
      session. The body of errors stays {error, detail}.
   6. return ConversationResponse(session_id=..., answer=result.answer,
-     products=result.products, debug=result.trace).
+     products=result.products, debug=result.trace for role "developer", [] for
+     role "user" (D-43; the stored trace is unchanged).
 - to_history(messages: list[StoredMessage]) -> list[HistoryTurn]: role and
   content as stored; assistant turns get part_numbers = [p.part_number for p
   in products]; user turns get [].
@@ -48,6 +49,7 @@ from fastapi import APIRouter, Depends, Response
 
 from app.api.deps import AgentRunner, get_agent, get_conn_factory, get_current_user
 from app.api.errors import ApiError
+from app.auth.repo import CurrentUser
 from app.db import sessions_repo
 from app.db.connection import ConnFactory
 from app.domain.conversation import AgentResult, HistoryTurn, StoredMessage
@@ -88,19 +90,19 @@ def post_conversation(
     response: Response,
     conn_factory: Annotated[ConnFactory, Depends(get_conn_factory)],
     agent: Annotated[AgentRunner, Depends(get_agent)],
-    user: Annotated[str | None, Depends(get_current_user)],
+    user: Annotated[CurrentUser, Depends(get_current_user)],
 ) -> ConversationResponse:
     # Connections are borrowed only around the DB steps, never held while the LLM
     # runs: the agent's tools draw from the same pool (D-32).
     with conn_factory() as conn:
         if body.session_id is not None:
-            session = sessions_repo.get_session(conn, body.session_id, user)
+            session = sessions_repo.get_session(conn, body.session_id, user.id)
             if session is None:
                 raise ApiError(
                     404, "session_not_found", f"No conversation with id {body.session_id}"
                 )
         else:
-            session = sessions_repo.create_session(conn, body.query, user)
+            session = sessions_repo.create_session(conn, body.query, user.id)
         if not sessions_repo.try_lock_session(conn, session.id):
             busy = ApiError(
                 409, "turn_in_progress", "This conversation is still answering the previous message"
@@ -123,5 +125,8 @@ def post_conversation(
             sessions_repo.unlock_session(conn, session.id)
     response.headers["X-Session-Id"] = str(session.id)
     return ConversationResponse(
-        session_id=session.id, answer=result.answer, products=result.products, debug=result.trace
+        session_id=session.id,
+        answer=result.answer,
+        products=result.products,
+        debug=result.trace if user.role == "developer" else [],
     )

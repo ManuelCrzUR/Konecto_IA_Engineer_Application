@@ -15,8 +15,12 @@ cp .env.example .env     # then edit .env: set LLM_API_KEY and AGENT_MODEL (see 
 make up                  # build + start Postgres and the API, waits until healthy (up to 120 s)
 export API_PORT=8000     # same value as API_PORT in your .env (default 8000)
 curl -sf localhost:${API_PORT}/health
-curl -sf -X POST localhost:${API_PORT}/api/conversation \
+# Sign in with a seeded test user (section 8) and keep the token
+TOKEN=$(curl -sf -X POST localhost:${API_PORT}/api/auth/login \
   -H 'Content-Type: application/json' \
+  -d '{"email": "dev@konecto.test", "password": "dev-series76"}' | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')
+curl -sf -X POST localhost:${API_PORT}/api/conversation \
+  -H 'Content-Type: application/json' -H "Authorization: Bearer $TOKEN" \
   -d '{"query": "What is the torque of 764X30-11320000/A?"}'
 ```
 
@@ -57,12 +61,17 @@ Other `make` targets: `make down` (stop, keep data), `make reset` (stop **and de
 
 | Endpoint | Purpose |
 |---|---|
+| `POST /api/auth/login` | Body `{email, password}` -> `{token, user: {email, role}}`. Wrong email or password: 401 `invalid_credentials` (same answer for both). No token needed. |
+| `POST /api/auth/logout` | Revokes the presented token (204). |
+| `GET /api/auth/me` | `{email, role}` of the token's user. |
 | `POST /api/conversation` | Body `{session_id?, query}` -> `{session_id, answer, products, debug}`. No `session_id` creates a session; an unknown one returns 404 (D-09). The user message is saved before the agent runs, so a 503 never loses it. |
 | `GET /api/sessions?q=&limit=` | Conversation list, newest first. With `q`, case-insensitive search over titles and messages; each hit has `match {where, snippet}` (D-37). |
 | `GET /api/sessions/{id}/messages` | Full history including `products` and `trace` (per-message tool trace). |
-| `GET /health` | `{"status":"ok","actuators":<row count>}`. |
+| `GET /health` | `{"status":"ok","actuators":<row count>}`. Public. |
 
-Errors are `{error, detail}`: `llm_unavailable`, `llm_not_configured`, `database_unavailable` (all 503), `turn_in_progress` (409: the same conversation is still answering the previous message, D-46), 404, 422. Conversations live in the same Postgres volume and survive restarts.
+Every `/api` route except login needs `Authorization: Bearer <token>`; without a valid token it answers 401 `unauthorized`. Each user sees and uses only their own conversations: another user's `session_id` answers 404, like an unknown one. `debug` and `trace` hold the tool calls only for the `developer` role; for `user` they are empty lists (D-43).
+
+Errors are `{error, detail}`: `llm_unavailable`, `llm_not_configured`, `database_unavailable` (all 503), `turn_in_progress` (409: the same conversation is still answering the previous message, D-46), `unauthorized` / `invalid_credentials` (401), 404, 422. Conversations live in the same Postgres volume and survive restarts.
 
 **CLI** (no API needed; needs `make db` and a key; install [uv](https://docs.astral.sh/uv/), Python 3.12 is picked automatically):
 
@@ -223,7 +232,17 @@ Two runs of Cloudflare's `security-audit` skill (vendored in `.claude/skills/sec
 
 ## 8. Optionals
 
-Login (email/password + token) and voice messages are **not implemented**; only the hooks exist: nullable `user_id` and the `get_current_user()` dependency (D-11), and on-device transcription feeding the same endpoint (D-10).
+**Login (implemented, D-43).** Email and password return an opaque token, valid for 7 days, sent as `Authorization: Bearer <token>`. Passwords are stored as argon2id hashes and tokens as SHA-256 hashes, so neither can be read back from the database. Each user sees only their own conversations. The OpenRouter key stays on the server and is shared by all users. Test users, created at startup (`SEED_TEST_USERS=off` disables them):
+
+| Email | Password | Role |
+|---|---|---|
+| `ana@konecto.test` | `ana-series76` | user |
+| `ben@konecto.test` | `ben-series76` | user |
+| `dev@konecto.test` | `dev-series76` | developer (also receives the tool trace for the Debug screen) |
+
+Conversations created before login existed (no owner) are not shown to anyone.
+
+**Voice messages:** planned in Sprint 8 (on-device speech-to-text and text-to-speech, D-48).
 
 ## 9. Repo layout and AI configuration
 

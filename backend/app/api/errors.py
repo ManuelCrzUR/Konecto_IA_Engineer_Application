@@ -38,18 +38,28 @@ logger = logging.getLogger("series76.api")
 
 
 class ApiError(Exception):
-    def __init__(self, status: int, error: str, detail: str | None = None) -> None:
+    def __init__(
+        self,
+        status: int,
+        error: str,
+        detail: str | None = None,
+        headers: dict[str, str] | None = None,
+    ) -> None:
         super().__init__(detail or error)
-        self.status, self.error, self.detail = status, error, detail
+        self.status, self.error, self.detail, self.headers = status, error, detail, headers
 
 
 def _reply(
     status: int, error: str, detail: str | None, exc: Exception | None = None
 ) -> JSONResponse:
     sid = getattr(exc, "session_id", None)
-    headers = {"X-Session-Id": str(sid)} if sid is not None else None
+    headers = dict(getattr(exc, "headers", None) or {})
+    if sid is not None:
+        headers["X-Session-Id"] = str(sid)
     return JSONResponse(
-        ErrorOut(error=error, detail=detail).model_dump(), status_code=status, headers=headers
+        ErrorOut(error=error, detail=detail).model_dump(),
+        status_code=status,
+        headers=headers or None,
     )
 
 

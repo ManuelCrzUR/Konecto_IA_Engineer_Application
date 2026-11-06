@@ -13,10 +13,11 @@ from fastapi.testclient import TestClient
 from app.agent.agent import AgentError
 from app.api import deps
 from app.api.main import create_app
+from app.auth.repo import upsert_user
 from app.domain.conversation import AgentResult
 from app.domain.models import Actuator, Product, ToolTrace
 from app.llm import LLMConfigError
-from tests.conftest import get_test_db_url
+from tests.conftest import act_as, get_test_db_url
 
 DB_URL = get_test_db_url("series76_t_api_d")
 
@@ -83,9 +84,10 @@ def _live(app):
 
 
 @pytest.fixture
-def client(_live, agent):
+def client(app, _live, agent):
     with psycopg.connect(DB_URL, autocommit=True) as conn:
         conn.execute("TRUNCATE messages, sessions RESTART IDENTITY CASCADE")
+        act_as(app, upsert_user(conn, "dev@konecto.test", "dev-series76", "developer"))
     return _live
 
 

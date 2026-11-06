@@ -72,13 +72,19 @@ scn_d() {
   in_api sh -c "ls ${JSON}.corrupt-*" >/dev/null 2>&1 || { echo "no actuators.json.corrupt-* file"; return 1; }
 }
 scn_e() {
-  local sid; sid=$(psql_db -c "INSERT INTO sessions (title) VALUES ('recovery-check') RETURNING id" | head -1)
+  # Sessions belong to a user since login (D-43): own it by the seeded test user ana.
+  local uid; uid=$(psql_db -c "SELECT id FROM users WHERE email = 'ana@konecto.test'" | head -1)
+  [ -n "$uid" ] || { echo "seeded user ana missing"; return 1; }
+  local sid; sid=$(psql_db -c "INSERT INTO sessions (title, user_id) VALUES ('recovery-check', '$uid') RETURNING id" | head -1)
   psql_db -c "INSERT INTO messages (session_id, role, content) VALUES ('$sid','user','recovery-message')" >/dev/null
   docker compose restart api >/dev/null 2>&1
   wait_healthy || { echo "not healthy"; return 1; }
-  local rc=0
-  curl -fs "$BASE/api/sessions?limit=200" | grep -q "$sid" || { echo "session $sid not listed"; rc=1; }
-  [ $rc = 0 ] && { curl -fs "$BASE/api/sessions/$sid/messages" | grep -q recovery-message || { echo "message missing"; rc=1; }; }
+  local token; token=$(curl -fs -X POST "$BASE/api/auth/login" -H 'Content-Type: application/json' \
+    -d '{"email":"ana@konecto.test","password":"ana-series76"}' | python3 -c 'import json,sys; print(json.load(sys.stdin)["token"])')
+  [ -n "$token" ] || { echo "login failed"; return 1; }
+  local auth="Authorization: Bearer $token" rc=0
+  curl -fs -H "$auth" "$BASE/api/sessions?limit=200" | grep -q "$sid" || { echo "session $sid not listed"; rc=1; }
+  [ $rc = 0 ] && { curl -fs -H "$auth" "$BASE/api/sessions/$sid/messages" | grep -q recovery-message || { echo "message missing"; rc=1; }; }
   psql_db -c "DELETE FROM sessions WHERE id='$sid'" >/dev/null   # cleanup (cascades)
   return $rc
 }

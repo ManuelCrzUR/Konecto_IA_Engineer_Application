@@ -9,10 +9,17 @@ Contract:
 
 from __future__ import annotations
 
+from pwdlib import PasswordHash
+
+_HASHER = PasswordHash.recommended()
+
 
 def hash_password(password: str) -> str:
-    raise NotImplementedError  # Sprint 8, wave 2
+    return _HASHER.hash(password)
 
 
 def verify_password(password: str, password_hash: str) -> bool:
-    raise NotImplementedError  # Sprint 8, wave 2
+    try:
+        return _HASHER.verify(password, password_hash)
+    except Exception:  # noqa: BLE001 - malformed or empty hash: treat as a failed login, never raise
+        return False

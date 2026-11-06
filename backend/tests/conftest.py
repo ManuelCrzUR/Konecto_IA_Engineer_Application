@@ -102,6 +102,29 @@ def test_users(pg):
     return pg
 
 
+@pytest.fixture
+def dev_user(pg):
+    """A real `developer` row in users (sessions.user_id has a foreign key to it)."""
+    from app.auth.repo import upsert_user
+
+    return upsert_user(pg, "dev@test.invalid", "dev-pass-1", "developer")
+
+
+@pytest.fixture
+def plain_user(pg):
+    """A real `user` (no trace) row in users."""
+    from app.auth.repo import upsert_user
+
+    return upsert_user(pg, "plain@test.invalid", "plain-pass-1", "user")
+
+
+def act_as(app, user) -> None:
+    """Make every request of `app` run as `user`, skipping the Bearer lookup."""
+    from app.api import deps
+
+    app.dependency_overrides[deps.get_current_user] = lambda: user
+
+
 def pytest_collection_modifyitems(items):
     for item in items:
         if {"pg", "pg_conn"} & set(getattr(item, "fixturenames", ())):

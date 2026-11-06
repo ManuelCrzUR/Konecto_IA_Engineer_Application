@@ -14,7 +14,8 @@ Contract:
          A data failure aborts startup with the clear message (never serve
          doubtful data).
       3. on shutdown: pool.close().
-    Includes routes_conversation.router and routes_sessions.router (prefix
+    Then seed_test_users(conn) (D-43) and log how many users exist (never passwords).
+    Includes routes_auth, routes_conversation and routes_sessions routers (prefix
     "/api"), install_error_handlers(app), and GET /health ->
     {"status": "ok", "actuators": <row count>} (503 database_unavailable via
     the handlers if the DB is down).
@@ -40,8 +41,9 @@ from fastapi import FastAPI
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool, PoolTimeout
 
-from app.api import routes_conversation, routes_sessions
+from app.api import routes_auth, routes_conversation, routes_sessions
 from app.api.errors import install_error_handlers
+from app.auth.seed import seed_test_users
 from app.bootstrap import ensure_data
 from app.db import actuators_repo
 from app.db.connection import apply_schema
@@ -125,13 +127,16 @@ def create_app(database_url: str | None = None, *, bootstrap: bool = True) -> Fa
                 with pool.connection() as conn:
                     apply_schema(conn)
                     status = ensure_data(conn, escalator=startup_escalator())
+                    users = seed_test_users(conn)
                 logger.info(status.summary())
+                logger.info("Login: %d user(s) in the database", users)
             yield
         finally:
             pool.close()
 
     app = FastAPI(title="Series 76 Technical Assistant", lifespan=lifespan)
     install_error_handlers(app)
+    app.include_router(routes_auth.router, prefix="/api")
     app.include_router(routes_conversation.router, prefix="/api")
     app.include_router(routes_sessions.router, prefix="/api")
 
