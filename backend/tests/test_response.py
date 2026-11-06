@@ -116,8 +116,9 @@ def test_token_values(tok, vals):
 def test_allowed_numbers_sources():
     trace = [found(A761), tr("x", {"a": True, "b": None, "c": ["110V", [3500]]}, n=42)]
     allowed = R.allowed_numbers(trace, "I need 123 Nm")
-    assert {80.0, 700.0, 10.0, 110.0, 3500.0, 42.0, 123.0, 7.0, 90.0} <= allowed
-    assert 1.0 in allowed  # bool ignored, but 1 is always allowed anyway
+    assert {80.0, 700.0, 10.0, 110.0, 3500.0, 42.0, 123.0} <= allowed
+    assert 7.0 not in allowed and 90.0 not in allowed  # no blanket small-int list (D-44)
+    assert not hasattr(R, "ALWAYS_ALLOWED")
     assert 11300000.0 not in allowed
 
 
@@ -136,9 +137,13 @@ def test_guard_passes_spanish_formats():
     assert R.unverified_numbers(ans, trace, "x") == []
 
 
-def test_guard_allows_query_numbers_and_small_ints():
+def test_guard_allows_query_numbers():
     trace = [found(A761)]
-    assert R.unverified_numbers("Pediste 500 Nm; opcion 2 de 3.", trace, "necesito 500 Nm") == []
+    assert R.unverified_numbers("Pediste 500 Nm; opcion 2 de 3.", trace, "necesito 500 Nm") == [
+        "2",
+        "3",
+    ]
+    assert R.unverified_numbers("Pediste 500 Nm.", trace, "necesito 500 Nm") == []
     assert R.unverified_numbers("Pediste 500 Nm.", trace, "algo") == ["500"]
 
 
@@ -247,7 +252,7 @@ def test_user_history_part_number_passes():
 # ---- Gate 5.5: model size named in the answer ---------------------------------
 def test_model_size_of_a_returned_part_number_is_not_a_figure() -> None:
     trace = [tr("get_actuator", {"status": "found"}, part_number="764A00-11320000/A")]
-    answer = "Of the two, the 764 is the larger frame."
+    answer = "Of the pair, the 764 is the larger frame."
     assert R.unverified_numbers(answer, trace, "compare them") == []
 
 
@@ -288,3 +293,129 @@ def test_build_result_persona_trace_only_when_replaced() -> None:
     assert res.guard_triggered is False
     clean = R.build_result("I'm Axel.", [], "who?", model_id="stealth/crouton-alpha")
     assert clean.trace == []
+
+
+# ---- Guard v2 (D-44) ------------------------------------------------------------
+B764 = "764A00-11300000/A"  # 6.5 A, 30 s; 765B00 below owns 108 s
+B765 = Actuator.model_validate(BY_PN["765B00-11300000/A"]).model_dump(mode="json")
+PAIR = [found(A764), found(B765)]
+
+
+def bad(answer: str, trace: list[ToolTrace] | None = None, q: str = "q", **kw: Any) -> list[str]:
+    return R.unverified_numbers(answer, PAIR if trace is None else trace, q, **kw)
+
+
+def test_v2_fixture_sanity() -> None:
+    v764 = R._product_values(PAIR)
+    assert 108.0 in v764["765B00-11300000"] and 108.0 not in v764["764A00-11300000"]
+    assert 6.5 in v764["764A00-11300000"] and 9.0 not in v764["764A00-11300000"]
+
+
+def test_v2_invented_small_int_fires() -> None:
+    ans = f"{B764} has FLA 9 A."
+    assert bad(ans) == ["9"]
+    assert R.build_result(ans, PAIR, "q").guard_triggered
+
+
+def test_v2_approximate_seconds_fires() -> None:
+    assert bad(f"{B764} takes about 7 seconds.") == ["7"]
+
+
+def test_v2_number_words_fire_in_both_languages() -> None:
+    assert bad("Tarda siete segundos.", [found(A764)]) == ["siete"]
+    assert bad("It takes seven seconds.", [found(A764)]) == ["seven"]
+    assert bad("Dieciséis y dieciseis y twelve y diez.", []) == [
+        "Dieciséis", "dieciseis", "twelve", "diez",
+    ]  # fmt: skip
+    assert R.token_values("Dieciséis") == {16.0} and R.token_values("seven") == {7.0}
+
+
+def test_v2_number_word_matching_trace_value_passes() -> None:
+    trace = [tr("x", {"count": 7})]
+    assert bad("There are seven.", trace) == []
+    assert bad("Hay siete.", [], "dame siete") == []  # typed by the user
+
+
+def test_v2_wrong_product_binding_fires() -> None:
+    # 108 s exists in the trace, but only on 765B00.
+    assert bad("764A00 has 108 s.") == ["108"]
+    assert bad("765B00 has 108 s.") == []
+
+
+def test_v2_correct_number_next_to_its_product_passes() -> None:
+    assert bad(f"{B764} has 6.5 A and 765B00 has 108 s.") == []
+    assert bad("764A00 has 6,5 A; 765B00 has 108 s.") == []
+
+
+def test_v2_binding_uses_nearest_preceding_mention_in_the_sentence() -> None:
+    assert bad("764A00 has 108 s. Meanwhile 108 s is common.") == ["108"]
+    # new sentence: no mention before the figure, so the global rule applies
+    assert bad("764A00 is fine. The other has 108 s.") == []
+
+
+def test_v2_markdown_table_row_binding() -> None:
+    ok = "| PN | FLA |\n|---|---|\n| 764A00 | 6.5 |\n| 765B00 | 108 |"
+    assert bad(ok) == []
+    swapped = "| PN | FLA |\n|---|---|\n| 764A00 | 108 |\n| 765B00 | 6.5 |"
+    assert bad(swapped) == ["108", "6.5"]
+
+
+def test_v2_ordinals_and_stroke_are_free() -> None:
+    assert bad("1. 764A00 is good\n2) 765B00 too\n3. last one", []) == []
+    assert bad("Rotates 90° and 90 degrees and 90 grados.", []) == []
+    assert bad("It has 1. Not an ordinal here, 2) neither", []) == ["1", "2"]
+
+
+def test_v2_ninety_nm_is_not_the_stroke() -> None:
+    assert bad("It delivers 90 Nm.", [found(A764)]) == ["90"]
+    assert bad("It delivers 90 Nm, and 90 degrees.", [found(A764)]) == ["90"]
+
+
+def test_v2_referent_binds_when_no_part_number_is_mentioned() -> None:
+    trace = [found(A764), found(B765)]
+    # 108 is in the trace (on 765B00) but the conversation is about 764A00
+    assert bad("It has 108 s.", trace, referent=B764) == ["108"]
+    assert bad("It has 6.5 A.", trace, referent=B764) == []
+    assert bad("It has 108 s.", trace) == []  # no referent: global rule
+    # a mention in the answer disables the referent
+    assert bad("765B00 has 108 s.", trace, referent=B764) == []
+    # referent not in the trace: fall back to the global rule
+    assert bad("It has 108 s.", trace, referent="761A00-11300000/A") == []
+    res = R.build_result("It has 108 s.", trace, "and its FLA?", referent=B764)
+    assert res.guard_triggered
+
+
+def test_v2_articles_are_not_numbers() -> None:
+    assert bad("Tengo un actuador y una duda, uno solo.", []) == []
+    assert bad("A single one, once more: a good fit.", []) == []
+    assert R.extract_numbers("un una uno one once") == []
+
+
+def test_v2_small_talk_with_figures_falls_back_to_template() -> None:
+    res = R.build_result("Hello! I know 3 actuators.", [], "hi")
+    assert res.guard_triggered
+    assert "could not verify" in res.answer
+    assert R.build_result("Hello! How can I help?", [], "hi").guard_triggered is False
+    assert R.build_result("Hola, tengo cinco ideas.", [], "hola").guard_triggered
+    assert not R.build_result("Hola, dices tres.", [], "dame tres").guard_triggered
+
+
+def test_v2_user_history_still_trusted() -> None:
+    assert bad("You said 42 A for 764A00.", [found(A764)], "q", user_history="FLA is 42 A") == []
+
+
+def test_counts_of_tool_results_are_verified():
+    """'I found 2 options' is a count of what search_actuators returned, not an invented figure."""
+    matches = [r for r in ROWS if r["part_number"][:6] in ("764A00", "765A00")][:2]
+    assert len(matches) == 2
+    names = " y ".join(m["part_number"] for m in matches)
+    trace = [
+        ToolTrace(tool="search_actuators", params={}, result={"status": "ok", "matches": matches})
+    ]
+    ok = R.build_result(f"Encontré 2 opciones: {names}.", trace, "busco un actuador")
+    assert not ok.guard_triggered
+    allowed = R.allowed_numbers(trace, "busco un actuador")
+    assert 2.0 in allowed
+    absent = next(n for n in range(3, 100) if float(n) not in allowed)
+    bad = R.build_result(f"Encontré {absent} opciones: {names}.", trace, "busco un actuador")
+    assert bad.guard_triggered

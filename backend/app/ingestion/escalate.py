@@ -1,7 +1,7 @@
 """Vision re-read of a whole table (used only for flagged tables).
 
 Contract:
-- make_vision_escalator(llm=None) -> Escalator (see pipeline.Escalator).
+- make_vision_escalator(llm=None, *, max_calls=None) -> Escalator (see pipeline.Escalator).
   The escalator sends the table crop (base64 PNG image block) and a prompt
   listing the table's columns (TABLE_FIELDS[table_id]) to a multimodal chat
   model, asking for JSON: {"rows": [{"part_number": "<as printed>",
@@ -11,6 +11,9 @@ Contract:
   normalize error -> EscalationError.
 - parse_response requires every TABLE_FIELDS[table_id] key in each row's cells and
   rejects unknown keys (EscalationError).
+- max_calls caps paid calls per escalator (default env VISION_MAX_CALLS, else 7:
+  one per table). The call after the cap raises EscalationError BEFORE the LLM
+  is invoked.
 - llm=None -> app.llm.get_llm("extract") (EXTRACT_LLM_MODEL). Tests inject a
   fake chat model; the real call costs money and needs explicit approval.
 """
@@ -19,6 +22,7 @@ from __future__ import annotations
 
 import base64
 import json
+import os
 import re
 from typing import Any
 
@@ -147,11 +151,36 @@ def parse_response(table_id: str, text: str) -> list[Actuator]:
     return out
 
 
-def make_vision_escalator(llm: BaseChatModel | None = None) -> Escalator:
+DEFAULT_MAX_CALLS = 7
+
+
+def _default_max_calls() -> int:
+    raw = os.environ.get("VISION_MAX_CALLS", "").strip()
+    if not raw:
+        return DEFAULT_MAX_CALLS
+    try:
+        value = int(raw)
+    except ValueError:
+        value = -1
+    if value < 0:
+        raise EscalationError(f"VISION_MAX_CALLS must be a non-negative integer, got {raw!r}")
+    return value
+
+
+def make_vision_escalator(
+    llm: BaseChatModel | None = None, *, max_calls: int | None = None
+) -> Escalator:
     cache: list[BaseChatModel] = [llm] if llm is not None else []
+    cap = _default_max_calls() if max_calls is None else max_calls
+    calls = [0]
 
     def escalate(table_id: str, crop_png: bytes) -> list[Actuator]:
         message = build_message(table_id, crop_png)  # validates table_id first
+        if calls[0] >= cap:
+            raise EscalationError(
+                f"{table_id}: vision call cap reached ({cap}); raise VISION_MAX_CALLS to allow more"
+            )
+        calls[0] += 1
         if not cache:
             cache.append(get_llm("extract"))  # lazy: building needs no key
         reply = cache[0].invoke([message])

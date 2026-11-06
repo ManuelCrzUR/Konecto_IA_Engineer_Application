@@ -32,7 +32,11 @@ def _snap(text: str, pos: int, step: int) -> int:
 
 def make_snippet(text: str, query: str, width: int = WIDTH) -> str:
     flat = " ".join(text.split())
-    m = re.search(re.escape(" ".join(query.split())), flat, re.IGNORECASE) if query.strip() else None
+    m = (
+        re.search(re.escape(" ".join(query.split())), flat, re.IGNORECASE)
+        if query.strip()
+        else None
+    )
     if m is None:
         start, end = 0, min(len(flat), width)
     else:

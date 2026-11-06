@@ -5,7 +5,13 @@ import re
 import pytest
 from langchain_core.messages import AIMessage, HumanMessage, SystemMessage
 
-from app.agent.prompts import SYSTEM_PROMPT, build_messages, context_line
+from app.agent.prompts import (
+    ONGOING_NOTE,
+    SYSTEM_PROMPT,
+    build_messages,
+    context_line,
+    history_window,
+)
 from app.domain.conversation import HistoryTurn
 
 
@@ -42,7 +48,7 @@ def test_prompt_introduces_assistant_as_axel() -> None:
 
 def test_prompt_hides_model_and_handles_small_talk() -> None:
     assert "never name" in SYSTEM_PROMPT
-    assert "Greetings" in SYSTEM_PROMPT and "Off-topic" in SYSTEM_PROMPT
+    assert "greetings" in SYSTEM_PROMPT and "off-topic" in SYSTEM_PROMPT
 
 
 def test_prompt_has_no_catalog_digits() -> None:
@@ -86,10 +92,56 @@ def test_build_messages_with_history_and_context() -> None:
     assert [type(m) for m in msgs] == [SystemMessage, HumanMessage, AIMessage, HumanMessage]
     assert sum(isinstance(m, SystemMessage) for m in msgs) == 1
     assert msgs[1].content == "q1" and msgs[2].content == "a1"
-    assert msgs[3].content == f"[Context: {context_line(history)}]\n\nq2"
+    assert msgs[3].content == f"[Context: {context_line(history, 'q2')} {ONGOING_NOTE}]\n\nq2"
+    assert str(msgs[3].content).count("[Context:") == 1
     assert "P1" in str(msgs[3].content)
 
 
-def test_build_messages_history_without_products_has_no_context() -> None:
+def test_history_without_products_only_has_ongoing_note() -> None:
     msgs = build_messages("q", [turn("user", "a"), turn("assistant", "b")])
     assert [type(m) for m in msgs] == [SystemMessage, HumanMessage, AIMessage, HumanMessage]
+    assert msgs[-1].content == f"[Context: {ONGOING_NOTE}]\n\nq"
+
+
+def test_empty_history_has_no_ongoing_note() -> None:
+    assert build_messages("hola", [])[-1].content == "hola"
+
+
+def test_window_limits_sent_turns_but_context_scans_all() -> None:
+    history = [turn("assistant", "old", ["761A00-11300000/A"])]
+    for i in range(29):
+        history.append(turn("user" if i % 2 == 0 else "assistant", f"m{i}"))
+    msgs = build_messages("and its power?", history, window=10)
+    assert len(msgs) == 1 + 10 + 1
+    assert sum(isinstance(m, SystemMessage) for m in msgs) == 1
+    assert msgs[1].content == "m19"
+    assert "761A00-11300000/A" in str(msgs[-1].content)
+
+
+def test_history_window_env(monkeypatch: pytest.MonkeyPatch) -> None:
+    monkeypatch.delenv("HISTORY_TURNS", raising=False)
+    assert history_window() == 10
+    monkeypatch.setenv("HISTORY_TURNS", "4")
+    assert history_window() == 4
+    history = [turn("user", f"m{i}") for i in range(8)]
+    assert len(build_messages("q", history)) == 1 + 4 + 1
+    for bad in ("0", "-2", "abc"):
+        monkeypatch.setenv("HISTORY_TURNS", bad)
+        with pytest.raises(ValueError, match="HISTORY_TURNS"):
+            history_window()
+
+
+def test_context_line_referent_single_product() -> None:
+    line = context_line([turn("assistant", pns=["P1"])], "and its power?")
+    assert line is not None
+    assert "asking about P1" in line and "get_actuator" in line
+
+
+def test_context_line_several_products_asks_which() -> None:
+    line = context_line([turn("assistant", pns=["P1", "P2"])], "and its power?")
+    assert line is not None
+    assert "P1, P2" in line and "ask the user which product" in line
+
+
+def test_small_talk_section_not_forced_intro() -> None:
+    assert "only when the conversation has no previous turns" in SYSTEM_PROMPT

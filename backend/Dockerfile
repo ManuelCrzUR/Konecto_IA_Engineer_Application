@@ -7,8 +7,13 @@ ENV UV_COMPILE_BYTECODE=1 \
     PYTHONUNBUFFERED=1 \
     PATH="/app/.venv/bin:$PATH"
 
-# No apt packages: only opencv-python-headless is installed (the [tool.uv]
-# override in pyproject.toml drops rapidocr's GUI opencv), so no X11/GL libs.
+# poppler-utils provides `pdfimages`, which crops.py uses to pull the embedded page
+# images out of the PDF (needed only when the data is re-extracted, D-49).
+# opencv-python-headless only (the [tool.uv] override in pyproject.toml drops
+# rapidocr's GUI opencv), so no X11/GL libs.
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends poppler-utils \
+    && rm -rf /var/lib/apt/lists/*
 
 WORKDIR /app
 

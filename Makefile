@@ -1,5 +1,5 @@
 .DEFAULT_GOAL := help
-.PHONY: android-reverse help up down reset logs test eval chat ingest db recovery
+.PHONY: android-reverse help up down reset logs test eval chat ingest db recovery ingest-pdf
 
 # Host port for the API. Read from the shell env first, then from .env, then 8000.
 # (Make does not read .env by itself; Compose does, for the ${API_PORT} substitution.)
@@ -53,6 +53,18 @@ chat: ## Interactive CLI chat (pass traces with: make chat ARGS=--debug)
 
 ingest: ## Run the PDF ingestion script (e.g. make ingest ARGS=--force)
 	cd backend && uv run python ingest.py $(ARGS)
+
+# Runs inside the api container (RapidOCR is installed there, D-49). OCR reads every table;
+# only the tables it flags as doubtful go to the vision model, which needs LLM_API_KEY and
+# EXTRACT_LLM_MODEL in .env (paid calls, capped by VISION_MAX_CALLS). If validation fails
+# nothing is written or loaded. On success the Postgres rows are replaced by the new data.
+# The new JSON lands in backend/data/rebuilt/ (bind-mounted, gitignored), never over the
+# committed backend/data/processed/actuators.json: diff it first, then copy it by hand.
+ingest-pdf: ## Re-extract the PDF in Docker (OCR, vision only for flagged tables) into backend/data/rebuilt/
+	mkdir -p backend/data/rebuilt
+	docker compose run --rm -v "$(CURDIR)/backend/data/rebuilt:/app/data/rebuilt" api \
+		python ingest.py --from-pdf --force --json /app/data/rebuilt/actuators.json
+	@echo "New data: backend/data/rebuilt/actuators.json (compare with backend/data/processed/actuators.json)"
 
 db: ## Start only the Postgres container (and create the series76_test database if missing)
 	$(ENSURE_TEST_DB)

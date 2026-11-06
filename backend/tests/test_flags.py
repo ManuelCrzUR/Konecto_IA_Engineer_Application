@@ -10,7 +10,7 @@ from app.ingestion.flags import CONF_MIN, flag_cells, tables_to_escalate
 from app.ingestion.ocr import OcrCell
 from app.ingestion.validate import Issue
 
-CELLS_JSON = Path(__file__).parent.parent / "app/ingestion/_reference/cells.json"
+CELLS_JSON = Path(__file__).parent / "fixtures/cells.json"
 
 
 def cell(

@@ -64,7 +64,7 @@ def _summarize(exc: RequestValidationError) -> str:
 def install_error_handlers(app: FastAPI) -> None:
     @app.exception_handler(ApiError)
     async def _api(_: Request, exc: ApiError) -> JSONResponse:
-        return _reply(exc.status, exc.error, exc.detail)
+        return _reply(exc.status, exc.error, exc.detail, exc)
 
     @app.exception_handler(RequestValidationError)
     async def _validation(_: Request, exc: RequestValidationError) -> JSONResponse:

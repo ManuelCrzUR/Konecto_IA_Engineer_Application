@@ -36,15 +36,21 @@ Contract:
     Output order = input order.
 - render_report(results, model_name) -> str  Markdown: summary (pass count,
   % by category), then a table id | category | pass | tools | seconds | failures.
+- run_all(..., on_done=None): on_done(result) runs (serialized) after each
+  completed case; if it raises BudgetExceeded no new case is scheduled and
+  the partial results (completed cases, input order) are returned.
 - main(argv=None) -> int: loads .env, ensure_data on the DB, runs, writes the
   report (default eval/report.md), prints the summary; exit 0 if pass rate
-  >= --min-pass (default 0.9) else 1.
+  >= --min-pass (default 0.9) else 1. --max-usd FLOAT wraps the run in
+  app.spend.budgeted("eval", ...): usage is checked after each case; when the
+  cap is exceeded the partial report is written and the exit code is 1.
 """
 
 from __future__ import annotations
 
 import argparse
 import os
+import threading
 import time
 from collections.abc import Callable
 from concurrent.futures import ThreadPoolExecutor
@@ -55,6 +61,7 @@ from dotenv import load_dotenv
 
 from app.agent import agent as agent_mod
 from app.domain.conversation import AgentResult, HistoryTurn
+from app.spend import BudgetExceeded
 from eval.cases import CATEGORIES, Case, CaseResult, Expect, check, load_cases
 
 __all__ = ["CATEGORIES", "Case", "CaseResult", "Expect", "check", "load_cases",
@@ -99,18 +106,35 @@ def run_case(case: Case, *, llm: Any, conn_factory: Any) -> CaseResult:
 
 
 def run_all(
-    cases: list[Case], *, llm_factory: Callable[[], Any], conn_factory: Any, workers: int = 2
+    cases: list[Case],
+    *,
+    llm_factory: Callable[[], Any],
+    conn_factory: Any,
+    workers: int = 2,
+    on_done: Callable[[CaseResult], None] | None = None,
 ) -> list[CaseResult]:
-    def one(c: Case) -> CaseResult:
+    stop = threading.Event()
+    lock = threading.Lock()
+
+    def one(c: Case) -> CaseResult | None:
+        if stop.is_set():
+            return None
         try:
             llm = llm_factory()
         except Exception as exc:  # noqa: BLE001
             return CaseResult(id=c.id, category=c.category, passed=False,
                               failures=[f"error: {exc}"], error=str(exc))  # fmt: skip
-        return run_case(c, llm=llm, conn_factory=conn_factory)
+        result = run_case(c, llm=llm, conn_factory=conn_factory)
+        if on_done is not None:
+            with lock:
+                try:
+                    on_done(result)
+                except BudgetExceeded:
+                    stop.set()
+        return result
 
     with ThreadPoolExecutor(max_workers=max(1, workers)) as pool:
-        return list(pool.map(one, cases))
+        return [r for r in pool.map(one, cases) if r is not None]
 
 
 def render_report(results: list[CaseResult], model_name: str) -> str:
@@ -159,6 +183,8 @@ def main(argv: list[str] | None = None) -> int:
     ap.add_argument("--workers", type=int, default=2)
     ap.add_argument("--out", type=Path, default=HERE / "report.md")
     ap.add_argument("--min-pass", type=float, default=0.9)
+    ap.add_argument("--max-usd", type=float, default=None,
+                    help="abort when the eval spends more than this (OpenRouter key usage)")  # fmt: skip
     ap.add_argument("--cases", type=Path, default=HERE / "cases.yaml")
     args = ap.parse_args(argv)
 
@@ -176,13 +202,46 @@ def main(argv: list[str] | None = None) -> int:
         cases = [c for c in cases if c.id in wanted]
     with connect() as conn:
         ensure_data(conn)  # no escalator: never spends LLM budget here
-    results = run_all(cases, llm_factory=lambda: get_llm("agent"),
-                      conn_factory=conn_factory(), workers=args.workers)  # fmt: skip
-    report = render_report(results, os.environ.get("AGENT_MODEL", "unknown"))
+    model = os.environ.get("AGENT_MODEL", "unknown")
+    aborted = False
+    if args.max_usd is None:
+        results = run_all(cases, llm_factory=lambda: get_llm("agent"),
+                          conn_factory=conn_factory(), workers=args.workers)  # fmt: skip
+    else:
+        from app.spend import SpendError, budgeted
+
+        results = []
+        try:
+            with budgeted("eval", args.max_usd, model=model) as budget:
+                over: list[BudgetExceeded] = []
+
+                def on_done(r: CaseResult) -> None:
+                    budget.calls += 1
+                    try:
+                        budget.check()
+                    except BudgetExceeded as exc:
+                        over.append(exc)
+                        raise
+
+                results = run_all(cases, llm_factory=lambda: get_llm("agent"),
+                                  conn_factory=conn_factory(), workers=args.workers,
+                                  on_done=on_done)  # fmt: skip
+                if over:
+                    raise over[0]  # logged as "aborted"
+        except BudgetExceeded as exc:
+            aborted = True
+            print(f"Budget cap exceeded: {exc}")
+        except SpendError as exc:
+            print(f"Spend control: {exc}")
+            return 2
+    report = render_report(results, model)
     args.out.write_text(report)
     rate = sum(r.passed for r in results) / max(len(results), 1)
     print(report.split("| id |")[0])
     print(f"Report written to {args.out}")
+    if aborted:
+        print(f"Stopped after {len(results)}/{len(cases)} cases")
+        return 1
     return 0 if rate >= args.min_pass else 1
 
 

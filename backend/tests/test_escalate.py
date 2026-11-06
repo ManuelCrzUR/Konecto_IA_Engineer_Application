@@ -166,3 +166,21 @@ def test_non_string_cell_value_raises_escalation_error():
     data["rows"][0]["cells"]["fla_a"] = 113
     with pytest.raises(EscalationError, match="expected text"):
         parse_response(tid, json.dumps(data))
+
+
+def test_call_cap_raises_before_llm():
+    tid = "T4_xp_24v_onoff"
+    f = fake(golden_reply(tid))
+    esc = make_vision_escalator(f, max_calls=1)
+    esc(tid, PNG)
+    with pytest.raises(EscalationError, match="cap"):
+        esc(tid, PNG)
+    assert len(f.seen) == 1
+
+
+def test_call_cap_from_env(monkeypatch):
+    monkeypatch.setenv("VISION_MAX_CALLS", "0")
+    f = fake("{}")
+    with pytest.raises(EscalationError, match="cap"):
+        make_vision_escalator(f)("T4_xp_24v_onoff", PNG)
+    assert f.seen == []

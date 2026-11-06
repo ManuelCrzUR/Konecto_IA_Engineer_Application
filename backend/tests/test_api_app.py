@@ -141,13 +141,22 @@ def test_dependencies():
 
 
 def test_startup_escalator(monkeypatch):
-    monkeypatch.delenv("STARTUP_ESCALATION", raising=False)
-    assert startup_escalator() is None
-    monkeypatch.setenv("STARTUP_ESCALATION", "off")
-    assert startup_escalator() is None
     monkeypatch.setattr(main, "make_vision_escalator", lambda: lambda t, b: [])
-    monkeypatch.setenv("STARTUP_ESCALATION", "on")
+    for k in ("STARTUP_ESCALATION", "LLM_API_KEY", "EXTRACT_LLM_MODEL"):
+        monkeypatch.delenv(k, raising=False)
+    assert startup_escalator() is None  # auto, nothing configured
+    monkeypatch.setenv("LLM_API_KEY", "k")
+    assert startup_escalator() is None  # auto, model missing
+    monkeypatch.setenv("EXTRACT_LLM_MODEL", "m")
+    assert callable(startup_escalator())  # auto, both set
+    monkeypatch.setenv("STARTUP_ESCALATION", " OFF ")
+    assert startup_escalator() is None
+    monkeypatch.delenv("LLM_API_KEY")
+    monkeypatch.setenv("STARTUP_ESCALATION", "On")
     assert callable(startup_escalator())
+    monkeypatch.setenv("STARTUP_ESCALATION", "maybe")
+    with pytest.raises(RuntimeError, match="on, off or auto"):
+        startup_escalator()
 
 
 def test_unreachable_db_fails_clearly(monkeypatch):

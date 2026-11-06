@@ -72,6 +72,22 @@ def pg(pg_conn):
     yield pg_conn
 
 
+@pytest.fixture(autouse=True)
+def _no_paid_network(monkeypatch, tmp_path):
+    """Tests never reach OpenRouter through app.spend and never write the real spend log.
+
+    A test that needs key status injects `http_get` or `reader` explicitly.
+    """
+    from app import spend
+
+    def _blocked(url, headers):
+        raise AssertionError("network call to OpenRouter attempted in a test")
+
+    monkeypatch.setattr(spend, "_urllib_get", _blocked)
+    monkeypatch.setattr(spend, "SPEND_LOG", tmp_path / "spend-log.md")
+    monkeypatch.setattr(spend, "SETTLE_S", 0.0)
+
+
 @pytest.fixture
 def test_users(pg):
     """Rows in `users` for the plain ids the isolation tests use ("a", "b", "u1").

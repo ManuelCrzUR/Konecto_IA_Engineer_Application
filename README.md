@@ -59,10 +59,10 @@ Other `make` targets: `make down` (stop, keep data), `make reset` (stop **and de
 |---|---|
 | `POST /api/conversation` | Body `{session_id?, query}` -> `{session_id, answer, products, debug}`. No `session_id` creates a session; an unknown one returns 404 (D-09). The user message is saved before the agent runs, so a 503 never loses it. |
 | `GET /api/sessions?q=&limit=` | Conversation list, newest first. With `q`, case-insensitive search over titles and messages; each hit has `match {where, snippet}` (D-37). |
-| `GET /api/sessions/{id}/messages` | Full history including `products` and `debug`. |
+| `GET /api/sessions/{id}/messages` | Full history including `products` and `trace` (per-message tool trace). |
 | `GET /health` | `{"status":"ok","actuators":<row count>}`. |
 
-Errors are `{error, detail}`: `llm_unavailable`, `llm_not_configured`, `database_unavailable` (all 503), 404, 422. Conversations live in the same Postgres volume and survive restarts.
+Errors are `{error, detail}`: `llm_unavailable`, `llm_not_configured`, `database_unavailable` (all 503), `turn_in_progress` (409: the same conversation is still answering the previous message, D-46), 404, 422. Conversations live in the same Postgres volume and survive restarts.
 
 **CLI** (no API needed; needs `make db` and a key; install [uv](https://docs.astral.sh/uv/), Python 3.12 is picked automatically):
 
@@ -92,7 +92,7 @@ make eval                                   # all 38 cases, writes backend/eval/
 cd backend && uv run python -m eval.run --only lookup-01,na-02 --workers 2   # a subset
 ```
 
-`backend/eval/cases.yaml` has 38 cases in 9 categories: `lookup`, `recommend`, `invalid_pn`, `na`, `impossible`, `ambiguous`, `out_of_subset`, `multi_turn`, `injection` (12 prompt-injection cases, Sprint 6). Checks are deterministic (tool called, tool status, part numbers in `products`, exact numbers in the answer, number guard not triggered). The exit code is 0 if the pass rate is >= 90% (`--min-pass`). `make eval` writes `backend/eval/report.md` (committed, it is the delivered report); use `--out` to write elsewhere. See D-29 for how it is run and what it costs.
+`backend/eval/cases.yaml` has 45 cases in 10 categories: `lookup`, `recommend`, `invalid_pn`, `na`, `impossible`, `ambiguous`, `out_of_subset`, `multi_turn` (incl. follow-ups resolved in code, Sprint 8), `injection` (12 prompt-injection cases, Sprint 6), `small_talk` (greetings and thanks without re-introductions, Sprint 8). Checks are deterministic (tool called, tool status, part numbers in `products`, exact numbers in the answer, number guard not triggered). The exit code is 0 if the pass rate is >= 90% (`--min-pass`). `make eval` writes `backend/eval/report.md` (committed, it is the delivered report); use `--out` to write elsewhere. See D-29 for how it is run and what it costs.
 
 ## 3. Data and ingestion
 
@@ -115,10 +115,15 @@ Facts about `backend/data/raw/series_76_electric_data.pdf` (source of truth for 
 ```bash
 make ingest                                  # runs ensure_data (no-op when 68 rows are loaded)
 make ingest ARGS=--reset                     # empty the tables, then reload
-make ingest ARGS="--from-pdf --force --no-escalation"   # re-extract offline, overwrite the JSON
+make ingest ARGS="--from-pdf --force --no-escalation"   # offline OCR run (see below)
+make ingest-pdf                              # full rebuild inside Docker, with vision escalation
 ```
 
-Flags of `ingest.py`: `--reset`, `--from-pdf` (re-extract even if the JSON exists), `--force` (allow overwriting the JSON), `--no-escalation` (never call the paid vision model; fails if a table is flagged), `--json PATH`. **Without `--no-escalation`, a re-extraction may call the paid model in `EXTRACT_LLM_MODEL`.** The API never does so on its own (`STARTUP_ESCALATION=off` by default).
+Flags of `ingest.py`: `--reset`, `--from-pdf` (re-extract even if the JSON exists), `--force` (allow overwriting the JSON), `--no-escalation` (never call a model), `--json PATH`.
+
+- **Offline OCR run** (`--from-pdf --force --no-escalation`): RapidOCR only, no model call. If OCR flags any cell (low confidence, leading zero, or a failed validation), the run refuses to load doubtful data. It aborts with a message listing the flagged cells, and it writes neither the JSON nor the database. So this path does not rebuild the JSON when OCR is not clean.
+- **Full rebuild** (`make ingest-pdf`, runs inside Docker): flagged tables are re-read by the vision model in `EXTRACT_LLM_MODEL` (at most `VISION_MAX_CALLS` calls). It needs `LLM_API_KEY` and `EXTRACT_LLM_MODEL` in `.env`, and it calls the paid model. The new JSON is written to `backend/data/rebuilt/actuators.json` (gitignored), never over the committed file; compare it before copying it. Verified on 2026-11-06 (Sprint 8): offline OCR reads all 68 rows at 99.75% cell accuracy and flags 8 cells in 4 tables; vision (`anthropic/claude-sonnet-5.5`) re-read those 4 tables in 4 calls for USD 0.029, and the output was byte-identical to the committed `actuators.json` (0 cells differ from the golden file). Costs are logged in `docs/spend-log.md`.
+- At startup the API only re-extracts when both the JSON and the database are unusable. With `STARTUP_ESCALATION=auto` (default) it escalates flagged tables to vision only if `LLM_API_KEY` and `EXTRACT_LLM_MODEL` are set; `off` never calls a model, `on` always may. A normal start with the committed JSON never spends.
 
 **Recovery test** against the real compose stack (DB deleted, JSON deleted, rows deleted, JSON corrupted, restart keeps conversations):
 
@@ -176,8 +181,8 @@ Full list with alternatives in [`docs/DECISIONS.md`](docs/DECISIONS.md) (D-01 to
 
 - **Typed columns, not a JSON blob (D-04, D-05).** Filtering by torque, voltage, phase, enclosure, service and duty is plain SQL. No ORM, plain `psycopg` (D-03).
 - **The LLM never writes SQL.** Three parameterized tools: `get_actuator` (found / found without data / not found with suggestions / ambiguous candidates), `search_actuators` (filters, tightest match first, says which constraint blocked an empty result), `describe_catalog` (for ambiguous questions). Torque and duty must be met in the same operating mode (D-22).
-- **Numbers come from the tables.** Product cards are built by code from tool results. A **number guard** checks that every figure in the answer appears in the tool results; if not, a deterministic template answer replaces it and the trace records it (D-26). Known limits: it verifies a flat set of numbers (a real value attributed to the wrong field passes), numbers written as words are not seen, product names are not figures (D-38), and earlier user turns are trusted (D-40, accepted single-user risk).
-- **Own history in Postgres, plain `create_agent` (D-07, D-08).** No LangGraph graph, no checkpointer. Follow-ups re-call the tools; the model does not remember figures (D-27).
+- **Numbers come from the tables.** Product cards are built by code from tool results. A **number guard** checks that every figure in the answer, including numbers written as words, appears in the tool results; a figure written next to a part number must belong to that product, and a follow-up about the only product shown before is bound to it (D-44, D-47). There are no always-allowed numbers: only list ordinals, the 90° stroke and counts of what a tool returned pass without a value. If a figure is not verified, a deterministic template answer replaces it and the trace records it. Known limits: binding is per product, not per field, and earlier user turns are trusted (D-40).
+- **Own history in Postgres, plain `create_agent` (D-07, D-08).** No LangGraph graph, no checkpointer. Follow-ups re-call the tools; the model does not remember figures (D-27). Only the last `HISTORY_TURNS` messages (default 10) are sent to the model; the product context still comes from the whole history (D-45).
 - **No pgvector.** Queries are numeric filters, not semantic search.
 - **No auth (D-10, D-11).** `user_id` is nullable and `get_current_user()` returns `None`. Both ports bind to `127.0.0.1` by default (D-34); the container runs as a non-root user.
 - **`adb reverse` instead of `10.0.2.2` (D-35)**, because Colima's port forwarding never delivered emulator traffic.
@@ -193,7 +198,7 @@ Models are configured only by environment variables (`get_llm(task)` in `backend
 | Task | Variable | Choice and reason |
 |---|---|---|
 | Chat agent (tool calling and short answers in the user's language) | `AGENT_MODEL` | Development: `stealth/crouton-alpha` (free on OpenRouter, USD 0 in all runs; 26/26 on the original 26-case set, 38/38 with the injection cases). Recommended: `openai/gpt-6-luna`; results below. |
-| PDF extraction, vision escalation of flagged tables | `EXTRACT_LLM_MODEL` | A vision-capable model; the design reference is Claude Sonnet (100% cell accuracy per table in the benchmark, D-01). Only used when the PDF is re-extracted with escalation on. The real OpenRouter escalation call has not been run (the committed JSON is the verified result). |
+| PDF extraction, vision escalation of flagged tables | `EXTRACT_LLM_MODEL` | A vision-capable model; the design reference is Claude Sonnet (100% cell accuracy per table in the benchmark, D-01). Only used when the PDF is re-extracted with escalation on. Real run: 4 calls, USD 0.029, output identical to the committed JSON (D-49). |
 
 **Final evaluation (`openai/gpt-6-luna`): 38/38 cases (100% in all 9 categories, including the 12 prompt-injection cases), 71 s with `--workers 2`, USD 0.0055 for the whole run.** Report: [`backend/eval/report.md`](backend/eval/report.md).
 

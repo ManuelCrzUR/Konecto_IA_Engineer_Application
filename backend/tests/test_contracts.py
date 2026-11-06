@@ -50,17 +50,20 @@ CONTRACTS = {
         "describe": ["conn"],
         "make_tools": ["conn_factory"],
     },
-    prompts: {"context_line": ["history"], "build_messages": ["query", "history"]},
+    prompts: {
+        "context_line": ["history", "query"],
+        "build_messages": ["query", "history", "window"],
+    },
     response: {
         "products_from_trace": ["trace", "answer"],
         "extract_numbers": ["text"],
         "token_values": ["token"],
         "allowed_numbers": ["trace", "query", "user_history"],
-        "unverified_numbers": ["answer", "trace", "query", "user_history"],
+        "unverified_numbers": ["answer", "trace", "query", "user_history", "referent"],
         "unverified_part_numbers": ["answer", "trace", "query", "user_history"],
         "detect_lang": ["query"],
         "template_answer": ["trace", "query"],
-        "build_result": ["answer", "trace", "query", "user_history", "model_id"],
+        "build_result": ["answer", "trace", "query", "user_history", "model_id", "referent"],
     },
     agent: {"run_agent": ["query", "history", "llm", "conn_factory"]},
 }

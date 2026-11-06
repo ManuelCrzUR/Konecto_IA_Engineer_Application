@@ -27,11 +27,11 @@ Dependencies point only downward: `api → agent → db/domain`; `bootstrap → 
 - The upsert is idempotent (`ON CONFLICT (part_number) DO UPDATE`): running it again neither duplicates nor breaks anything.
 - The JSON is never overwritten without `--force` (CLAUDE.md §9). The normal path (committed JSON) needs no internet and no key.
 - OpenRouter is used only in step 3, and only for flagged tables. The current extractor is RapidOCR, offline, on 2× crops. A cell is suspicious if its confidence is below 0.9, if it has a leading zero, or if a validator fails. Those whole tables go to a vision model (Sonnet 5.5). Without a key, the run fails and lists the suspicious cells.
-- Pending for the extractor: a real OpenRouter call for escalation (today it is simulated; ask the developer before spending, CLAUDE.md §9), and testing the flag rule on other PDFs.
+- Real escalation run (Sprint 8, D-49): Verified on 2026-11-06 (Sprint 8): offline OCR reads all 68 rows at 99.75% cell accuracy and flags 8 cells in 4 tables; vision (`anthropic/claude-sonnet-5.5`) re-read those 4 tables in 4 calls for USD 0.029, and the output was byte-identical to the committed `actuators.json` (0 cells differ from the golden file). Costs are logged in `docs/spend-log.md`. Still pending: testing the flag rule on other PDFs.
 
 ### Data model
 
-One row per (table, part number). Columns are typed and nullable. The field names are the flat schema of the benchmark, with the names below. The benchmark itself lives outside this repo; its schema and golden copies are in `backend/app/ingestion/_reference/` (D-16).
+One row per (table, part number). Columns are typed and nullable. The field names are the flat schema of the benchmark, with the names below. The benchmark itself lives outside this repo; the golden copy is `backend/tests/fixtures/golden_draft.json` (D-16).
 
 ```python
 class Actuator(BaseModel):
@@ -88,7 +88,7 @@ Conversations (same database, same `pgdata` volume):
   - `describe_catalog()`: used for ambiguous questions.
 - Multi-turn follow-up ("and how much power does it draw?"): when the history is built, a context line with the part numbers from the previous turn's `products` is added. The prompt requires the model to **call the tool again** for any number, because the LLM does not remember figures.
 - Tool errors (`agent/agent.py`, `_tool_error`): argument errors (`ValueError`, `ToolException`) go back to the model with their message, so it can fix the call. Any other exception becomes `{"error": "internal_tool_error"}` in the tool message and in the stored trace; the real exception is logged on the server only (D-39).
-- `agent/response.py` builds `products[]` from the tool outputs (code, not LLM). Number guard: every number in the text must come from the tool results, the current query, or the user's earlier turns (D-26; the last part is an accepted risk while there is no login, D-40). The three-digit model size of a part number that a tool returned counts as verified, and the family name "Series/Serie/Série 76" is not a figure (D-38). If a number is not verified, a deterministic template answer is used and noted in `trace`.
+- `agent/response.py` builds `products[]` from the tool outputs (code, not LLM). Number guard v2 (D-44; extraction in `agent/numbers.py`): every number in the text, digits or number words (English and Spanish, two to twenty), must come from the tool results, the current query, or the user's earlier turns (D-26, D-40). A figure after a part number in the same sentence or table row must be a value of that product; with a single-product follow-up the figures bind to that referent (`agent/referent.py`, D-47). Free without a source: list ordinals, the 90° stroke, counts of the lists a tool returned, the three-digit model size of a returned part number, and the family name "Series/Serie/Série 76" (D-38). If a number is not verified, a deterministic template answer is used and noted in `trace`.
 - Persona (`apply_persona()` in `agent/response.py`, D-39): after the number guard, the model's own name, derived from its model id, is replaced with "Axel". If anything was replaced, a `persona_guard` entry is added to `trace`, so the change is never silent. The prompt also defines the Axel identity and the small-talk rule.
 - Models are set by environment variable and by task: `AGENT_MODEL` (cheap while iterating, good for the final run) and `EXTRACT_LLM_MODEL` (OCR escalation, Sonnet 5.5). Development eval runs use OpenRouter's free `stealth/crouton-alpha` model (D-29); the Google AI Studio plan was dropped. The OpenRouter key is used only with explicit permission. No LLM translation of titles and no embeddings (no pgvector).
 - Language: the answer is in the user's language; numbers and part numbers are kept as they are.
@@ -96,7 +96,7 @@ Conversations (same database, same `pgdata` volume):
 ## 4. API (FastAPI)
 
 - `POST /api/conversation` returns `{session_id, answer, products[], debug}`. Each item in `products[]` is `{part_number, enclosure, voltage, phase, service, fields:{...values with units...}, csa_certified, notes[]}`. The app shows them as comparable cards (one column per product). `debug` is a list of `{tool, params, result}`. It is **always present in the response**; the user-facing app does not show it.
-- `GET /api/sessions?q=&limit=` (id, title, date; with `q`, only matching sessions, each with `match {where, snippet}`, D-37) and `GET /api/sessions/{id}/messages` (includes `products` and `debug`). The search is `db/sessions_search.py` (case-insensitive `ILIKE` over titles and message contents, one query, `LIKE` wildcards escaped); the snippet is built by the pure function `db/snippet.py`. The route is in `api/routes_sessions.py`.
+- `GET /api/sessions?q=&limit=` (`id, user_id, title, created_at, updated_at`; with `q`, only matching sessions, each with `match {where, snippet}`, D-37) and `GET /api/sessions/{id}/messages` (includes `products` and `trace`). The search is `db/sessions_search.py` (case-insensitive `ILIKE` over titles and message contents, one query, `LIKE` wildcards escaped); the snippet is built by the pure function `db/snippet.py`. The route is in `api/routes_sessions.py`.
 - An unknown `session_id` returns **404** with a clear message. Sessions are never created by accident. With no `session_id`, a session is created and returned.
 - Login hook: a `get_current_user()` dependency that returns `None` today. The `sessions_repo` queries already accept `user_id`. Enabling login means implementing `POST /api/auth/login` and changing that dependency. The `users` table is created only if login is implemented.
 - Voice hook: **transcription on the device** (Android `SpeechRecognizer`). The text goes to the same endpoint. No budget cost and no backend change.
@@ -122,7 +122,6 @@ backend/
 ├── app/
 │   ├── domain/{models.py,conversation.py,search.py}   # Actuator (single contract), Product, ToolTrace; conversation and search contracts
 │   ├── ingestion/{ocr,flags,escalate,normalize,validate,pipeline,store_json,crops,table_meta}.py
-│   ├── ingestion/_reference/       # in-repo copies of the benchmark schema, cells and golden (D-16)
 │   ├── db/{schema.sql,connection.py,actuators_repo.py,search_sql.py,sessions_repo.py,sessions_search.py,snippet.py}
 │   ├── bootstrap.py                # ensure_data()
 │   ├── llm.py                      # get_llm(task) (D-19)
@@ -143,15 +142,15 @@ No ORM (`psycopg` with parameterized SQL). No `DataSource` or `Extractor` interf
 - `docker-compose.yml`: `db` (postgres:16, `pgdata` volume, `pg_isready` healthcheck) and `api` (`depends_on: service_healthy`; at start it runs `ensure_data()` and then uvicorn).
 - `backend/Dockerfile`: `python:3.12-slim`. `rapidocr-onnxruntime` ships the ONNX models, so OCR works offline. It uses the headless OpenCV build, so no GUI libraries are installed (D-33).
 - `db` publishes Postgres and `api` publishes the API only on `127.0.0.1` by default (`DB_BIND`, `API_BIND`; D-34). Physical phones need `API_BIND=0.0.0.0`.
-- `.env.example`: `DB_PORT`, `API_PORT`, `API_BIND`, `DB_BIND`, `DATABASE_URL`, `TEST_DATABASE_URL`, `LLM_BASE_URL`, `LLM_API_KEY`, `AGENT_MODEL`, `EXTRACT_LLM_MODEL`, `STARTUP_ESCALATION`. No secrets.
-- `Makefile` (shortcuts only): `up` (waits for a healthy API), `down`, `reset` (deletes the volume and reloads), `logs`, `db`, `ingest` (`ARGS=--force`), `test`, `eval`, `chat` (`ARGS=--debug`), `android-reverse` (`adb reverse` for the app, D-35), `recovery` (self-healing check on the real stack). `make help` lists them.
-- Recovery documented in the README: database deleted → `make up`; JSON deleted → `make up` (re-extracts); everything broken → `make reset`.
+- `.env.example`: `DB_PORT`, `API_PORT`, `API_BIND`, `DB_BIND`, `DATABASE_URL`, `TEST_DATABASE_URL`, `LLM_BASE_URL`, `LLM_API_KEY`, `AGENT_MODEL`, `EXTRACT_LLM_MODEL`, `STARTUP_ESCALATION`, `AGENT_MAX_TOKENS`, `EXTRACT_MAX_TOKENS`, `VISION_MAX_CALLS`, `HISTORY_TURNS`. No secrets.
+- `Makefile` (shortcuts only): `up` (waits for a healthy API), `down`, `reset` (deletes the volume and reloads), `logs`, `db`, `ingest` (`ARGS=--force`), `ingest-pdf` (PDF rebuild in Docker into `backend/data/rebuilt/`, D-49), `test`, `eval`, `chat` (`ARGS=--debug`), `android-reverse` (`adb reverse` for the app, D-35), `recovery` (self-healing check on the real stack). `make help` lists them.
+- Recovery documented in the README: database deleted → `make up`; JSON deleted → `make up` (rebuilt from Postgres when it holds the full catalog, otherwise re-extracted from the PDF, D-49); everything broken → `make reset`.
 
 ## 8. Testing and evaluation
 
 - Unit tests per module, without a real LLM: `validate`, `flags`, `normalize`, repositories (test Postgres), tools, `response` (number guard), and the API with a simulated agent.
 - Self-recovery test (main acceptance criterion): (a) `docker compose down -v && make up` → 68 rows; (b) delete `actuators.json` → it is regenerated and validated; (c) delete rows in Postgres → the count is corrected; (d) corrupt JSON → detected and re-extracted; (e) restart the API → conversations still there.
-- `eval/`: 38 cases in `eval/cases.yaml`, by category: lookup 4, recommend 5, ambiguous 3, impossible 3, invalid_pn 3, na 2, out_of_subset 3, multi_turn 3, and injection 12 (prompt-injection and persona cases, 38/38 with the development model, `docs/security/REPORT.md`). Deterministic assertions on the tool called, its status, the part numbers in `products`, the exact numbers in the answer, `answer_includes` (required phrases, used for the persona cases), and whether the number guard fired. Cheap model while iterating; the good model only in the final run (Sprint 7).
+- `eval/`: 45 cases in `eval/cases.yaml`, by category: lookup 4, recommend 5, ambiguous 3, impossible 3, invalid_pn 3, na 2, out_of_subset 3, multi_turn 5, small_talk 5 (Sprint 8), and injection 12 (prompt-injection and persona cases, 38/38 with the development model, `docs/security/REPORT.md`). Deterministic assertions on the tool called, its status, the part numbers in `products`, the exact numbers in the answer, `answer_includes` (required phrases, used for the persona cases), and whether the number guard fired. Cheap model while iterating; the good model only in the final run (Sprint 7).
 - Final test from scratch on a clean machine, following only the README (mandatory requirement).
 
 ## 9. Build order and parallel tracks

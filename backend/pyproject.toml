@@ -53,10 +53,7 @@ addopts = "-m 'not slow'"
 [tool.ruff]
 line-length = 100
 target-version = "py312"
-# Verbatim benchmark copies, kept as reference only (never imported)
-extend-exclude = ["app/ingestion/_reference"]
 
 [tool.mypy]
 python_version = "3.12"
 ignore_missing_imports = true
-exclude = ["app/ingestion/_reference/"]

@@ -160,3 +160,5 @@ reports/
 
 # Raw security-audit runs (Sprint 6). Only docs/security/REPORT.md is committed.
 docs/security/runs/
+# make ingest-pdf output (D-49)
+backend/data/rebuilt/

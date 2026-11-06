@@ -18,9 +18,12 @@ Contract:
     "/api"), install_error_handlers(app), and GET /health ->
     {"status": "ok", "actuators": <row count>} (503 database_unavailable via
     the handlers if the DB is down).
-- startup_escalator() -> Escalator | None: None unless env
-  STARTUP_ESCALATION is "on" (then ingestion.escalate.make_vision_escalator()).
-  The API never spends on vision calls unless explicitly enabled (CLAUDE.md §9).
+- startup_escalator() -> Escalator | None: env STARTUP_ESCALATION = on|off|auto
+  (case-insensitive, default auto; anything else raises RuntimeError). auto =
+  ingestion.escalate.make_vision_escalator() only if LLM_API_KEY and
+  EXTRACT_LLM_MODEL are both set, else None. The escalator is only called when
+  the data must be rebuilt from the PDF, so a normal startup with a valid
+  committed JSON never spends (D-49, CLAUDE.md §9).
 - app = create_app()   (module level, for uvicorn)
 Tests call create_app(<test db url>, bootstrap=False or True) with TestClient.
 """
@@ -71,9 +74,18 @@ POOL_TIMEOUT = 10.0  # seconds to wait for Postgres at startup
 
 
 def startup_escalator() -> Escalator | None:
-    if os.environ.get("STARTUP_ESCALATION", "off").strip().lower() == "on":
+    mode = os.environ.get("STARTUP_ESCALATION", "auto").strip().lower() or "auto"
+    if mode == "on":
         return make_vision_escalator()
-    return None
+    if mode == "off":
+        return None
+    if mode == "auto":
+        configured = (
+            os.environ.get("LLM_API_KEY", "").strip()
+            and os.environ.get("EXTRACT_LLM_MODEL", "").strip()
+        )
+        return make_vision_escalator() if configured else None
+    raise RuntimeError(f"STARTUP_ESCALATION must be on, off or auto (got {mode!r})")
 
 
 def _redact(url: str) -> str:

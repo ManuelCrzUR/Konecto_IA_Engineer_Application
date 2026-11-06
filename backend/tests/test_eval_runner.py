@@ -183,3 +183,56 @@ def test_render_report_includes_transcripts() -> None:
     assert "## Transcripts" in md and "**User:** torque of 761A00?" in md
     assert "> It is 80 Nm." in md and "> Second line" in md
     assert "761A00-11300000/A" in md and "'status': 'found'" in md
+
+
+def test_main_max_usd_aborts_and_writes_partial(
+    monkeypatch: pytest.MonkeyPatch, tmp_path: Path
+) -> None:
+    import app.bootstrap as boot
+    import app.db.connection as dbc
+    import app.spend as sp
+    from app import llm
+
+    cases = tmp_path / "c.yaml"
+    cases.write_text(
+        "- {id: a, category: lookup, turns: [q]}\n- {id: b, category: lookup, turns: [q]}\n"
+        "- {id: c, category: lookup, turns: [q]}\n"
+    )
+    usage = iter([10.0, 10.1, 10.9, 10.9, 10.9, 10.9])  # start, case a, case b (over), final
+    monkeypatch.setattr(
+        sp, "read_key_status",
+        lambda **k: sp.KeyStatus(usage_usd=next(usage), limit_remaining_usd=5.0),
+    )  # fmt: skip
+    monkeypatch.setattr(sp, "load_dotenv", lambda *a, **k: False)
+    monkeypatch.setattr(sp, "SPEND_LOG", tmp_path / "log.md")
+    monkeypatch.setattr(boot, "ensure_data", lambda conn, **k: None)
+    monkeypatch.setattr(dbc, "connect", lambda *a, **k: nullcontext())
+    monkeypatch.setattr(dbc, "conn_factory", lambda *a, **k: None)
+    monkeypatch.setattr(llm, "get_llm", lambda task="agent": None)
+    monkeypatch.setattr(agent_mod, "run_agent", lambda q, h=None, **k: _res())
+    out = tmp_path / "r.md"
+    argv = ["--cases", str(cases), "--out", str(out), "--max-usd", "0.5", "--workers", "1",
+            "--min-pass", "0"]  # fmt: skip
+    assert ev.main(argv) == 1
+    assert out.exists()
+    assert "| c | lookup |" not in out.read_text()
+
+
+def test_run_all_stops_scheduling_after_budget_exceeded() -> None:
+    from app.spend import BudgetExceeded
+
+    cs = [ev.Case(id=f"c{i}", category="lookup", turns=["q"]) for i in range(4)]
+    seen: list[str] = []
+
+    def on_done(r: Any) -> None:
+        seen.append(r.id)
+        raise BudgetExceeded("over")
+
+    orig = agent_mod.run_agent
+    agent_mod.run_agent = lambda q, h=None, **k: _res()  # type: ignore[assignment]
+    try:
+        out = ev.run_all(cs, llm_factory=lambda: None, conn_factory=None, workers=1,
+                         on_done=on_done)  # fmt: skip
+    finally:
+        agent_mod.run_agent = orig
+    assert [r.id for r in out] == ["c0"] and seen == ["c0"]

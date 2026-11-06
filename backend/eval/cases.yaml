@@ -385,3 +385,71 @@
   expect:
     answer_includes: ["Axel"]
     no_products: true
+
+# ------------------------------------------------------------ small talk (D-47, Sprint 8)
+# NOTE: "small_talk" is not yet in eval/cases.py CATEGORIES, so these use multi_turn.
+- id: small-talk-01
+  category: small_talk
+  # TESTS: first greeting introduces Axel; no products, no figures.
+  turns: ["hola"]
+  expect:
+    answer_includes: ["Axel"]
+    no_products: true
+
+- id: small-talk-02
+  category: small_talk
+  # TESTS: a later greeting must not re-introduce itself.
+  turns:
+    - "Give me the specs of the 761A00-11300000/A"
+    - "hola de nuevo"
+  expect:
+    answer_excludes: ["Axel"]
+
+- id: small-talk-03
+  category: small_talk
+  # TESTS: thanks gets a short natural reply, no products, no guard.
+  turns:
+    - "Give me the specs of the 761A00-11300000/A"
+    - "gracias!"
+  expect:
+    no_products: true
+    answer_excludes: ["Axel"]
+
+- id: small-talk-04
+  category: small_talk
+  # TESTS: "how are you" mid-conversation, no re-introduction, no guard.
+  turns:
+    - "Give me the specs of the 761A00-11300000/A"
+    - "¿cómo estás?"
+  expect:
+    no_products: true
+    answer_excludes: ["Axel"]
+
+- id: small-talk-05
+  category: small_talk
+  # TESTS: casual remark, no re-introduction, no guard.
+  turns:
+    - "Give me the specs of the 761A00-11300000/A"
+    - "jaja ok"
+  expect:
+    no_products: true
+    answer_excludes: ["Axel"]
+
+- id: referent-01
+  category: multi_turn
+  # TESTS: follow-up without part number after a single product (D-47): must call get_actuator.
+  turns:
+    - "Give me the specs of the 761A00-11300000/A"
+    - "¿y la potencia?"
+  expect:
+    tools: [get_actuator]
+    products: ["761A00-11300000/A"]
+
+- id: referent-02
+  category: multi_turn
+  # TESTS: follow-up after a multi-product recommendation: must not pick one silently.
+  turns:
+    - "I need at least 100 Nm of on/off torque, 110V single phase, weatherproof."
+    - "¿y la potencia?"
+  expect:
+    tools: [search_actuators]

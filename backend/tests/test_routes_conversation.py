@@ -184,3 +184,77 @@ def test_success_header_matches_body_and_errors_before_session_have_none(env):
     r404 = client.post("/api/conversation", json={"session_id": str(uuid.uuid4()), "query": "x"})
     r422 = client.post("/api/conversation", json={"query": ""})
     assert "X-Session-Id" not in r404.headers and "X-Session-Id" not in r422.headers
+
+
+def _lock(factory, sid):
+    with factory() as c:
+        return sessions_repo.try_lock_session(c, uuid.UUID(sid))
+
+
+def _busy_since(conn):
+    return conn.execute("SELECT busy_since FROM sessions").fetchone()["busy_since"]
+
+
+def test_concurrent_turn_409_writes_nothing(env):
+    client, agent, conn, factory = env
+    sid = client.post("/api/conversation", json={"query": "first"}).json()["session_id"]
+    assert _lock(factory, sid)
+    r = client.post("/api/conversation", json={"session_id": sid, "query": "second"})
+    assert r.status_code == 409 and r.json()["error"] == "turn_in_progress"
+    assert r.headers["X-Session-Id"] == sid
+    assert len(agent.calls) == 1 and _count(conn, "messages") == 2
+    assert _busy_since(conn) is not None  # the other turn's lock is untouched
+
+
+def test_lock_released_after_success_and_agent_failure(env):
+    client, agent, conn, _ = env
+    sid = client.post("/api/conversation", json={"query": "a"}).json()["session_id"]
+    assert _busy_since(conn) is None
+    agent.error = AgentError("boom")
+    assert (
+        client.post("/api/conversation", json={"session_id": sid, "query": "b"}).status_code == 503
+    )
+    assert _busy_since(conn) is None
+    agent.error = None
+    assert (
+        client.post("/api/conversation", json={"session_id": sid, "query": "c"}).status_code == 200
+    )
+
+
+def test_assistant_write_retried_once(env, monkeypatch):
+    client, _, conn, _ = env
+    real = sessions_repo.add_message
+    state = {"failed": False}
+
+    def flaky(c, sid, role, *a, **kw):
+        if role == "assistant" and not state["failed"]:
+            state["failed"] = True
+            raise psycopg.OperationalError("dropped")
+        return real(c, sid, role, *a, **kw)
+
+    monkeypatch.setattr(sessions_repo, "add_message", flaky)
+    r = client.post("/api/conversation", json={"query": "hi"})
+    assert r.status_code == 200 and state["failed"]
+    assert [
+        m["role"] for m in conn.execute("SELECT role FROM messages ORDER BY id").fetchall()
+    ] == [
+        "user",
+        "assistant",
+    ]
+    assert _busy_since(conn) is None
+
+
+def test_assistant_write_fails_twice_503_user_kept_lock_released(env, monkeypatch):
+    client, _, conn, _ = env
+    real = sessions_repo.add_message
+
+    def broken(c, sid, role, *a, **kw):
+        if role == "assistant":
+            raise psycopg.OperationalError("down")
+        return real(c, sid, role, *a, **kw)
+
+    monkeypatch.setattr(sessions_repo, "add_message", broken)
+    r = client.post("/api/conversation", json={"query": "hi"})
+    assert r.status_code == 503 and r.json()["error"] == "database_unavailable"
+    assert conn.execute("SELECT role FROM messages").fetchall() == [{"role": "user"}]
+    assert _busy_since(conn) is None

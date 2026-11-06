@@ -150,11 +150,11 @@ def test_part_number_removed_but_other_numbers_kept():
     assert R.extract_numbers(f"{PN_764} gives 750 Nm") == ["750"]
 
 
-def test_allowed_numbers_includes_trace_params_query_and_always():
+def test_allowed_numbers_includes_trace_params_and_query():
     tr = [lookup_trace(PN_764), search_trace([PN_764], min_torque=123.0)]
     allowed = R.allowed_numbers(tr, "I need 4567 Nm")
     assert {750.0, 6650.0, 27.0, 33.0, 123.0, 4567.0} <= allowed
-    assert set(R.ALWAYS_ALLOWED) <= allowed
+    assert 7.0 not in allowed and 90.0 not in allowed  # D-44: no blanket small ints
     assert 4321.0 not in allowed
 
 
@@ -228,8 +228,10 @@ def test_query_numbers_allowed():
     assert R.unverified_numbers("You asked for 200 Nm.", tr, "I need a motor") == ["200"]
 
 
-def test_always_allowed_small_ints():
-    assert R.unverified_numbers("Step 1, 2 and 3. Rotation 90 degrees.", [], "") == []
+def test_only_ordinals_and_the_stroke_are_free():
+    # D-44: no blanket 0..10; list ordinals and the 90 degree stroke need no source.
+    assert R.unverified_numbers("Step 1, 2 and 3. Rotation 90 degrees.", [], "") == ["1", "2", "3"]
+    assert R.unverified_numbers("1. First\n2) Second\nRotation 90°.", [], "") == []
 
 
 def test_no_numbers_no_unverified():

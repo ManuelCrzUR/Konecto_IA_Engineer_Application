@@ -166,6 +166,8 @@ Each entry records one decision, the alternatives considered, its trade-off, and
 
 **Trade-off.** The regex is a little looser, but cross-checking the suffix against the section title still catches mismatches (Sprint 2 `normalize`). The in-repo fixture makes tests pass on a clean machine.
 
+Sprint 8: the benchmark copies were removed as dead code; the cells fixture moved to backend/tests/fixtures/cells.json.
+
 **Status.** Accepted (Sprint 1).
 
 ## D-17 Pair checks emit one issue per cell
@@ -568,13 +570,13 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Context.** The evaluation showed that D-26's guard accepted any integer from 0 to 10 and 90 (so an invented "FLA 9 A" passed), accepted a real number attributed to the wrong product, and ignored numbers written as words ("seven seconds").
 
-**Decision.** Remove `ALWAYS_ALLOWED`. Allow only list ordinals ("1." at the start of a line) and "90°" as the stroke. A number near a part number in the answer must come from that product's tool result. Number words (English and Spanish, 0 to 20) are checked like digits. Small talk with no tool call must contain no figures.
+**Decision.** Remove `ALWAYS_ALLOWED`. Allow only list ordinals ("1." at the start of a line) and "90°" as the stroke. A number near a part number in the answer must come from that product's tool result. Number words (English and Spanish, 0 to 20) are checked like digits. Small talk with no tool call must contain no figures. Implemented with two refinements: "one", "once", "un", "una" and "uno" are not number words (they are mostly articles or adverbs), and a count of what a tool returned ("I found 2 options" when the search returned 2) is verified, since it comes from the data.
 
 **Alternatives.** Ask the model for structured references (`{part_number, field}`) and render numbers in code (stronger, but a bigger change to the agent output).
 
 **Trade-off.** Fewer silent errors, at the cost of more template answers if the model writes harmless numbers; the eval measures this.
 
-**Status.** Proposed (Sprint 8, wave 1).
+**Status.** Accepted (Sprint 8, wave 1).
 
 ## D-45 History window (Sprint 8)
 
@@ -584,7 +586,7 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** Constant cost per turn; the model forgets details older than the window, but products are re-queried through tools anyway.
 
-**Status.** Proposed (Sprint 8, wave 1).
+**Status.** Accepted (Sprint 8, wave 1).
 
 ## D-46 One turn at a time per session (Sprint 8)
 
@@ -594,7 +596,7 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** No interleaved histories and no held connections, at the price of a 409 the app must show ("still answering").
 
-**Status.** Proposed (Sprint 8, wave 1).
+**Status.** Accepted (Sprint 8, wave 1).
 
 ## D-47 Follow-up referent resolved in code (Sprint 8)
 
@@ -604,7 +606,7 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** Deterministic follow-ups for the common case; a small heuristic to maintain.
 
-**Status.** Proposed (Sprint 8, wave 1).
+**Status.** Accepted (Sprint 8, wave 1).
 
 ## D-48 Voice conversation on the device: speech-to-text and text-to-speech (Sprint 8)
 
@@ -626,4 +628,4 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** Offline and deterministic for clean tables, paying only for doubtful ones.
 
-**Status.** Proposed (Sprint 8, wave 1).
+**Status.** Accepted (Sprint 8, wave 1). Result: Verified on 2026-11-06 (Sprint 8): offline OCR reads all 68 rows at 99.75% cell accuracy and flags 8 cells in 4 tables; vision (`anthropic/claude-sonnet-5.5`) re-read those 4 tables in 4 calls for USD 0.029, and the output was byte-identical to the committed `actuators.json` (0 cells differ from the golden file). Costs are logged in `docs/spend-log.md`. Two fixes were needed on the way: the OCR dropped two T3 rows (letter O read for zero in the part-number suffix) and flagged the merged N/A block, and the Docker image lacked `poppler-utils` (`pdfimages`), so PDF re-extraction had never worked inside the container.

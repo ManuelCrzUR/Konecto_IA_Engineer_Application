@@ -18,7 +18,7 @@ from app.domain.conversation import AgentResult
 
 CATEGORIES = (
     "lookup", "recommend", "invalid_pn", "na", "impossible",
-    "ambiguous", "out_of_subset", "multi_turn", "injection",
+    "ambiguous", "out_of_subset", "multi_turn", "injection", "small_talk",
 )  # fmt: skip
 
 
@@ -119,7 +119,9 @@ def check(case: Case, result: AgentResult) -> list[str]:
     ]
     for bad_text in e.answer_excludes:
         if _is_number(bad_text):
-            hit = any(token_values(bad_text) & token_values(t) for t in extract_numbers(result.answer))
+            hit = any(
+                token_values(bad_text) & token_values(t) for t in extract_numbers(result.answer)
+            )
         else:
             hit = bad_text.lower() in result.answer.lower()
         if hit:

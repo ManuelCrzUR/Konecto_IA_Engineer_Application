@@ -10,6 +10,7 @@ Search lives in app.db.sessions_search (D-37).
 from __future__ import annotations
 
 import uuid
+from datetime import timedelta
 
 import psycopg
 from psycopg.rows import dict_row
@@ -106,6 +107,30 @@ def add_message(
         cur.execute("UPDATE sessions SET updated_at = now() WHERE id = %s", (session_id,))
     assert row is not None
     return _to_message(row)
+
+
+def try_lock_session(
+    conn: psycopg.Connection,
+    session_id: uuid.UUID,
+    stale_after: timedelta = timedelta(minutes=2),
+) -> bool:
+    """Take the per-session turn lock (D-46); False if another turn holds a fresh one.
+
+    One atomic UPDATE: a lock older than `stale_after` (crashed worker) is retaken.
+    """
+    with conn.cursor() as cur:
+        cur.execute(
+            "UPDATE sessions SET busy_since = now() WHERE id = %s "
+            "AND (busy_since IS NULL OR busy_since < now() - %s) RETURNING id",
+            (session_id, stale_after),
+        )
+        return cur.fetchone() is not None
+
+
+def unlock_session(conn: psycopg.Connection, session_id: uuid.UUID) -> None:
+    """Release the turn lock (idempotent)."""
+    with conn.cursor() as cur:
+        cur.execute("UPDATE sessions SET busy_since = NULL WHERE id = %s", (session_id,))
 
 
 def list_messages(conn: psycopg.Connection, session_id: uuid.UUID) -> list[StoredMessage]:

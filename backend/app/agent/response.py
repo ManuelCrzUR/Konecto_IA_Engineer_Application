@@ -19,21 +19,36 @@ Contract:
     (with or without '/A') appears in the answer; if none, products whose
     6-char base ('764A00') appears; if none, keep all.
 - extract_numbers(text) -> list[str]
-    Numeric tokens in `text` after removing every part-number-like token
-    (regex r"76\\d[A-Z]\\d{2}(?:-[0-9A-Z]{8}(?:/A)?)?\\*?", case-insensitive)
-    and the product family name ("Series 76", "Serie 76", "Série 76"; case-insensitive).
-    A token is digits with optional ',' or '.' separators: '1,330', '2.3',
-    '17', '2,3'. Returned as written.
+    The figures to verify in `text` (app/agent/numbers.py): digit tokens ('1,330',
+    '2.3', '17', '2,3', as written) AND number words, English and Spanish 0..20
+    ('seven', 'siete', 'diez', 'dieciseis'/'dieciséis'), after blanking every
+    part-number-like token (regex r"76\\d[A-Z]\\d{2}(?:-[0-9A-Z]{8}(?:/A)?)?\\*?",
+    case-insensitive) and the family name ("Series 76", "Serie 76", "Série 76").
+    "one", "once", "un", "una", "uno" are not number words (articles/adverbs,
+    too ambiguous). Only three kinds of number need no source (D-44):
+    list ordinals (a number at the start of a line followed by "." or ")"),
+    the 90 of a 90 degree stroke ("90°", "90 degrees", "90 grados"), and the
+    tokens inside part numbers / the family name. There is no blanket 0..10 list.
 - token_values(token) -> set[float]
     All readings of a token: '1,330' -> {1330.0, 1.33}; '2,3' -> {2.3};
-    '1.330' -> {1.33, 1330.0}; '17' -> {17.0}; '1,234,567' -> {1234567.0}.
+    '1.330' -> {1.33, 1330.0}; '17' -> {17.0}; '1,234,567' -> {1234567.0}; 'siete' -> {7.0}.
 - allowed_numbers(trace, query, user_history="") -> set[float]
-    Every reading of every numeric token found in: dict keys ('fla_50hz_a' -> 50) and all values (numbers and
-    strings, recursively) of every trace result and params, the query, and
-    `user_history` (what the USER typed in earlier turns; earlier assistant
-    turns never count). Plus ALWAYS_ALLOWED.
-- unverified_numbers(answer, trace, query, user_history="") -> list[str]
-    Tokens of extract_numbers(answer) with no reading in allowed_numbers.
+    Every reading of every token found in: dict keys ('fla_50hz_a' -> 50) and all
+    values (numbers and strings, recursively) of every trace result and params, the
+    query, and `user_history` (what the USER typed in earlier turns; earlier
+    assistant turns never count), plus the model size of each traced part number.
+- unverified_numbers(answer, trace, query, user_history="", *, referent=None) -> list[str]
+    Figures of the answer that fail the check. Product binding (D-44): for each
+    figure, take the nearest PRECEDING part-number mention in the same sentence or
+    line (a markdown table row is one line). If that part number matches a product
+    in the trace (full part number or 6-char base), the figure must be one of the
+    readings of THAT product's values (its actuator dict plus its table notes) or
+    appear in the query / user_history; the same number on another product does not
+    count. A figure with no such part number keeps the global rule (anywhere in the
+    trace, query or user_history). `referent` (the product the conversation is
+    about): when the answer mentions no part number at all, every figure is bound to
+    the referent if it is in the trace; otherwise the global rule applies.
+    Small talk (empty trace): every figure is unverified unless the user typed it.
 - unverified_part_numbers(answer, trace, query, user_history="") -> list[str]
     Part-number-like tokens in the answer (same regex as above, normalized:
     uppercase, no '*' or '/A') that are neither equal to nor a prefix of a
@@ -50,9 +65,9 @@ Contract:
     or common Spanish words -> "es")
 - apply_persona(answer, model_id) -> (answer, replaced): rewrites the model's own
   display name (derived from its id) to Axel; pure.
-- build_result(answer, trace, query, user_history="", model_id="") -> AgentResult
+- build_result(answer, trace, query, user_history="", model_id="", *, referent=None) -> AgentResult
     (`query` alone drives language detection; `user_history` is passed to the checks.)
-    unverified = unverified_numbers + unverified_part_numbers.
+    unverified = unverified_numbers(.., referent) + unverified_part_numbers.
     If it is empty: answer unchanged, guard_triggered False.
     Else: answer = template_answer(...), guard_triggered True, and a
     ToolTrace(tool=GUARD_TOOL, params={"unverified": [...], "original_answer":
@@ -66,6 +81,9 @@ import json
 import re
 from typing import Any, Literal
 
+from app.agent import numbers
+from app.agent.numbers import PN_RE as _PN
+from app.agent.numbers import token_values
 from app.agent.tools import CSA_NOTE
 from app.domain.conversation import AgentResult
 from app.domain.models import Actuator, Product, ToolTrace
@@ -78,12 +96,7 @@ _GENERIC_TOKENS = frozenset(
     {"free", "chat", "instruct", "preview", "beta", "latest", "turbo", "mini", "base",
      "online", "thinking", "exp", "experimental", "large", "small", "medium"}
 )  # fmt: skip
-# Small integers (list counts, "option 2") and the 90° stroke.
-ALWAYS_ALLOWED: frozenset[float] = frozenset({*map(float, range(11)), 90.0})
-
-_PN = re.compile(r"76\d[A-Z]\d{2}(?:-[0-9A-Z]{8}(?:/A)?)?\*?", re.IGNORECASE)
-_FAMILY = re.compile(r"\bS[eé]ries?[\s-]*76\b", re.IGNORECASE)  # product name, not a figure
-_NUM = re.compile(r"\d+(?:[.,]\d+)*")
+_SENTENCE_END = re.compile(r"(?<=[.!?])\s+|\n")
 _ES_WORDS = frozenset(
     {"que", "cual", "cuales", "el", "la", "los", "las", "un", "una", "necesito", "quiero"}
     | {"busco", "actuador", "para", "con", "de", "es", "tiene", "hay", "cuanto", "como", "dame"}
@@ -137,22 +150,7 @@ def products_from_trace(trace: list[ToolTrace], answer: str) -> list[Product]:
 
 
 def extract_numbers(text: str) -> list[str]:
-    return _NUM.findall(_PN.sub(" ", _FAMILY.sub(" ", text)))
-
-
-def token_values(token: str) -> set[float]:
-    seps = [c for c in token if not c.isdigit()]
-    if not seps:
-        return {float(token)}
-    if len(set(seps)) == 1 and len(seps) > 1:  # '1,234,567': thousands only
-        return {float(token.replace(seps[0], ""))}
-    last = max(token.rfind(","), token.rfind("."))
-    head, tail = token[:last], token[last + 1 :]
-    plain = re.sub(r"[.,]", "", head)
-    values = {float(f"{plain}.{tail}")}
-    if len(seps) == 1 and len(tail) == 3:  # '1,330' may be 1330 or 1.33
-        values.add(float(plain + tail))
-    return values
+    return [f.token for f in numbers.figures(text)]
 
 
 def _walk(obj: Any) -> list[str]:
@@ -162,33 +160,101 @@ def _walk(obj: Any) -> list[str]:
     if isinstance(obj, int | float):
         return [format(obj, "f")]
     if isinstance(obj, str):
-        return extract_numbers(obj)
+        return numbers.tokens(obj)
     if isinstance(obj, dict):
-        return [n for k, v in obj.items() for n in extract_numbers(str(k)) + _walk(v)]
+        return [n for k, v in obj.items() for n in numbers.tokens(str(k)) + _walk(v)]
     if isinstance(obj, list | tuple):
         return [n for v in obj for n in _walk(v)]
     return []
 
 
+def _readings(tokens: list[str]) -> set[float]:
+    return {v for tok in tokens for v in token_values(tok)}
+
+
+def _user_numbers(query: str, user_history: str) -> set[float]:
+    return _readings(numbers.tokens(query) + numbers.tokens(user_history))
+
+
+_COUNTED_LISTS = ("matches", "candidates", "suggestions")
+
+
 def allowed_numbers(trace: list[ToolTrace], query: str, user_history: str = "") -> set[float]:
-    tokens = extract_numbers(query) + extract_numbers(user_history)
+    toks: list[str] = []
     for t in trace:
-        tokens += _walk(t.params) + _walk(t.result)
-    out = set(ALWAYS_ALLOWED)
-    for tok in tokens:
-        out |= token_values(tok)
+        toks += _walk(t.params) + _walk(t.result)
+    out = _user_numbers(query, user_history) | _readings(toks)
     # A model size ("the 764") names a product a tool returned; it is not a figure.
     for t in trace:
         for pn in _pn_tokens(f"{t.params} {t.result}"):
             out.add(float(pn[:3]))
+    # Counts of what the tools returned ("I found 3 options") come from the data, not memory.
+    for t in trace:
+        if isinstance(t.result, dict):
+            for key in _COUNTED_LISTS:
+                if isinstance(t.result.get(key), list):
+                    out.add(float(len(t.result[key])))
+    out.add(float(len(_product_values(trace))))
     return out
 
 
+def _product_values(trace: list[ToolTrace]) -> dict[str, set[float]]:
+    """Normalized part number -> every reading of that product's own values and notes."""
+    out: dict[str, set[float]] = {}
+    for t in trace:
+        r = t.result
+        if not isinstance(r, dict):
+            continue
+        if t.tool == "get_actuator" and r.get("status") in ("found", "found_no_data"):
+            items = [(r.get("actuator"), list(r.get("notes") or []))]
+        elif t.tool == "search_actuators" and r.get("status") == "ok":
+            items = [(m, [] if m.get("csa_certified", True) else [CSA_NOTE]) for m in r["matches"]]
+        else:
+            continue
+        for raw, notes in items:
+            if not isinstance(raw, dict) or "part_number" not in raw:
+                continue
+            pn = str(raw["part_number"]).upper().removesuffix("/A")
+            vals = out.setdefault(pn, {float(pn[:3])})
+            vals |= _readings(_walk(raw) + _walk(notes))
+    return out
+
+
+def _bound_values(by_pn: dict[str, set[float]], mention: str) -> set[float] | None:
+    """Values of the traced products a part-number mention names (None: no such product)."""
+    hits = [v for pn, v in by_pn.items() if pn.startswith(mention)]
+    return set().union(*hits) if hits else None
+
+
 def unverified_numbers(
-    answer: str, trace: list[ToolTrace], query: str, user_history: str = ""
+    answer: str,
+    trace: list[ToolTrace],
+    query: str,
+    user_history: str = "",
+    *,
+    referent: str | None = None,
 ) -> list[str]:
     allowed = allowed_numbers(trace, query, user_history)
-    return [n for n in extract_numbers(answer) if not token_values(n) & allowed]
+    user = _user_numbers(query, user_history)
+    by_pn = _product_values(trace)
+    mentions = list(_PN.finditer(answer))
+    starts = [0] + [m.end() for m in _SENTENCE_END.finditer(answer)]
+    ref = (
+        _bound_values(by_pn, _pn_tokens(referent)[0]) if referent and _pn_tokens(referent) else None
+    )
+    bad: list[str] = []
+    for f in numbers.figures(answer):
+        vals = token_values(f.token)
+        if vals & user:
+            continue
+        seg = max(s for s in starts if s <= f.start)
+        near = [m for m in mentions if m.start() >= seg and m.end() <= f.start]
+        bound = _bound_values(by_pn, _pn_tokens(near[-1].group(0))[0]) if near else None
+        if bound is None and not mentions:
+            bound = ref
+        if not vals & (allowed if bound is None else bound):
+            bad.append(f.token)
+    return bad
 
 
 def _pn_tokens(text: str) -> list[str]:
@@ -279,9 +345,15 @@ def apply_persona(answer: str, model_id: str) -> tuple[str, list[str]]:
 
 
 def build_result(
-    answer: str, trace: list[ToolTrace], query: str, user_history: str = "", model_id: str = ""
+    answer: str,
+    trace: list[ToolTrace],
+    query: str,
+    user_history: str = "",
+    model_id: str = "",
+    *,
+    referent: str | None = None,
 ) -> AgentResult:
-    bad = unverified_numbers(answer, trace, query, user_history)
+    bad = unverified_numbers(answer, trace, query, user_history, referent=referent)
     bad += unverified_part_numbers(answer, trace, query, user_history)
     triggered = bool(bad)
     final = template_answer(trace, query) if triggered else answer

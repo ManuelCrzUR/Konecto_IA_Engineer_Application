@@ -22,8 +22,9 @@ Contract:
        config {"recursion_limit": RECURSION_LIMIT}.
     3. answer = text of the last AIMessage (string content, or the joined
        text blocks if content is a list).
-    4. return response.build_result(answer, recorder.trace, query, user_history, model_id)
-       (user_history = the user turns of `history` joined by newlines).
+    4. return response.build_result(answer, recorder.trace, query, user_history, model_id,
+       referent=referent.resolve_referent(query, history))
+       (user_history = the user turns of `history` joined by newlines; referent: D-47).
   Errors:
     - GraphRecursionError (too many steps) -> not raised: result of
       build_result(LOOP_ANSWER, trace, query, user_history) (the guard then may swap in the
@@ -55,7 +56,7 @@ from langgraph.errors import GraphRecursionError
 from langgraph.types import Command
 from openai import APIError
 
-from app.agent import prompts, response, tools
+from app.agent import prompts, referent, response, tools
 from app.db.connection import ConnFactory
 from app.db.connection import conn_factory as default_conn_factory
 from app.domain.conversation import AgentResult, HistoryTurn
@@ -76,7 +77,10 @@ logger = logging.getLogger("series76.agent")
 # Failures of the LLM provider call (network, auth, rate limit, timeout). Anything
 # else raised inside the agent is a bug and propagates unchanged (API -> 500).
 PROVIDER_ERRORS: tuple[type[BaseException], ...] = (
-    APIError, httpx.HTTPError, TimeoutError, ConnectionError
+    APIError,
+    httpx.HTTPError,
+    TimeoutError,
+    ConnectionError,
 )
 
 
@@ -145,7 +149,9 @@ class TraceRecorder(AgentMiddleware):
                 status="error",
             )
         ms = round((time.perf_counter() - start) * 1000, 2)
-        entry = ToolTrace(tool=call["name"], params=dict(call["args"]), result=result, duration_ms=ms)
+        entry = ToolTrace(
+            tool=call["name"], params=dict(call["args"]), result=result, duration_ms=ms
+        )
         self.calls.append((call["id"] or "", entry))
         return out
 
@@ -158,6 +164,7 @@ def run_agent(
     conn_factory: ConnFactory | None = None,
 ) -> AgentResult:
     user_history = "\n".join(h.content for h in history or [] if h.role == "user")
+    pn = referent.resolve_referent(query, history)  # D-47: the guard binds figures to it
     recorder = TraceRecorder()
     llm = llm or get_llm("agent")
     model_id = str(getattr(llm, "model_name", "") or getattr(llm, "model", "") or "")
@@ -173,15 +180,18 @@ def run_agent(
             config=RunnableConfig(recursion_limit=RECURSION_LIMIT),
         )
     except GraphRecursionError:
-        return response.build_result(LOOP_ANSWER, recorder.trace, query, user_history, model_id)
+        return response.build_result(
+            LOOP_ANSWER, recorder.trace, query, user_history, model_id, referent=pn
+        )
     except PROVIDER_ERRORS as exc:
         raise AgentError(f"LLM call failed: {exc}") from exc
     # parallel tool calls finish in any order: report them as the model requested them
     order = _requested_order(state["messages"])
+
     def rank(call_id: str) -> int:  # unknown/empty ids (some providers) go last, stably
         return order.index(call_id) if call_id in order else len(order)
 
     trace = [t for _, t in sorted(recorder.calls, key=lambda p: rank(p[0]))]
     ai = [m for m in state["messages"] if isinstance(m, AIMessage)]
     answer = _text(ai[-1].content) if ai else ""
-    return response.build_result(answer, trace, query, user_history, model_id)
+    return response.build_result(answer, trace, query, user_history, model_id, referent=pn)

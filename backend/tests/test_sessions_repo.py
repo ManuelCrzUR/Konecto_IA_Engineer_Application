@@ -174,3 +174,21 @@ def test_search_order_and_limit(pg):
 def test_search_no_results(pg):
     repo.create_session(pg, "abc")
     assert _search(pg, "zzz") == []
+
+
+def _busy(pg, sid):
+    return pg.execute("SELECT busy_since FROM sessions WHERE id = %s", (sid,)).fetchone()
+
+
+def test_lock_unlock_and_stale_retake(pg):
+    sid = repo.create_session(pg, "t").id
+    assert repo.try_lock_session(pg, sid) is True
+    assert repo.try_lock_session(pg, sid) is False
+    repo.unlock_session(pg, sid)
+    assert repo.try_lock_session(pg, sid) is True
+    pg.execute(
+        "UPDATE sessions SET busy_since = now() - interval '3 minutes' WHERE id = %s", (sid,)
+    )
+    assert repo.try_lock_session(pg, sid) is True  # stale lock retaken
+    repo.unlock_session(pg, sid)
+    assert repo.try_lock_session(pg, uuid.uuid4()) is False  # unknown session
