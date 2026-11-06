@@ -31,7 +31,7 @@ def get_test_db_url(db: str = "series76_test") -> str:
 
 # Evaluated after the .env load above; kept for modules that import the constant.
 DEFAULT_TEST_URL = get_test_db_url()
-TRUNCATE_TABLES = ("messages", "sessions", "actuators", "catalog_tables")
+TRUNCATE_TABLES = ("auth_tokens", "messages", "sessions", "users", "actuators", "catalog_tables")
 
 
 @pytest.fixture(scope="session")
@@ -70,6 +70,20 @@ def pg(pg_conn):
     if tables:
         pg_conn.execute(f"TRUNCATE {', '.join(tables)} RESTART IDENTITY CASCADE")
     yield pg_conn
+
+
+@pytest.fixture
+def test_users(pg):
+    """Rows in `users` for the plain ids the isolation tests use ("a", "b", "u1").
+
+    sessions.user_id references users.id (D-43), so a session can only belong to a real user.
+    """
+    for uid in ("a", "b", "u1"):
+        pg.execute(
+            "INSERT INTO users (id, email, password_hash) VALUES (%s, %s, 'x')",
+            (uid, f"{uid}@test.invalid"),
+        )
+    return pg
 
 
 def pytest_collection_modifyitems(items):

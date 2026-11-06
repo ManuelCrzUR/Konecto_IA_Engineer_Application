@@ -34,7 +34,7 @@ def test_list_ordered_by_updated_desc(pg):
     assert len(repo.list_sessions(pg, limit=1)) == 1
 
 
-def test_user_isolation(pg):
+def test_user_isolation(pg, test_users):
     s = repo.create_session(pg, "mine", user_id="a")
     assert repo.get_session(pg, s.id, user_id="a") == s
     assert repo.get_session(pg, s.id) is None
@@ -155,7 +155,7 @@ def test_search_wildcards_are_literal(pg):
     assert a and c
 
 
-def test_search_user_scoping(pg):
+def test_search_user_scoping(pg, test_users):
     repo.create_session(pg, "shared word", user_id="a")
     repo.create_session(pg, "shared word")
     assert len(sessions_search.search_sessions(pg, "shared", user_id="a")) == 1

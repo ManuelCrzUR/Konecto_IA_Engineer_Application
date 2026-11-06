@@ -182,7 +182,7 @@ The active delivery plan is §11. This section describes the dependency structur
 
 ## 11. Delivery plan
 
-Seven sprints, in order (plus 5.5, the UI redesign). Each one ends at a human gate.
+Eight sprints, in order (plus 5.5, the UI redesign). Each one ends at a human gate.
 
 1. **Foundations and contracts**: project setup, `Actuator` model, schema, Postgres in compose, test fixtures, data seed, and the signature stubs for every module.
 2. **Data (ingestion and database)**: crops, normalization, validation, JSON store, OCR and flags, escalation, pipeline and `ensure_data()`, repositories and the ingestion CLI.
@@ -193,4 +193,4 @@ Seven sprints, in order (plus 5.5, the UI redesign). Each one ends at a human ga
 6. **Security**: a multi-phase audit with Cloudflare's `security-audit` skill (prompt injection, agent and tool abuse, API exposure, operator spend, mobile, supply chain), adversarial evaluation cases, remediation and a re-audit. Two runs; no confirmed vulnerability, three leads that need a deployment fact. The committed report is `docs/security/REPORT.md` (raw runs in `docs/security/runs/` are gitignored). Decisions: D-39 (persona, generic tool errors) and D-40 (accepted number-guard risk while single-user).
 7. **Integration and delivery**: final evaluation run with the good model, code review, README, decisions and tooling docs, clean-machine test, and a checklist of the brief.
 
-Optional work (login and voice) is done only if there is time left, after sprint 7.
+8. **Evaluation fixes and optional features**: an independent evaluation of the Sprint 7 delivery scored it about 81/100 and listed concrete risks. Sprint 8 closes them (OCR in Docker with vision as fallback, number guard v2, history window, per-session lock, follow-up referent, docs mismatches, conversational small talk) and adds the optional login and voice conversation. Plan and status per wave: `docs/plans/SPRINT-8.md`. Decisions D-43 to D-49.

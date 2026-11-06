@@ -106,7 +106,7 @@ Each entry records one decision, the alternatives considered, its trade-off, and
 
 **Trade-off.** No cost against the OpenRouter budget and no backend change. The cost is that transcription quality depends on the device and its language support.
 
-**Status.** Accepted as a hook only. Voice is optional and not implemented.
+**Status.** Accepted as a hook only. Voice is optional and not implemented. Sprint 8 implements it: see D-48.
 
 ## D-11 `user_id` nullable (hook for login)
 
@@ -116,7 +116,7 @@ Each entry records one decision, the alternatives considered, its trade-off, and
 
 **Trade-off.** The schema and the routes do not change when login arrives, and login is not built before it is needed. The cost is that a dependency must be changed later and tested then.
 
-**Status.** Accepted as a hook only. Login is optional and not implemented.
+**Status.** Accepted as a hook only. Login is optional and not implemented. Sprint 8 implements it: see D-43.
 
 ## D-12 uv and Python 3.12
 
@@ -551,3 +551,79 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 **Trade-off.** The best score at a negligible cost against the USD 10 budget, at the price of depending on a paid model and a single benchmark run (LLM output is not fully deterministic, so a rerun may differ by a case). Models are swappable through the environment variable.
 
 **Status.** Accepted (Sprint 7.1).
+
+## D-43 Login: opaque bearer tokens in Postgres, role-based trace (Sprint 8)
+
+**Context.** Login is optional in the brief. If implemented: email and password, hashed passwords, a token sent as `Authorization: Bearer`, and each user sees only their own conversations. The independent evaluation also flagged that the Debug screen was protected only by a hidden gesture.
+
+**Decision.** `users` (argon2id hashes via `pwdlib`, role `user` or `developer`) and `auth_tokens` (only the SHA-256 of a random 256-bit token, 7-day expiry). `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`. Every other `/api` route requires a valid token (401 otherwise); `/health` stays public. Another user's session answers 404, as an unknown id does (no existence leak). For role `user` the backend returns `debug`/`trace` empty; only `developer` receives the tool trace. Three test users are seeded at startup (`SEED_TEST_USERS=off` disables it). The single OpenRouter key stays on the server and is shared by all users.
+
+**Alternatives.** JWT (stateless, but needs a signing secret and cannot be revoked without a deny list); sessions in memory (lost on restart); optional token with a single-user fallback (two modes to test and explain).
+
+**Trade-off.** One indexed lookup per request, in exchange for instant logout and no secret to manage. Sessions created before login (`user_id` NULL) become invisible to everyone.
+
+**Status.** Proposed (Sprint 8, wave 2). Supersedes the hook in D-11.
+
+## D-44 Number guard v2: no always-allowed integers, numbers bound to their product (Sprint 8)
+
+**Context.** The evaluation showed that D-26's guard accepted any integer from 0 to 10 and 90 (so an invented "FLA 9 A" passed), accepted a real number attributed to the wrong product, and ignored numbers written as words ("seven seconds").
+
+**Decision.** Remove `ALWAYS_ALLOWED`. Allow only list ordinals ("1." at the start of a line) and "90°" as the stroke. A number near a part number in the answer must come from that product's tool result. Number words (English and Spanish, 0 to 20) are checked like digits. Small talk with no tool call must contain no figures.
+
+**Alternatives.** Ask the model for structured references (`{part_number, field}`) and render numbers in code (stronger, but a bigger change to the agent output).
+
+**Trade-off.** Fewer silent errors, at the cost of more template answers if the model writes harmless numbers; the eval measures this.
+
+**Status.** Proposed (Sprint 8, wave 1).
+
+## D-45 History window (Sprint 8)
+
+**Decision.** The agent receives only the last `HISTORY_TURNS` messages (env, default 10). The product context line (D-26) still scans the whole stored history, so "and its power?" keeps working after the window moves. Everything stays stored in Postgres.
+
+**Alternatives.** An LLM summary of older turns (costs tokens and adds an unverified text); no limit (cost and latency grow without bound).
+
+**Trade-off.** Constant cost per turn; the model forgets details older than the window, but products are re-queried through tools anyway.
+
+**Status.** Proposed (Sprint 8, wave 1).
+
+## D-46 One turn at a time per session (Sprint 8)
+
+**Decision.** `sessions.busy_since` is set with one conditional `UPDATE` before the agent runs and cleared in `finally`. A second concurrent turn on the same session gets 409 `turn_in_progress`. A lock older than 2 minutes is stale and can be taken. Writing the assistant message is retried once.
+
+**Alternatives.** `pg_advisory_lock` (needs a connection held during the LLM call, which D-32 avoids); a queue.
+
+**Trade-off.** No interleaved histories and no held connections, at the price of a 409 the app must show ("still answering").
+
+**Status.** Proposed (Sprint 8, wave 1).
+
+## D-47 Follow-up referent resolved in code (Sprint 8)
+
+**Decision.** `resolve_referent(query, history)` returns the part number when the query names none and the last answer showed exactly one product. The context line then names it as the referent, and the number guard binds the answer's figures to it. With several products shown, the agent asks which one.
+
+**Alternatives.** Rely only on the model calling `get_actuator` again (D-26 prompt rule, the previous behaviour).
+
+**Trade-off.** Deterministic follow-ups for the common case; a small heuristic to maintain.
+
+**Status.** Proposed (Sprint 8, wave 1).
+
+## D-48 Voice conversation on the device: speech-to-text and text-to-speech (Sprint 8)
+
+**Decision.** The app transcribes with Android `SpeechRecognizer` (partial results appear in the text field) and sends text to the same endpoint. When a message was spoken, the answer text (not the product tables) is read aloud with Android `TextToSpeech`; a speaker button stops or repeats it. The backend does not change.
+
+**Alternatives.** Send audio to the backend and transcribe with a model through OpenRouter (spends the shared budget and adds a multipart endpoint); text-only answers.
+
+**Trade-off.** Zero cost and offline when the device has the language pack; quality depends on the device's speech engine.
+
+**Status.** Proposed (Sprint 8, wave 4). Supersedes the hook in D-10.
+
+## D-49 OCR in Docker, vision as the fallback (Sprint 8)
+
+**Context.** The evaluation found that re-extracting from the PDF without vision failed (T3 read 9 rows of 11, 78 flagged cells) and that the real vision call had never run.
+
+**Decision.** The image runs the offline RapidOCR extraction; only flagged tables escalate to vision (`EXTRACT_LLM_MODEL`). `STARTUP_ESCALATION=auto` (default) escalates only when a key is configured; without a key a rebuild fails with a clear message. `make ingest-pdf` runs that extraction inside the container. The committed `actuators.json` stays the reproducible path without a key, and it is replaced by the real pipeline output only if that output matches the golden file.
+
+**Alternatives.** Vision for every table (100% in the benchmark, but a paid call on every rebuild); OCR only (offline, not 100%).
+
+**Trade-off.** Offline and deterministic for clean tables, paying only for doubtful ones.
+
+**Status.** Proposed (Sprint 8, wave 1).

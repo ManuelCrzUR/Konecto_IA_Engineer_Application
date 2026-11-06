@@ -178,6 +178,8 @@ docker-compose.yml  Dockerfile  Makefile  .env.example  README.md
 
 **Pendiente:**
 
+- Sprint 8 en curso (plan y estado por ola en `docs/plans/SPRINT-8.md`): correcciones de la evaluación externa, login (D-43) y voz (D-48).
+
 - Llamada real a OpenRouter para el escalado del extractor. Pedir permiso antes de gastar (§9).
 - Probar la regla de marcado del híbrido en otros PDFs, con su propio golden.
 - Si se implementan los opcionales: login y voz (hoy solo hay ganchos, D-10 y D-11).

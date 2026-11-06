@@ -76,7 +76,7 @@ def test_long_first_query_title_is_truncated(client, pg):
     assert s["title"].endswith("…")
 
 
-def test_other_users_sessions_not_listed(client, pg):
+def test_other_users_sessions_not_listed(client, pg, test_users):
     repo.create_session(pg, "ajena", user_id="u1")
     mine = repo.create_session(pg, "mia")
     listed = client.get("/api/sessions").json()
@@ -120,7 +120,7 @@ def test_messages_unknown_session_is_404(client):
     assert str(missing) in body["detail"]
 
 
-def test_messages_of_other_user_session_is_404(client, pg):
+def test_messages_of_other_user_session_is_404(client, pg, test_users):
     s = repo.create_session(pg, "ajena", user_id="u1")
     r = client.get(f"/api/sessions/{s.id}/messages")
     assert r.status_code == 404

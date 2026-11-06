@@ -92,3 +92,39 @@ CREATE TABLE IF NOT EXISTS messages (
 );
 -- Serves the FK (cascade deletes, joins) and loading a conversation in order.
 CREATE INDEX IF NOT EXISTS messages_session_created_idx ON messages (session_id, created_at);
+
+-- ---------------------------------------------------------------------------
+-- Sprint 8: login (D-43) and per-session turn lock (D-46). Idempotent like the rest.
+
+-- Test users are seeded by app.auth.seed at startup (never plain-text passwords).
+-- id is text (a UUID string) so it matches sessions.user_id, which has been text since Sprint 4.
+CREATE TABLE IF NOT EXISTS users (
+    id            text PRIMARY KEY DEFAULT gen_random_uuid()::text,
+    email         text NOT NULL UNIQUE CHECK (email = lower(email)),
+    password_hash text NOT NULL,          -- argon2 (pwdlib); never the password
+    role          text NOT NULL DEFAULT 'user' CHECK (role IN ('user', 'developer')),
+    created_at    timestamptz NOT NULL DEFAULT now()
+);
+
+-- Opaque bearer tokens: only the SHA-256 of the token is stored, so a DB dump
+-- cannot be replayed. Deleting a row is logout; expired rows are ignored.
+CREATE TABLE IF NOT EXISTS auth_tokens (
+    token_hash text PRIMARY KEY,          -- hex sha256 of the token the client holds
+    user_id    text NOT NULL REFERENCES users (id) ON DELETE CASCADE,
+    expires_at timestamptz NOT NULL,
+    created_at timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS auth_tokens_user_id_idx ON auth_tokens (user_id);
+
+-- Sessions created before login have user_id NULL and stay invisible to every user.
+DO $$
+BEGIN
+    IF NOT EXISTS (SELECT 1 FROM pg_constraint WHERE conname = 'sessions_user_id_fkey') THEN
+        ALTER TABLE sessions ADD CONSTRAINT sessions_user_id_fkey
+            FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE;
+    END IF;
+END $$;
+
+-- Turn lock (D-46): set while a turn runs, cleared in `finally`; stale after 2 minutes.
+-- A column instead of an advisory lock so no connection is held during the LLM call (D-32).
+ALTER TABLE sessions ADD COLUMN IF NOT EXISTS busy_since timestamptz;
