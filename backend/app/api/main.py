@@ -15,7 +15,8 @@ Contract:
          doubtful data).
       3. on shutdown: pool.close().
     Then seed_test_users(conn) (D-43) and log how many users exist (never passwords).
-    Includes routes_auth, routes_conversation and routes_sessions routers (prefix
+    BodyLimitMiddleware caps POST /api/transcribe before the body is read (411/413).
+    Includes routes_auth, routes_conversation, routes_sessions and routes_transcribe routers (prefix
     "/api"), install_error_handlers(app), and GET /health ->
     {"status": "ok", "actuators": <row count>} (503 database_unavailable via
     the handlers if the DB is down).
@@ -41,7 +42,8 @@ from fastapi import FastAPI
 from psycopg.rows import dict_row
 from psycopg_pool import ConnectionPool, PoolTimeout
 
-from app.api import routes_auth, routes_conversation, routes_sessions
+from app.api import routes_auth, routes_conversation, routes_sessions, routes_transcribe
+from app.api.body_limit import BodyLimitMiddleware
 from app.api.errors import install_error_handlers
 from app.auth.seed import seed_test_users
 from app.bootstrap import ensure_data
@@ -139,9 +141,11 @@ def create_app(database_url: str | None = None, *, bootstrap: bool = True) -> Fa
 
     app = FastAPI(title="Series 76 Technical Assistant", lifespan=lifespan)
     install_error_handlers(app)
+    app.add_middleware(BodyLimitMiddleware)  # /api/transcribe only, before auth and parsing
     app.include_router(routes_auth.router, prefix="/api")
     app.include_router(routes_conversation.router, prefix="/api")
     app.include_router(routes_sessions.router, prefix="/api")
+    app.include_router(routes_transcribe.router, prefix="/api")
 
     @app.get("/health")
     def health() -> dict[str, object]:
