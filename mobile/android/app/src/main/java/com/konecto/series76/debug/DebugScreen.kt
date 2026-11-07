@@ -1,5 +1,7 @@
 package com.konecto.series76.debug
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -77,7 +79,7 @@ private fun DebugHeader(state: DebugUiState, onBack: () -> Unit, onRefresh: () -
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
         Text(
-            "Debug", Modifier.weight(1f).padding(start = 4.dp),
+            "Debug", Modifier.weight(1f).padding(start = 4.dp).semantics { heading() },
             style = AxelTheme.typography.title.copy(fontSize = 18.sp, fontWeight = FontWeight.SemiBold),
         )
         if (state is DebugUiState.Success) SummaryChip(summarize(state.turns))
@@ -123,6 +125,7 @@ private fun TurnList(turns: List<DebugTurn>) {
             ) {
                 Text(
                     "Turn ${turn.index + 1} · \"${turn.question}\"",
+                    Modifier.semantics { heading() },
                     style = AxelTheme.typography.label.copy(color = AxelTheme.colors.textTertiary),
                 )
                 turn.traces.forEachIndexed { i, trace -> TraceCard(turn.index, i, trace) }

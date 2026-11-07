@@ -1,9 +1,12 @@
 package com.konecto.series76.chat
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Icon
@@ -26,14 +29,14 @@ fun ChatHeader(onBack: () -> Unit, onTitleTapsFired: () -> Unit, modifier: Modif
     val counter = remember { TapCounter() }
     val noRipple = remember { MutableInteractionSource() }
     AxelHeader(modifier) {
-        IconButton(onClick = onBack, modifier = Modifier.testTag("chat_back")) {
+        IconButton(onClick = onBack, modifier = Modifier.size(48.dp).testTag("chat_back")) {
             Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
         }
         AxelAvatar(AxelState.IDLE, size = 32.dp)
         Column(Modifier.padding(start = 12.dp)) {
             Text(
                 "Axel",
-                Modifier.testTag("chat_title").clickable(interactionSource = noRipple, indication = null) {
+                Modifier.testTag("chat_title").semantics { heading() }.clickable(interactionSource = noRipple, indication = null) {
                     if (counter.tap()) onTitleTapsFired()
                 },
                 style = MaterialTheme.typography.titleMedium,

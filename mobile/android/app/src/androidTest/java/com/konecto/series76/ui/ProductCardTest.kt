@@ -38,10 +38,10 @@ class ProductCardTest {
         rule.setContent { Series76Theme { Column(Modifier.verticalScroll(rememberScrollState())) { ProductCard(p) } } }
         rule.onNodeWithTag("product_card_${p.partNumber}").assertIsDisplayed()
         p.fields.forEach { (k, v) ->
-            rule.onNodeWithTag("field_${k}_value").assertTextEquals(v?.content ?: "—")
+            rule.onNodeWithTag("field_${k}_value", useUnmergedTree = true).assertTextEquals(v?.content ?: "—")
         }
-        rule.onNodeWithTag("field_onoff_torque_nm_value").assertTextEquals("800")
-        rule.onNodeWithTag("field_fla_60hz_a_value").assertTextEquals("2.4")
+        rule.onNodeWithTag("field_onoff_torque_nm_value", useUnmergedTree = true).assertTextEquals("800")
+        rule.onNodeWithTag("field_fla_60hz_a_value", useUnmergedTree = true).assertTextEquals("2.4")
     }
 
     @Test fun noDataProductShowsNA() {
@@ -62,14 +62,14 @@ class ProductCardTest {
     @Test fun csaChipShownOnlyWhenNotCertified() {
         val p = products("conversation_recommend.json")[0]
         rule.setContent { Series76Theme { ProductCard(p.copy(csaCertified = false)) } }
-        rule.onNodeWithTag("csa_chip").assertIsDisplayed()
+        rule.onNodeWithTag("csa_chip", useUnmergedTree = true).assertIsDisplayed()
         rule.onNodeWithText("Not CSA certified").assertIsDisplayed()
     }
 
     @Test fun csaChipAbsentWhenCertified() {
         val p = products("conversation_recommend.json")[0]
         rule.setContent { Series76Theme { Column(Modifier.verticalScroll(rememberScrollState())) { ProductCard(p) } } }
-        rule.onAllNodesWithTag("csa_chip").assertCountEquals(0)
+        rule.onAllNodesWithTag("csa_chip", useUnmergedTree = true).assertCountEquals(0)
     }
 
     @Test fun keyFigureTilesKeepJsonLiteralsInContractOrder() {
@@ -77,8 +77,8 @@ class ProductCardTest {
         val (figures, _) = splitKeyFigures(orderedFields(p.fields))
         rule.setContent { Series76Theme { Column(Modifier.verticalScroll(rememberScrollState())) { ProductCard(p) } } }
         figures.forEach { f ->
-            rule.onNodeWithTag("field_${f.key}_value").assertTextEquals(displayValue(p.fields[f.key]))
+            rule.onNodeWithTag("field_${f.key}_value", useUnmergedTree = true).assertTextEquals(displayValue(p.fields[f.key]))
         }
-        rule.onNodeWithTag("field_onoff_torque_nm_value").assertTextEquals("800")
+        rule.onNodeWithTag("field_onoff_torque_nm_value", useUnmergedTree = true).assertTextEquals("800")
     }
 }

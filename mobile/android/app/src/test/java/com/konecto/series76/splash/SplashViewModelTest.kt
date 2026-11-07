@@ -1,6 +1,8 @@
 package com.konecto.series76.splash
 
 import com.konecto.series76.data.ApiResult
+import com.konecto.series76.data.AuthSession
+import com.konecto.series76.data.FakeAuthRepository
 import com.konecto.series76.data.StubRepository
 import com.konecto.series76.data.ConversationResponse
 import com.konecto.series76.data.MessageOut
@@ -31,7 +33,8 @@ class SplashViewModelTest {
         override suspend fun health(): Boolean = onHealth()
     }
 
-    private fun vm(health: suspend () -> Boolean) = SplashViewModel(FakeRepo(health), 600, 1500)
+    private fun vm(stored: AuthSession? = null, health: suspend () -> Boolean) =
+        SplashViewModel(FakeRepo(health), FakeAuthRepository(stored), 600, 1500)
 
     @Test fun doneAtMinimumWhenHealthIsFast() = runTest(dispatcher) {
         val vm = vm { delay(50); true }
@@ -55,5 +58,17 @@ class SplashViewModelTest {
         val vm = vm { false }
         advanceTimeBy(599); assertFalse(vm.done.value)
         advanceTimeBy(2); assertTrue(vm.done.value)
+    }
+
+    @Test fun signedInWhenSessionIsStored() = runTest(dispatcher) {
+        val vm = vm(AuthSession("t", "ana@konecto.test", "user")) { true }
+        advanceTimeBy(700)
+        assertTrue(vm.done.value); assertTrue(vm.signedIn.value)
+    }
+
+    @Test fun notSignedInWithoutSession() = runTest(dispatcher) {
+        val vm = vm { true }
+        advanceTimeBy(700)
+        assertTrue(vm.done.value); assertFalse(vm.signedIn.value)
     }
 }

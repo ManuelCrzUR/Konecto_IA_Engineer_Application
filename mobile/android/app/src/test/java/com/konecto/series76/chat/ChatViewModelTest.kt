@@ -240,4 +240,58 @@ class ChatViewModelTest {
         vm.retry(); advanceUntilIdle()
         assertEquals("", vm.state.value.draft)
     }
+
+    @Test fun voiceFinalSendsSpokenAndSetsAutoSpeakKey() = runTest {
+        val repo = FakeRepo().apply { sendResults.add(ok("s", "Answer")) }
+        val vm = vm(repo, null)
+        vm.onVoiceStart()
+        assertTrue(vm.state.value.listening)
+        vm.onVoicePartial("need 600")
+        assertEquals("need 600", vm.state.value.draft)
+        vm.onVoiceFinal("need 600 Nm")
+        advanceUntilIdle()
+        val s = vm.state.value
+        assertFalse(s.listening)
+        assertEquals(listOf(null to "need 600 Nm"), repo.sent)
+        assertEquals(s.messages.last().key, s.autoSpeakKey)
+        vm.onAutoSpoken()
+        assertNull(vm.state.value.autoSpeakKey)
+    }
+
+    @Test fun typedSendNeverAutoSpeaks() = runTest {
+        val repo = FakeRepo().apply { sendResults.add(ok("s", "Answer")) }
+        val vm = vm(repo, null)
+        vm.send("hello")
+        advanceUntilIdle()
+        assertNull(vm.state.value.autoSpeakKey)
+    }
+
+    @Test fun spokenFailureDoesNotSpeakAndRetryKeepsSpoken() = runTest {
+        val repo = FakeRepo().apply {
+            sendResults.add(ApiResult.Failure(FailureKind.Network, "offline"))
+            sendResults.add(ok("s", "Answer"))
+        }
+        val vm = vm(repo, null)
+        vm.onVoiceFinal("hi there")
+        advanceUntilIdle()
+        assertNull(vm.state.value.autoSpeakKey)
+        vm.retry()
+        advanceUntilIdle()
+        assertNotNull(vm.state.value.autoSpeakKey)
+    }
+
+    @Test fun voiceErrorKeepsTypingUsable() = runTest {
+        val repo = FakeRepo()
+        val vm = vm(repo, null)
+        vm.onDraftChange("partial")
+        vm.onVoiceStart()
+        vm.onVoiceError("Didn't catch that, try again")
+        val s = vm.state.value
+        assertFalse(s.listening)
+        assertEquals("Didn't catch that, try again", s.error)
+        assertFalse(s.canRetry)
+        assertEquals("partial", s.draft)
+        vm.onVoiceEnded()
+        assertFalse(vm.state.value.listening)
+    }
 }

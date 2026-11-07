@@ -180,6 +180,6 @@ docker-compose.yml  Dockerfile  Makefile  .env.example  README.md
 
 - Sprint 8 en curso (plan y estado por ola en `docs/plans/SPRINT-8.md`): correcciones de la evaluación externa, login (D-43) y voz (D-48).
 
-- Llamada real a OpenRouter para el escalado del extractor. Pedir permiso antes de gastar (§9).
-- Probar la regla de marcado del híbrido en otros PDFs, con su propio golden.
-- Si se implementan los opcionales: login y voz (hoy solo hay ganchos, D-10 y D-11).
+- (Hecho, Sprint 8 ola 1) Llamada real a OpenRouter para el escalado: 4 tablas con visión, salida idéntica al JSON commiteado (D-49).
+- (Decidido 2026-11-06) No se prueba la regla de marcado con otros PDFs: el enunciado solo pide este PDF. Queda como limitación conocida en README y D-01.
+- Opcionales implementados en el Sprint 8: login (D-43, backend ola 2, app ola 4) y voz en el dispositivo (D-48, ola 4). Falta la puerta final (ola 5).

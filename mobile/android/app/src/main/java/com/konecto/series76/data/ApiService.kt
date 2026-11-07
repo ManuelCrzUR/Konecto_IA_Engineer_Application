@@ -19,4 +19,13 @@ interface ApiService {
 
     @GET("api/sessions/{id}/messages")
     suspend fun messages(@Path("id") sessionId: String): List<MessageOut>
+
+    @POST("api/auth/login")
+    suspend fun login(@Body request: LoginRequest): LoginResponse
+
+    @POST("api/auth/logout")
+    suspend fun logout(): Response<Unit>
+
+    @GET("api/auth/me")
+    suspend fun me(): UserOut
 }

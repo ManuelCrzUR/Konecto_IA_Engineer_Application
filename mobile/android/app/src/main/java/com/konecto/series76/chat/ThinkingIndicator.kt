@@ -1,5 +1,9 @@
 package com.konecto.series76.chat
 
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.liveRegion
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.animation.core.RepeatMode
 import androidx.compose.animation.core.StartOffset
 import androidx.compose.animation.core.animateFloat
@@ -36,7 +40,10 @@ private const val DOT_STAGGER_MS = 150
 @Composable
 fun ThinkingRow(modifier: Modifier = Modifier) {
     Row(
-        modifier.testTag("typing_indicator"),
+        modifier.testTag("typing_indicator").semantics {
+            liveRegion = LiveRegionMode.Polite
+            contentDescription = "Axel is typing"
+        },
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
     ) {
@@ -84,7 +91,8 @@ private fun PulsingDot(index: Int) {
 fun ErrorBanner(message: String, canRetry: Boolean, onRetry: () -> Unit) {
     val colors = AxelTheme.colors
     Surface(
-        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).testTag("chat_error"),
+        Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 4.dp).testTag("chat_error")
+            .semantics { liveRegion = LiveRegionMode.Polite },
         shape = RoundedCornerShape(20.dp),
         color = colors.cautionContainer,
         border = BorderStroke(1.dp, colors.caution),

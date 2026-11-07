@@ -1,5 +1,7 @@
 package com.konecto.series76.ui
 
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -48,7 +50,8 @@ internal fun serviceLabel(service: String): String = when (service) {
 fun ProductCard(product: Product, modifier: Modifier = Modifier) {
     var notesOpen by remember { mutableStateOf(false) }
     Surface(
-        modifier = modifier.fillMaxWidth().testTag("product_card_${product.partNumber}"),
+        modifier = modifier.fillMaxWidth().testTag("product_card_${product.partNumber}")
+            .semantics(mergeDescendants = true) { contentDescription = "Product ${product.partNumber}" },
         shape = RoundedCornerShape(28.dp),
         color = MaterialTheme.colorScheme.surface,
     ) {
@@ -57,7 +60,9 @@ fun ProductCard(product: Product, modifier: Modifier = Modifier) {
             ProductChips(product)
             if (!product.hasData) {
                 Text(
-                    "No data in the catalog", style = MaterialTheme.typography.bodyMedium,
+                    "No data in the catalog",
+                    Modifier.semantics { contentDescription = "No data (N/A) in the catalog" },
+                    style = MaterialTheme.typography.bodyMedium,
                     color = AxelTheme.colors.caution,
                 )
             } else {

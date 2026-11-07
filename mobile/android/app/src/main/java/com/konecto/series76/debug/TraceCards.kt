@@ -1,5 +1,7 @@
 package com.konecto.series76.debug
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.horizontalScroll
@@ -112,6 +114,7 @@ private fun GuardHeader() = Row(
 @Composable
 private fun SectionLabel(text: String) = Text(
     text,
+    Modifier.semantics { heading() },
     style = AxelTheme.typography.label.copy(fontSize = 12.sp, fontWeight = FontWeight.SemiBold),
     color = AxelTheme.colors.textTertiary,
 )

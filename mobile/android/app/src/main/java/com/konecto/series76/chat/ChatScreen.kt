@@ -1,5 +1,7 @@
 package com.konecto.series76.chat
 
+import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
 import androidx.compose.foundation.layout.WindowInsets
@@ -14,6 +16,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.imePadding
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.material3.LocalContentColor
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -26,7 +30,23 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import android.Manifest
+import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
+import android.content.pm.PackageManager
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.DisposableEffect
+import androidx.core.content.ContextCompat
+import com.konecto.series76.voice.AndroidSpeaker
+import com.konecto.series76.voice.AndroidVoiceInput
+import com.konecto.series76.voice.VoiceEvent
+import com.konecto.series76.voice.VoiceIcons
+import com.konecto.series76.voice.speakableText
+import com.konecto.series76.voice.speechLocale
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -51,14 +71,82 @@ fun ChatScreen(sessionId: String?, onBack: () -> Unit, onOpenDebug: (sessionId: 
 @Composable
 fun ChatRoute(vm: ChatViewModel, onBack: () -> Unit, onOpenDebug: (sessionId: String?) -> Unit) {
     val state by vm.state.collectAsStateWithLifecycle()
+    val context = LocalContext.current
+    val voice = remember { AndroidVoiceInput(context) }
+    val speaker = remember { AndroidSpeaker(context) }
+    val speakingKey by speaker.speakingKey.collectAsStateWithLifecycle()
+    DisposableEffect(Unit) {
+        onDispose {
+            voice.release()
+            speaker.release()
+        }
+    }
+    LaunchedEffect(voice) {
+        voice.events.collect { e ->
+            when (e) {
+                VoiceEvent.Listening -> vm.onVoiceStart()
+                is VoiceEvent.Partial -> vm.onVoicePartial(e.text)
+                is VoiceEvent.Final -> vm.onVoiceFinal(e.text)
+                is VoiceEvent.Error -> vm.onVoiceError(e.message)
+                VoiceEvent.Ended -> vm.onVoiceEnded()
+            }
+        }
+    }
+    LaunchedEffect(state.autoSpeakKey) {
+        val key = state.autoSpeakKey ?: return@LaunchedEffect
+        state.messages.firstOrNull { it.key == key }?.let { speaker.speak(key, speakableText(it.text)) }
+        vm.onAutoSpoken()
+    }
+
+    fun startListening() {
+        if (!AndroidVoiceInput.isAvailable(context)) {
+            vm.onVoiceError("Voice input is not available on this device")
+            return
+        }
+        speaker.stop()
+        val lastAnswer = state.messages.lastOrNull { !it.isUser }?.text
+        voice.start(lastAnswer?.let { speechLocale(it).toLanguageTag() })
+    }
+    val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
+        if (granted) {
+            startListening()
+        } else {
+            val activity = context.findActivity()
+            val canAskAgain = activity?.let {
+                androidx.core.app.ActivityCompat.shouldShowRequestPermissionRationale(it, Manifest.permission.RECORD_AUDIO)
+            } ?: false
+            vm.onVoiceError(
+                if (canAskAgain) "Microphone permission needed \u2014 you can still type"
+                else "Microphone permission is off \u2014 enable it in Settings > Apps > Series 76, or type instead",
+            )
+        }
+    }
     ChatContent(
         state = state,
         onDraftChange = vm::onDraftChange,
-        onSend = vm::send,
+        onSend = { vm.send(it) },
         onRetry = vm::retry,
         onBack = onBack,
         onTitleTapsFired = { onOpenDebug(vm.state.value.sessionId) },
+        onMic = {
+            when {
+                state.listening -> voice.stop()
+                ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
+                    PackageManager.PERMISSION_GRANTED -> startListening()
+                else -> permission.launch(Manifest.permission.RECORD_AUDIO)
+            }
+        },
+        speakingKey = speakingKey,
+        onSpeak = { item ->
+            if (speakingKey == item.key) speaker.stop() else speaker.speak(item.key, speakableText(item.text))
+        },
     )
+}
+
+private tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
 }
 
 @Composable
@@ -69,6 +157,9 @@ fun ChatContent(
     onRetry: () -> Unit,
     onBack: () -> Unit,
     onTitleTapsFired: () -> Unit,
+    onMic: () -> Unit = {},
+    speakingKey: String? = null,
+    onSpeak: (ChatItem) -> Unit = {},
 ) {
     // Scaffold's default contentWindowInsets = systemBars (status + nav bar, no IME): inner already clears
     // the nav bar; imePadding() after consumeWindowInsets(inner) adds only the IME's extra height (no double padding).
@@ -79,11 +170,11 @@ fun ChatContent(
                     state.loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
                     state.messages.isEmpty() && !state.sending ->
                         EmptyChat(onSend, Modifier.fillMaxSize())
-                    else -> MessageList(state)
+                    else -> MessageList(state, speakingKey, onSpeak)
                 }
             }
             if (state.error != null) ErrorBanner(state.error, state.canRetry, onRetry)
-            InputRow(state, onDraftChange, onSend)
+            InputRow(state, onDraftChange, onSend, onMic)
         }
     }
 }
@@ -94,7 +185,7 @@ fun ChatContent(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MessageList(state: ChatUiState) {
+private fun MessageList(state: ChatUiState, speakingKey: String?, onSpeak: (ChatItem) -> Unit) {
     val listState = rememberLazyListState()
     val reversed = remember(state.messages) { state.messages.asReversed() }
     val count = state.messages.size + if (state.sending) 1 else 0
@@ -123,19 +214,19 @@ private fun MessageList(state: ChatUiState) {
             item(key = "typing", contentType = "typing") { ThinkingRow() }
         }
         items(reversed, key = { it.key }, contentType = { it.role }) { item ->
-            MessageItem(item, animate = item.key !in skip, onAnimated = { skip.add(item.key) })
+            MessageItem(item, animate = item.key !in skip, onAnimated = { skip.add(item.key) }, speakingKey = speakingKey, onSpeak = onSpeak)
         }
     }
 }
 
 @Composable
-private fun InputRow(state: ChatUiState, onDraftChange: (String) -> Unit, onSend: (String) -> Unit) {
+private fun InputRow(state: ChatUiState, onDraftChange: (String) -> Unit, onSend: (String) -> Unit, onMic: () -> Unit) {
     Row(Modifier.fillMaxWidth().padding(8.dp), verticalAlignment = Alignment.CenterVertically) {
         OutlinedTextField(
             value = state.draft,
             onValueChange = onDraftChange,
             modifier = Modifier.weight(1f).testTag("chat_input"),
-            placeholder = { Text("Message") },
+            placeholder = { Text(if (state.listening) "Listening\u2026" else "Message") },
             supportingText = {
                 if (state.draft.length >= MAX_QUERY_CHARS - 200) {
                     Text("${state.draft.length}/$MAX_QUERY_CHARS", Modifier.testTag("chat_counter"))
@@ -144,10 +235,22 @@ private fun InputRow(state: ChatUiState, onDraftChange: (String) -> Unit, onSend
             shape = RoundedCornerShape(24.dp),
             maxLines = 4,
         )
+        if (!state.sending && !state.loading) {
+            IconButton(
+                onClick = onMic, modifier = Modifier.size(48.dp).testTag("chat_mic")
+                    .semantics { stateDescription = if (state.listening) "Listening" else "Not listening" },
+            ) {
+                Icon(
+                    VoiceIcons.Mic,
+                    contentDescription = if (state.listening) "Stop listening" else "Speak",
+                    tint = if (state.listening) MaterialTheme.colorScheme.primary else LocalContentColor.current,
+                )
+            }
+        }
         IconButton(
             onClick = { onSend(state.draft) },
             enabled = !state.sending && !state.loading && state.draft.isNotBlank(),
-            modifier = Modifier.testTag("chat_send"),
+            modifier = Modifier.size(48.dp).testTag("chat_send"),
         ) {
             Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")
         }

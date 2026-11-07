@@ -15,6 +15,14 @@ import com.konecto.series76.nav.Routes
 import com.konecto.series76.ui.theme.NavMotion
 import com.konecto.series76.ui.theme.ThemeMode
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
+import androidx.compose.ui.platform.LocalContext
+import com.konecto.series76.data.AuthSession
+import com.konecto.series76.login.LoginScreen
 import androidx.lifecycle.lifecycleScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.launch
@@ -58,13 +66,36 @@ class MainActivity : ComponentActivity() {
 @Composable
 private fun AppNav() {
     val nav = rememberNavController()
+    val scope = rememberCoroutineScope()
+    val auth = (LocalContext.current.applicationContext as App).container.authRepository
+    var session by remember { mutableStateOf<AuthSession?>(null) }
+    // Sign-out or a 401 from any request empties the session: back to Login, whole stack cleared.
+    LaunchedEffect(Unit) {
+        auth.session.collect { s ->
+            session = s
+            val route = nav.currentDestination?.route
+            if (s == null && route != null && route != Routes.SPLASH && route != Routes.LOGIN) {
+                nav.navigate(Routes.LOGIN) { popUpTo(0) { inclusive = true } }
+            }
+        }
+    }
     NavHost(navController = nav, startDestination = Routes.SPLASH) {
         composable(
             Routes.SPLASH,
             exitTransition = { NavMotion.splashFadeOut() },
         ) {
-            SplashScreen(onDone = {
-                nav.navigate(Routes.CONVERSATIONS) { popUpTo(Routes.SPLASH) { inclusive = true } }
+            SplashScreen(onDone = { signedIn ->
+                val next = if (signedIn) Routes.CONVERSATIONS else Routes.LOGIN
+                nav.navigate(next) { popUpTo(Routes.SPLASH) { inclusive = true } }
+            })
+        }
+        composable(
+            Routes.LOGIN,
+            enterTransition = { NavMotion.splashFade() },
+            exitTransition = { NavMotion.fadeThroughOut() },
+        ) {
+            LoginScreen(onLoggedIn = {
+                nav.navigate(Routes.CONVERSATIONS) { popUpTo(Routes.LOGIN) { inclusive = true } }
             })
         }
         composable(
@@ -78,6 +109,8 @@ private fun AppNav() {
         ) {
             ConversationsScreen(
                 onOpenChat = { id -> nav.navigate(Routes.chat(id)) },
+                email = session?.email,
+                onSignOut = { scope.launch { auth.logout() } },
             )
         }
         composable(
@@ -102,7 +135,8 @@ private fun AppNav() {
                 sessionId = entry.arguments?.getString(Routes.SESSION_ARG),
                 onBack = { nav.popBackStack() },
                 // Debug shows the stored traces of this session (null = nothing sent yet).
-                onOpenDebug = { id -> nav.navigate(Routes.debug(id)) },
+                // Only developers get Debug; for everyone else the 5-tap gesture does nothing.
+                onOpenDebug = { id -> if (session?.isDeveloper == true) nav.navigate(Routes.debug(id)) },
             )
         }
         composable(

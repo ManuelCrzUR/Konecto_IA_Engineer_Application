@@ -1,5 +1,7 @@
 package com.konecto.series76.conversations
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -103,7 +105,7 @@ private fun LazyListScope.section(
     item(key = tag) {
         Text(
             label, style = AxelTheme.typography.label, color = AxelTheme.colors.accentText,
-            modifier = Modifier.padding(start = 12.dp, top = 14.dp, bottom = 4.dp).testTag(tag),
+            modifier = Modifier.padding(start = 12.dp, top = 14.dp, bottom = 4.dp).testTag(tag).semantics { heading() },
         )
     }
     items(rows, key = { "$tag-${it.id}" }) { s -> ResultRow(s, q, now, onOpenChat, Modifier.animateItem()) }

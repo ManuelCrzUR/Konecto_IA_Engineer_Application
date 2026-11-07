@@ -27,7 +27,7 @@ Dependencies point only downward: `api → agent → db/domain`; `bootstrap → 
 - The upsert is idempotent (`ON CONFLICT (part_number) DO UPDATE`): running it again neither duplicates nor breaks anything.
 - The JSON is never overwritten without `--force` (CLAUDE.md §9). The normal path (committed JSON) needs no internet and no key.
 - OpenRouter is used only in step 3, and only for flagged tables. The current extractor is RapidOCR, offline, on 2× crops. A cell is suspicious if its confidence is below 0.9, if it has a leading zero, or if a validator fails. Those whole tables go to a vision model (Sonnet 5.5). Without a key, the run fails and lists the suspicious cells.
-- Real escalation run (Sprint 8, D-49): Verified on 2026-11-06 (Sprint 8): offline OCR reads all 68 rows at 99.75% cell accuracy and flags 8 cells in 4 tables; vision (`anthropic/claude-sonnet-5.5`) re-read those 4 tables in 4 calls for about USD 0.12 (about USD 0.03 per call; OpenRouter books costs late, see the notes in `docs/spend-log.md`), and the output was byte-identical to the committed `actuators.json` (0 cells differ from the golden file). Costs are logged in `docs/spend-log.md`. Still pending: testing the flag rule on other PDFs.
+- Real escalation run (Sprint 8, D-49): Verified on 2026-11-06 (Sprint 8): offline OCR reads all 68 rows at 99.75% cell accuracy and flags 8 cells in 4 tables; vision (`anthropic/claude-sonnet-5.5`) re-read those 4 tables in 4 calls for about USD 0.12 (about USD 0.03 per call; OpenRouter books costs late, see the notes in `docs/spend-log.md`), and the output was byte-identical to the committed `actuators.json` (0 cells differ from the golden file). Costs are logged in `docs/spend-log.md`. Known limitation (decided): the flag rule was tuned on this PDF only and has not been tested on other PDFs (D-01).
 
 ### Data model
 
@@ -77,7 +77,7 @@ Conversations (same database, same `pgdata` volume):
 - `sessions(id uuid, user_id null, title, created_at, updated_at)`
 - `messages(id, session_id fk, role, content, products jsonb, trace jsonb, created_at)`
 
-`user_id` is nullable: it is the hook for login. The title is built from the first ~50 characters of the first query, without calling an LLM.
+`user_id` references `users.id` (login, D-43); sessions created before login stay `NULL` and are not shown to anyone. The title is built from the first ~50 characters of the first query, without calling an LLM.
 
 ## 3. Agent and number rules
 
@@ -99,17 +99,21 @@ Conversations (same database, same `pgdata` volume):
 - `GET /api/sessions?q=&limit=` (`id, user_id, title, created_at, updated_at`; with `q`, only matching sessions, each with `match {where, snippet}`, D-37) and `GET /api/sessions/{id}/messages` (includes `products` and `trace`). The search is `db/sessions_search.py` (case-insensitive `ILIKE` over titles and message contents, one query, `LIKE` wildcards escaped); the snippet is built by the pure function `db/snippet.py`. The route is in `api/routes_sessions.py`.
 - An unknown `session_id` returns **404** with a clear message. Sessions are never created by accident. With no `session_id`, a session is created and returned.
 - Login (D-43): `POST /api/auth/login` returns an opaque token (7 days); `POST /api/auth/logout`, `GET /api/auth/me`. `deps.get_current_user` reads `Authorization: Bearer`, looks up the SHA-256 of the token in `auth_tokens` (short pooled borrow) and answers 401 `unauthorized` otherwise; every `/api` route except login depends on it, `/health` is public. `users` holds argon2id hashes (`app/auth/`); three test users are seeded at startup (`app/auth/seed.py`, `SEED_TEST_USERS`). Every `sessions_repo` call receives `user.id`, so another user's session answers 404. For role `user` the API returns `debug`/`trace` empty; only `developer` receives the tool trace.
-- Voice hook: **transcription on the device** (Android `SpeechRecognizer`). The text goes to the same endpoint. No budget cost and no backend change.
+- Voice (D-48, implemented in the app): **transcription and speech on the device** (Android `SpeechRecognizer` and `TextToSpeech`). The text goes to the same endpoint. No budget cost and no backend change.
 - Errors: a uniform JSON body `{error, detail}` (`api/errors.py`). A timeout or a dead LLM returns a generic 503, without internal detail and without losing the user's message, which is already saved (D-34).
 
 ## 5. Android app (`mobile/android`)
 
-One Gradle module with packages by feature (KISS; the `android-development` skill and the `android-skills` plugin apply): `splash/`, `conversations/` (list and search results), `chat/`, `debug/`, `data/` (Retrofit + kotlinx.serialization, one `ApiClient`, `ThemePreferences`), `ui/` (`theme/`, `axel/` character, `ProductCard`, `ComparisonTable`, `KeyFigures`). MVVM: `ViewModel` + `StateFlow`; Navigation Compose; manual DI.
+One Gradle module with packages by feature (KISS; the `android-development` skill and the `android-skills` plugin apply): `splash/`, `login/`, `conversations/` (list and search results), `chat/`, `debug/`, `voice/` (speech input and output), `data/` (Retrofit + kotlinx.serialization, one `ApiClient`, `ThemePreferences`, `SessionStore`, `AuthInterceptor`), `ui/` (`theme/`, `axel/` character, `ProductCard`, `ComparisonTable`, `KeyFigures`). MVVM: `ViewModel` + `StateFlow`; Navigation Compose; manual DI.
 
 - Loading and error states on every screen (backend down, timeout).
 - Backend URL in `BuildConfig.API_BASE_URL`: default `http://localhost:8000/`, overridable with `api.baseUrl` in `local.properties`. The emulator or a USB phone reaches it through `adb reverse` (`make android-reverse`, D-35). The emulator alias `10.0.2.2` is not used.
-- Debug: opened with a hidden gesture (5 taps on the chat title within 3 seconds, `chat/TapCounter.kt`). It shows the `debug` of each response. Documented in the README.
+- Debug: opened with a hidden gesture (5 taps on the chat title within 3 seconds, `chat/TapCounter.kt`), and only when the signed-in user has the `developer` role. For `user` the gesture does nothing, and the backend sends empty traces anyway (D-43). It shows the `debug` of each response. Documented in the README.
 - The chat never shows tool names or traces.
+- Login (Sprint 8, D-43): `login/LoginScreen.kt` and `login/LoginViewModel.kt` (email, password, show/hide, errors under the form). The token is stored in the `auth` DataStore (`data/SessionStore.kt`). `data/AuthInterceptor.kt` (OkHttp) adds `Authorization: Bearer` to every request. Any 401 outside the login call clears the session and returns to Login with the back stack cleared. Splash goes to Conversations when a session is stored, otherwise to Login. Sign out (Account menu, person icon) calls `POST /api/auth/logout` best-effort and always clears the local session.
+- Retry: a 409 `turn_in_progress` from `POST /api/conversation` is retryable (Retry banner), like the other transient failures.
+- Voice (Sprint 8, D-48): `voice/VoiceInput.kt` (`SpeechRecognizer`, partial results into the input field, `RECORD_AUDIO` requested at runtime), `voice/Speaker.kt` (`TextToSpeech`: only the answer text of a spoken message is read, plus a speaker button on each assistant message), `voice/SpeechLanguage.kt` (Spanish or English picked from the text). Everything runs on the device.
+- Accessibility (Sprint 8, wave 4): content descriptions, 48 dp touch targets, TalkBack headings and live regions.
 - Redesign ("Axel", Sprint 5.5): dark, light or system theme, chosen from the header menu and stored with DataStore (`data/ThemePreferences.kt`); a splash screen; the Axel character and launcher icon; conversation search, which calls `GET /api/sessions?q=` and shows the matching snippet.
 - Design references: `mobile/android/DESIGN.md` is the contract (themes, motion, states); `docs/design/` holds the visual reference in dark and light.
 - Tests: JVM unit tests in `app/src/test`, Compose UI tests in `app/src/androidTest` (run on the emulator).
@@ -158,7 +162,7 @@ No ORM (`psycopg` with parameterized SQL). No `DataSource` or `Extractor` interf
 - **Phase 0 (sequential)**: `domain/models.py`, `schema.sql`, signatures of `actuators_repo`, `sessions_repo` and the tools, the `ConversationResponse` schema, `pyproject.toml`, compose, `CLAUDE.md`.
 - **Tracks** (one folder each): A `ingestion/` + `bootstrap.py`; B `db/`; C `agent/tools.py`; D `agent/` (LLM, agent, response, eval); then E `api/`; F `mobile/android` (can start with a fake server that follows the contract in §4).
 - **Phase 2 (sequential)**: integrate, run `eval/` on real data, README, clean-machine test.
-- If there is time left: login (endpoint + `users` + dependency) and voice in the app.
+- Optional features, done in Sprint 8: login (endpoint, `users`, dependency; D-43) and voice in the app (D-48).
 
 The active delivery plan is §11. This section describes the dependency structure behind it.
 
@@ -192,4 +196,4 @@ Eight sprints, in order (plus 5.5, the UI redesign). Each one ends at a human ga
 6. **Security**: a multi-phase audit with Cloudflare's `security-audit` skill (prompt injection, agent and tool abuse, API exposure, operator spend, mobile, supply chain), adversarial evaluation cases, remediation and a re-audit. Two runs; no confirmed vulnerability, three leads that need a deployment fact. The committed report is `docs/security/REPORT.md` (raw runs in `docs/security/runs/` are gitignored). Decisions: D-39 (persona, generic tool errors) and D-40 (accepted number-guard risk while single-user).
 7. **Integration and delivery**: final evaluation run with the good model, code review, README, decisions and tooling docs, clean-machine test, and a checklist of the brief.
 
-8. **Evaluation fixes and optional features**: an independent evaluation of the Sprint 7 delivery scored it about 81/100 and listed concrete risks. Sprint 8 closes them (OCR in Docker with vision as fallback, number guard v2, history window, per-session lock, follow-up referent, docs mismatches, conversational small talk) and adds the optional login and voice conversation. Plan and status per wave: `docs/plans/SPRINT-8.md`. Decisions D-43 to D-49.
+8. **Evaluation fixes and optional features**: an independent evaluation of the Sprint 7 delivery scored it about 81/100 and listed concrete risks. Sprint 8 closes them (OCR in Docker with vision as fallback, number guard v2, history window, per-session lock, follow-up referent, docs mismatches, conversational small talk) and adds the optional login and voice conversation. Wave 4 is the Android side: the login screen and token handling, Debug only for the `developer` role, on-device voice input and output, and an accessibility pass. Plan and status per wave: `docs/plans/SPRINT-8.md`. Decisions D-43 to D-49.

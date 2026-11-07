@@ -1,5 +1,8 @@
 package com.konecto.series76.ui
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -58,7 +61,10 @@ fun ComparisonTable(products: List<Product>, modifier: Modifier = Modifier) {
             BestFrame()
             Column {
                 Row(Modifier.height(IntrinsicSize.Min), horizontalArrangement = Arrangement.spacedBy(Gap)) {
-                    Spacer(Modifier.width(LabelWidth).heightIn(min = MinHeaderHeight))
+                    Spacer(
+                        Modifier.width(LabelWidth).heightIn(min = MinHeaderHeight)
+                            .semantics { heading(); contentDescription = "Comparison" },
+                    )
                     products.forEachIndexed { i, p -> HeaderCell(p, best = i == 0) }
                 }
                 rows.forEach { row ->
@@ -72,9 +78,12 @@ fun ComparisonTable(products: List<Product>, modifier: Modifier = Modifier) {
                         }
                         products.forEachIndexed { i, p ->
                             Cell(ColWidth, Alignment.CenterStart, Modifier.padding(horizontal = 8.dp)) {
+                                val shown = perProduct[i][row.key]?.value ?: displayValue(null)
+                                val field = if (row.unit.isEmpty()) row.label else "${row.label} (${row.unit})"
                                 Text(
-                                    perProduct[i][row.key]?.value ?: displayValue(null),
-                                    Modifier.testTag("compare_${p.partNumber}_${row.key}"),
+                                    shown,
+                                    Modifier.testTag("compare_${p.partNumber}_${row.key}")
+                                        .semantics { contentDescription = "$field, ${p.partNumber}: $shown" },
                                     style = MaterialTheme.typography.bodyMedium.copy(fontFeatureSettings = "tnum"),
                                 )
                             }

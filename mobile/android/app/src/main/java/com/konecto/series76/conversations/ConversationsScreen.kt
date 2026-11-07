@@ -58,6 +58,8 @@ import java.time.Instant
 fun ConversationsScreen(
     onOpenChat: (sessionId: String?) -> Unit,
     viewModel: ConversationsViewModel = defaultViewModel(),
+    email: String? = null,
+    onSignOut: () -> Unit = {},
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
     val search by viewModel.search.collectAsStateWithLifecycle()
@@ -68,6 +70,7 @@ fun ConversationsScreen(
     ConversationsContent(
         state, search, query, refreshing, themeMode,
         viewModel::onQueryChange, viewModel::setThemeMode, viewModel::refresh, viewModel::retrySearch, onOpenChat,
+        email, onSignOut,
     )
 }
 
@@ -90,6 +93,8 @@ private fun ConversationsContent(
     onRefresh: () -> Unit,
     onRetrySearch: () -> Unit,
     onOpenChat: (String?) -> Unit,
+    email: String?,
+    onSignOut: () -> Unit,
 ) {
     val focus = LocalFocusManager.current
     // Back leaves search mode (clears the query) instead of exiting the app.
@@ -98,7 +103,7 @@ private fun ConversationsContent(
         focus.clearFocus()
     }
     Scaffold(
-        topBar = { ConversationsHeader(themeMode, onThemeMode, query, onQueryChange) },
+        topBar = { ConversationsHeader(themeMode, onThemeMode, query, onQueryChange, email, onSignOut) },
         floatingActionButton = {
             if (query.isBlank()) ExtendedFloatingActionButton(
                 onClick = { onOpenChat(null) },

@@ -6,6 +6,7 @@ import androidx.compose.ui.test.hasTestTag
 import androidx.compose.ui.test.junit4.createComposeRule
 import androidx.compose.ui.test.onAllNodesWithText
 import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithContentDescription
 import androidx.compose.ui.test.assertCountEquals
 import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
@@ -68,6 +69,7 @@ class ChatScreenTest {
             p.fields.forEach { (k, v) ->
                 rule.onNode(
                     hasTestTag("field_${k}_value") and hasAnyAncestor(hasTestTag("product_card_${p.partNumber}")),
+                    useUnmergedTree = true, // the card merges its semantics for TalkBack
                 ).assertTextEquals(v?.content ?: "—")
             }
         }
@@ -116,5 +118,12 @@ class ChatScreenTest {
         rule.onNodeWithTag("chat_send").assertIsNotEnabled()
         gate!!.complete(Unit)
         rule.waitUntil(5_000) { rule.onAllNodesWithTag("typing_indicator").fetchSemanticsNodes().isEmpty() }
+    }
+
+    @Test fun micButtonIsShownWithContentDescription() {
+        val vm = ChatViewModel(fake, androidx.lifecycle.SavedStateHandle())
+        rule.setContent { Series76Theme { ChatRoute(vm, onBack = {}, onOpenDebug = {}) } }
+        rule.onNodeWithTag("chat_mic").assertIsDisplayed()
+        rule.onNodeWithContentDescription("Speak").assertIsDisplayed()
     }
 }

@@ -172,7 +172,7 @@ Requirements: Android Studio (with an SDK and an emulator, or a USB phone with U
 
 **Release build:** `./gradlew installRelease` builds an R8-optimized APK signed with the debug key, for local testing only (not a distributable release). Debug builds are noticeably less smooth, so use the release build to judge animations.
 
-A physical phone over USB works the same way (`adb reverse`). Over Wi-Fi instead: set `API_BIND=0.0.0.0` in `.env`, `api.baseUrl` to the computer's LAN IP, and note the app only allows cleartext HTTP to `localhost` and `10.0.2.2` (`res/xml/network_security_config.xml`), so that path also needs a config change. The API has no authentication (D-10): do not expose it on an untrusted network.
+A physical phone over USB works the same way (`adb reverse`). Over Wi-Fi instead: set `API_BIND=0.0.0.0` in `.env`, `api.baseUrl` to the computer's LAN IP, and note the app only allows cleartext HTTP to `localhost` and `10.0.2.2` (`res/xml/network_security_config.xml`), so that path also needs a config change. The API requires a login (D-43), but it has no rate limiting and every user shares one OpenRouter key: do not expose it on an untrusted network.
 
 Tests:
 
@@ -182,22 +182,30 @@ cd mobile/android
 ./gradlew connectedDebugAndroidTest  # needs a device; UNINSTALLS the app when it finishes (reinstall with installDebug)
 ```
 
-Usage: Conversations screen (list, new conversation, **search** by title or message text, theme menu Dark/Light/System), Chat (product cards and a comparison table when several products match), and a **hidden Debug screen: tap the chat title 5 times** to see the tool calls (parameters and raw results) of each turn. The chat itself never shows tool names or traces.
+Usage: Conversations screen (list, new conversation, **search** by title or message text, theme menu Dark/Light/System), Chat (product cards and a comparison table when several products match), and a **hidden Debug screen** (developer role only, see below) to see the tool calls (parameters and raw results) of each turn. The chat itself never shows tool names or traces.
+
+**Sign in.** Without a stored session the app opens on the Login screen; with one, it opens on Conversations. Enter the email and password of a test user (section 8). The password field has a show/hide toggle, and wrong credentials or network errors appear under the form. The token is kept in the app's `auth` DataStore and sent as `Authorization: Bearer` on every request. If the server answers 401 at any other time (for example, an expired token), the app clears the session and returns to Login with the back stack cleared. To sign out, open the Account menu (person icon) in the conversations header. The app calls `POST /api/auth/logout` on a best-effort basis and always clears the local session.
+
+**Voice conversation.** Tap the microphone button in the chat input and speak: partial results appear in the text field while you talk. The app asks for the microphone permission (`RECORD_AUDIO`) the first time you use it. If you deny it, the app explains why and typing keeps working; if you denied it permanently, the app tells you to enable it in the device Settings. If the device has no speech recognizer, the app says voice is unavailable. When a message was spoken, the app reads the answer aloud with the device text-to-speech. Only the answer text is read: product cards and tables are not. Every assistant message also has a speaker button to read it aloud or stop it. Spanish or English is picked from the text (a simple heuristic in `voice/SpeechLanguage.kt`), and numbers and part numbers are read exactly as printed. Everything runs on the device: the backend does not change and there is no OpenRouter cost. Recognition works offline when the device has the offline language pack for the language; otherwise the recognizer may need the network.
+
+**Debug screen (developer role + 5 taps on the title).** Tap the chat title (Axel) five times to open the Debug screen, which shows the tool calls and raw results of each turn. The gesture works only when the signed-in user has the `developer` role (`dev@konecto.test`, section 8). For a `user` account it does nothing, and the server sends no trace in any case (D-43).
+
+**Accessibility.** Controls have content descriptions, touch targets are at least 48 dp, and headings and live regions are exposed to TalkBack (Sprint 8, wave 4).
 
 ## 5. Design and trade-offs
 
-Full list with alternatives in [`docs/DECISIONS.md`](docs/DECISIONS.md) (D-01 to D-42); architecture in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Full list with alternatives in [`docs/DECISIONS.md`](docs/DECISIONS.md) (D-01 to D-50); architecture in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 - **Typed columns, not a JSON blob (D-04, D-05).** Filtering by torque, voltage, phase, enclosure, service and duty is plain SQL. No ORM, plain `psycopg` (D-03).
 - **The LLM never writes SQL.** Three parameterized tools: `get_actuator` (found / found without data / not found with suggestions / ambiguous candidates), `search_actuators` (filters, tightest match first, says which constraint blocked an empty result), `describe_catalog` (for ambiguous questions). Torque and duty must be met in the same operating mode (D-22).
 - **Numbers come from the tables.** Product cards are built by code from tool results. A **number guard** checks that every figure in the answer, including numbers written as words, appears in the tool results; a figure written next to a part number must belong to that product, and a follow-up about the only product shown before is bound to it (D-44, D-47). There are no always-allowed numbers: only list ordinals, the 90° stroke and counts of what a tool returned pass without a value. If a figure is not verified, a deterministic template answer replaces it and the trace records it. Known limits: binding is per product, not per field, and earlier user turns are trusted (D-40).
 - **Own history in Postgres, plain `create_agent` (D-07, D-08).** No LangGraph graph, no checkpointer. Follow-ups re-call the tools; the model does not remember figures (D-27). Only the last `HISTORY_TURNS` messages (default 10) are sent to the model; the product context still comes from the whole history (D-45).
 - **No pgvector.** Queries are numeric filters, not semantic search.
-- **No auth (D-10, D-11).** `user_id` is nullable and `get_current_user()` returns `None`. Both ports bind to `127.0.0.1` by default (D-34); the container runs as a non-root user.
+- **Login with bearer tokens (D-43).** Passwords are argon2id hashes and tokens are stored as SHA-256 hashes. Each user sees only their own conversations, and the tool trace is returned only to the `developer` role. There is no rate limiting. Both ports bind to `127.0.0.1` by default (D-34); the container runs as a non-root user.
 - **`adb reverse` instead of `10.0.2.2` (D-35)**, because Colima's port forwarding never delivered emulator traffic.
 - **Conversation search with `ILIKE` (D-37)**, correct for part numbers and numbers; a sequential scan is fine for a single-user history.
 - **Persona "Axel" (D-39).** Prompt rule plus a code check that rewrites the underlying model's own name to "Axel"; generic tool errors (no DB text reaches the model or client).
-- **Hybrid extractor (D-01).** Offline by default, paid vision only for flagged tables; the flag rule may overfit this PDF and has not been tested on other PDFs.
+- **Hybrid extractor (D-01).** Offline by default, paid vision only for flagged tables. **Known limitation:** the flag rule was tuned on this PDF only, because the brief asks for this PDF. On another catalog, doubtful cells would still escalate to vision and validation would abort on mismatches, but the rule has not been tested on other PDFs.
 - **Edge cases handled:** invalid or partial part numbers, N/A rows, ambiguous requests, requirements no model meets (closest value is reported), data outside the PDF subset, multilingual questions (answers follow the user's language, numbers stay as printed).
 
 ## 6. Models per task
@@ -232,6 +240,8 @@ Two runs of Cloudflare's `security-audit` skill (vendored in `.claude/skills/sec
 
 ## 8. Optionals
 
+Both optional features are implemented: login (D-43, backend and Android app) and voice conversation (D-48, Android app).
+
 **Login (implemented, D-43).** Email and password return an opaque token, valid for 7 days, sent as `Authorization: Bearer <token>`. Passwords are stored as argon2id hashes and tokens as SHA-256 hashes, so neither can be read back from the database. Each user sees only their own conversations. The OpenRouter key stays on the server and is shared by all users. Test users, created at startup (`SEED_TEST_USERS=off` disables them):
 
 | Email | Password | Role |
@@ -242,7 +252,7 @@ Two runs of Cloudflare's `security-audit` skill (vendored in `.claude/skills/sec
 
 Conversations created before login existed (no owner) are not shown to anyone.
 
-**Voice messages:** planned in Sprint 8 (on-device speech-to-text and text-to-speech, D-48).
+**Voice conversation (implemented, D-48):** on-device speech-to-text and text-to-speech in the Android app, described in section 4. No backend change.
 
 ## 9. Repo layout and AI configuration
 

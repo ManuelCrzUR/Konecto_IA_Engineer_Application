@@ -1,5 +1,7 @@
 package com.konecto.series76.conversations
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
@@ -19,6 +21,7 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
@@ -52,16 +55,19 @@ fun ConversationsHeader(
     onThemeMode: (ThemeMode) -> Unit,
     query: String,
     onQueryChange: (String) -> Unit,
+    email: String? = null,
+    onSignOut: () -> Unit = {},
 ) {
     AxelHeader(contentPadding = PaddingValues(start = 20.dp, end = 20.dp, top = 16.dp, bottom = 12.dp)) {
         Column(Modifier.weight(1f), verticalArrangement = Arrangement.spacedBy(16.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(12.dp)) {
                 AxelAvatar(AxelState.IDLE, size = 32.dp)
                 Column(Modifier.weight(1f)) {
-                    Text("Axel", style = AxelTheme.typography.title.copy(fontSize = 22.sp))
+                    Text("Axel", Modifier.semantics { heading() }, style = AxelTheme.typography.title.copy(fontSize = 22.sp))
                     Text("Your conversations", style = AxelTheme.typography.label, color = MaterialTheme.colorScheme.onSurfaceVariant)
                 }
                 ThemeButton(themeMode, onThemeMode)
+                if (email != null) AccountButton(email, onSignOut)
             }
             SearchField(query, onQueryChange)
         }
@@ -96,6 +102,32 @@ private fun ThemeButton(current: ThemeMode, onSelect: (ThemeMode) -> Unit) {
                     modifier = Modifier.testTag("theme_option_${mode.name}"),
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun AccountButton(email: String, onSignOut: () -> Unit) {
+    var open by remember { mutableStateOf(false) }
+    val shape = RoundedCornerShape(16.dp)
+    Box {
+        IconButton(
+            onClick = { open = true },
+            modifier = Modifier.size(48.dp).background(MaterialTheme.colorScheme.surface, shape)
+                .border(1.dp, AxelTheme.colors.divider, shape).testTag("account_button"),
+        ) {
+            Icon(Icons.Default.Person, contentDescription = "Account", modifier = Modifier.size(22.dp))
+        }
+        DropdownMenu(expanded = open, onDismissRequest = { open = false }) {
+            DropdownMenuItem(text = { Text(email) }, onClick = {}, enabled = false, modifier = Modifier.testTag("account_email"))
+            DropdownMenuItem(
+                text = { Text("Sign out") },
+                onClick = {
+                    open = false
+                    onSignOut()
+                },
+                modifier = Modifier.testTag("logout"),
+            )
         }
     }
 }

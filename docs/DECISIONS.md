@@ -14,7 +14,9 @@ Each entry records one decision, the alternatives considered, its trade-off, and
 
 **Trade-off.** Most of the data loads with no network and no key, and the result is reproducible. The cost is a second code path (flags and escalation) to test and explain. The flag rule was designed while looking at the 5 errors in the same document, so it may overfit this PDF. On the benchmark, hybrid reaches 100%, with 14 of 869 cells flagged (1.6%), 5 of 5 errors caught, 9 false positives, and 4 of 7 tables escalated (48 of 68 rows).
 
-**Status.** Accepted. The escalation is still simulated: it reuses the output of the vision run on the same PDF. A real OpenRouter call needs the developer's permission before it spends money. The flag rule still has to be tested on other PDFs.
+**Status.** Accepted. The escalation was verified with a real vision run on this PDF (D-49).
+
+**Known limitation (decided, not pending).** The flag rule was tuned on this PDF only, because the brief asks for this PDF. On another catalog, doubtful cells would still escalate to vision and validation would abort on mismatches, but the rule was not tested on other PDFs.
 
 ## D-02 No `DataSource` or `Extractor` interfaces
 
@@ -106,7 +108,7 @@ Each entry records one decision, the alternatives considered, its trade-off, and
 
 **Trade-off.** No cost against the OpenRouter budget and no backend change. The cost is that transcription quality depends on the device and its language support.
 
-**Status.** Accepted as a hook only. Voice is optional and not implemented. Sprint 8 implements it: see D-48.
+**Status.** Accepted as a hook only in Sprint 1. Superseded: voice is implemented in Sprint 8, see D-48.
 
 ## D-11 `user_id` nullable (hook for login)
 
@@ -116,7 +118,7 @@ Each entry records one decision, the alternatives considered, its trade-off, and
 
 **Trade-off.** The schema and the routes do not change when login arrives, and login is not built before it is needed. The cost is that a dependency must be changed later and tested then.
 
-**Status.** Accepted as a hook only. Login is optional and not implemented. Sprint 8 implements it: see D-43.
+**Status.** Accepted as a hook only in Sprint 1. Superseded: login is implemented in Sprint 8, see D-43.
 
 ## D-12 uv and Python 3.12
 
@@ -566,6 +568,8 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Status.** Accepted (Sprint 8, wave 2). Supersedes the hook in D-11. Verified on the Docker stack: 401 with `WWW-Authenticate: Bearer` without a token, the same 401 body for a wrong password and an unknown email, logout revokes the token, passwords stored as `$argon2id$`.
 
+**Android client (Sprint 8, wave 4).** The app stores the token in the `auth` DataStore (`data/SessionStore.kt`) and sends it as `Authorization: Bearer` through an OkHttp interceptor (`data/AuthInterceptor.kt`). Any 401 outside the login call clears the session and returns to Login.
+
 ## D-44 Number guard v2: no always-allowed integers, numbers bound to their product (Sprint 8)
 
 **Context.** The evaluation showed that D-26's guard accepted any integer from 0 to 10 and 90 (so an invented "FLA 9 A" passed), accepted a real number attributed to the wrong product, and ignored numbers written as words ("seven seconds").
@@ -616,7 +620,7 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** Zero cost and offline when the device has the language pack; quality depends on the device's speech engine.
 
-**Status.** Proposed (Sprint 8, wave 4). Supersedes the hook in D-10.
+**Status.** Accepted (Sprint 8, wave 4). Supersedes the hook in D-10. Built: a mic button in the chat input (partial results typed into the field), runtime `RECORD_AUDIO` with explanations for denied and permanently denied, a speaker button on each assistant message, and the language picked from the text (`voice/SpeechLanguage.kt`). It works offline when the device has the offline language pack; otherwise the recognizer may need the network.
 
 ## D-49 OCR in Docker, vision as the fallback (Sprint 8)
 

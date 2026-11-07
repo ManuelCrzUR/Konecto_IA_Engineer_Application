@@ -42,6 +42,10 @@ data class ChatUiState(
     val draft: String = "",
     /** Text of the last send that failed; kept so Retry can resend it. */
     val failedText: String? = null,
+    /** True while the speech recognizer is listening. */
+    val listening: Boolean = false,
+    /** Key of the assistant item that must be read aloud once (cleared by [ChatViewModel.onAutoSpoken]). */
+    val autoSpeakKey: String? = null,
 )
 
 /**
@@ -59,6 +63,9 @@ class ChatViewModel(
     val state: StateFlow<ChatUiState> = _state.asStateFlow()
 
     private var localCounter = 0L
+
+    /** Whether the failed text was spoken, so Retry keeps reading the answer aloud. */
+    private var failedSpoken = false
 
     init {
         if (initialSessionId != null) load(initialSessionId)
@@ -90,7 +97,7 @@ class ChatViewModel(
     fun onDraftChange(text: String) = _state.update { it.copy(draft = text.take(MAX_QUERY_CHARS)) }
 
     /** Ignored while history is loading (a late load must never overwrite local messages) or sending. */
-    fun send(text: String) {
+    fun send(text: String, spoken: Boolean = false) {
         val q = text.trim()
         val s = _state.value
         if (q.isEmpty() || q.length > MAX_QUERY_CHARS || s.sending || s.loading) return
@@ -103,8 +110,25 @@ class ChatViewModel(
                 failedText = null,
             )
         }
-        dispatch(q)
+        dispatch(q, spoken)
     }
+
+    fun onVoiceStart() = _state.update { it.copy(listening = true, error = null, canRetry = false) }
+
+    fun onVoicePartial(text: String) = onDraftChange(text)
+
+    fun onVoiceFinal(text: String) {
+        _state.update { it.copy(listening = false) }
+        send(text, spoken = true)
+    }
+
+    /** Shown in the error banner without Retry; the draft is kept so typing keeps working. */
+    fun onVoiceError(message: String) =
+        _state.update { it.copy(listening = false, error = message, canRetry = false) }
+
+    fun onVoiceEnded() = _state.update { it.copy(listening = false) }
+
+    fun onAutoSpoken() = _state.update { it.copy(autoSpeakKey = null) }
 
     /** Resends the failed text without adding a second user bubble, or reloads history. */
     fun retry() {
@@ -116,7 +140,7 @@ class ChatViewModel(
                 // The restored draft is the same text; clear it so it is not sent twice.
                 it.copy(error = null, canRetry = false, failedText = null, draft = if (it.draft == failed) "" else it.draft)
             }
-            dispatch(failed)
+            dispatch(failed, failedSpoken)
         } else if (s.sessionId != null && s.messages.isEmpty()) {
             load(s.sessionId)
         } else {
@@ -124,24 +148,26 @@ class ChatViewModel(
         }
     }
 
-    private fun dispatch(q: String) {
+    private fun dispatch(q: String, spoken: Boolean) {
         _state.update { it.copy(sending = true) }
         viewModelScope.launch {
             when (val r = repo.sendMessage(_state.value.sessionId, q)) {
                 is ApiResult.Success -> {
                     adoptSession(r.value.sessionId)
+                    val item = ChatItem("l${localCounter++}", "assistant", r.value.answer, r.value.products)
+                    failedSpoken = false
                     _state.update {
                         it.copy(
                             sending = false,
-                            messages = it.messages + ChatItem(
-                                "l${localCounter++}", "assistant", r.value.answer, r.value.products,
-                            ),
+                            messages = it.messages + item,
+                            autoSpeakKey = if (spoken) item.key else null,
                         )
                     }
                 }
                 is ApiResult.Failure -> {
                     // Adopt the session the server already created so Retry does not open a second one.
                     adoptSession(r.sessionId)
+                    failedSpoken = spoken
                     _state.update {
                         val restoredDraft = if (it.draft.isBlank()) q else it.draft
                         if (r.retryable) {

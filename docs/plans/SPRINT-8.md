@@ -33,7 +33,7 @@ We also found, by using the app, that small talk felt robotic: the agent re-intr
 | 1 | Spend control (1.0), OCR fix (T3) and real hybrid run ($), OCR in Docker with vision fallback, docs fixes, `_reference/` cleanup, history window, number guard v2, follow-up referent, natural small talk, per-session lock | D-44 to D-47, D-49 | Done |
 | 2 | Login backend: argon2 hashes, opaque tokens, 401 on every `/api` route, per-user isolation, trace only for `developer`, seeded test users | D-43 | Done |
 | 3 | Real eval with the final model ($), new cases (number words, wrong-product numbers, follow-ups with 1 and 3 products, 30-turn session, small talk) | D-50 | Done |
-| 4 | Android: login screen and token, Debug only for `developer`, voice input (`SpeechRecognizer`), voice output (`TextToSpeech`), accessibility | D-48 | Pending |
+| 4 | Android: login screen and token, Debug only for `developer`, voice input (`SpeechRecognizer`), voice output (`TextToSpeech`), accessibility | D-48 | Done |
 | 5 | Gate: full suites, brief checklist, `/simplify`, `/code-review`, scoped security audit of auth, real demo ($), README, clean-clone test | — | Pending |
 
 ## Skills per task
@@ -104,3 +104,19 @@ Tests: backend 1489 passed, plus 8 slow. ruff, format and mypy clean. Spend in t
 Spend control finding: OpenRouter books a call's cost late, sometimes in parts (20-50 s for chat, more than a minute for vision). The wave-1 log under-reported the vision run (USD 0.031 logged, about USD 0.149 real, matching the estimate). `budgeted` now polls the key for 2 minutes after paid calls; the log carries a correction note. Sprint spend so far: about USD 0.18 of the USD 1.00 cap.
 
 Tests: backend 1493 passed, plus 8 slow.
+
+### Wave 4: Android login and voice
+
+| Task | Result |
+|---|---|
+| 4A Login | `login/LoginScreen.kt` and `LoginViewModel.kt` (email, password, show/hide, errors under the form). Token in the `auth` DataStore (`data/SessionStore.kt`); `data/AuthInterceptor.kt` sends `Authorization: Bearer`. Any 401 outside the login call clears the session and returns to Login with the back stack cleared. Splash routes by the stored session. Sign out in the Account menu calls logout best-effort and always clears the local session. A 409 `turn_in_progress` is retryable (Retry banner). |
+| 4B Debug role gate | The 5-tap gesture opens Debug only for role `developer`; for `user` it does nothing (the backend already sends empty traces). |
+| 4C Voice input | `voice/VoiceInput.kt`: mic button, `SpeechRecognizer` with partial results typed into the field, `RECORD_AUDIO` requested at runtime. If denied, the app explains and typing keeps working; if denied permanently, it points to Settings; if the device has no recognizer, voice is unavailable. |
+| 4D Voice output | `voice/Speaker.kt`: `TextToSpeech` reads the answer text (not product cards or tables) of a spoken message; every assistant message has a speaker button (read or stop). `voice/SpeechLanguage.kt` picks Spanish or English from the text. Numbers and part numbers are read as printed. |
+| 4E Accessibility | Content descriptions, 48 dp touch targets, TalkBack headings and live regions. |
+
+Tests: 132 Android unit tests pass (`./gradlew testDebugUnitTest`), `lintDebug` has no errors and no accessibility warnings, and all 35 instrumented tests pass on the emulator (`connectedDebugAndroidTest`, API 37). The instrumented run caught two real problems, both fixed: the Send and Back buttons were 40 dp (now 48 dp), and a card test needed `useUnmergedTree` after the card merged its semantics for TalkBack. Backend: no change in this wave.
+
+Emulator smoke test (no OpenRouter calls): wrong password shows "Wrong email or password"; ana signs in and sees only her own (empty) list; the session survives a force-stop; five taps on the title do nothing for ana; the mic asks for `RECORD_AUDIO`, a denial shows "Microphone permission needed — you can still type", and after granting it the recognizer starts (no audio on the emulator, so it reports "Didn't catch that, try again"); Sign out returns to Login and Back leaves the app instead of reopening ana's list. Spoken answers read aloud need a real turn, so they move to the wave 5 demo.
+
+Spend in this wave: USD 0 (no OpenRouter calls). Sprint spend stays at about USD 0.18 of the USD 1.00 cap.

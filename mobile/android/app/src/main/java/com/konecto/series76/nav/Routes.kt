@@ -3,6 +3,7 @@ package com.konecto.series76.nav
 /** Single source of truth for navigation routes; MainActivity and tests use these, never string literals. */
 object Routes {
     const val SPLASH = "splash"
+    const val LOGIN = "login"
     const val CONVERSATIONS = "conversations"
     const val CHAT = "chat"
     const val DEBUG = "debug"

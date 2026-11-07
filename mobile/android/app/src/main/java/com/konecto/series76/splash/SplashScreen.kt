@@ -1,5 +1,7 @@
 package com.konecto.series76.splash
 
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -26,12 +28,13 @@ import com.konecto.series76.ui.theme.AxelTheme
 
 @Composable
 fun SplashScreen(
-    onDone: () -> Unit,
+    onDone: (signedIn: Boolean) -> Unit,
     viewModel: SplashViewModel = defaultViewModel(),
 ) {
     val done by viewModel.done.collectAsStateWithLifecycle()
+    val signedIn by viewModel.signedIn.collectAsStateWithLifecycle()
     val onDoneNow by rememberUpdatedState(onDone)
-    LaunchedEffect(done) { if (done) onDoneNow() }
+    LaunchedEffect(done) { if (done) onDoneNow(signedIn) }
 
     Column(
         modifier = Modifier
@@ -43,7 +46,7 @@ fun SplashScreen(
     ) {
         AxelAvatar(state = AxelState.IDLE, size = 112.dp)
         Spacer(Modifier.height(16.dp))
-        Text("Axel", style = AxelTheme.typography.title, color = MaterialTheme.colorScheme.onBackground)
+        Text("Axel", Modifier.semantics { heading() }, style = AxelTheme.typography.title, color = MaterialTheme.colorScheme.onBackground)
         Spacer(Modifier.height(4.dp))
         Text("Series 76 actuator assistant", color = MaterialTheme.colorScheme.onSurfaceVariant)
     }
@@ -52,5 +55,5 @@ fun SplashScreen(
 @Composable
 private fun defaultViewModel(): SplashViewModel {
     val app = LocalContext.current.applicationContext as App
-    return viewModel(factory = SplashViewModel.factory(app.container.repository))
+    return viewModel(factory = SplashViewModel.factory(app.container.repository, app.container.authRepository))
 }
