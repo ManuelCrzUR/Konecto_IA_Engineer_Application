@@ -10,7 +10,7 @@ import numpy as np
 import pytest
 
 from app.domain.models import NUMERIC_FIELDS
-from app.ingestion import ocr as ocr_mod
+from app.ingestion import ocr_boxes, ocr_cells, ocr_layout
 from app.ingestion.crops import crop_tables
 from app.ingestion.flags import flag_cells, tables_to_escalate
 from app.ingestion.ocr import OcrError, OcrResult, ocr_table, ocr_tables
@@ -38,8 +38,8 @@ def test_garbage_bytes_and_unknown_table_raise() -> None:
 
 def test_missed_cells_become_missing_cells_not_omitted(monkeypatch: pytest.MonkeyPatch) -> None:
     table = "T4_xp_24v_onoff"
-    pn = ocr_mod._Box(0, 0, 100, 20, "761A00-11380000/A", 0.99)
-    lay = ocr_mod._Layout(
+    pn = ocr_boxes._Box(0, 0, 100, 20, "761A00-11380000/A", 0.99)
+    lay = ocr_layout._Layout(
         pns=[pn],
         pn_right=100,
         mx0=900,
@@ -49,12 +49,12 @@ def test_missed_cells_become_missing_cells_not_omitted(monkeypatch: pytest.Monke
         data=[],
         power=[],
     )
-    monkeypatch.setattr(ocr_mod, "_refill", lambda *a, **k: None)
+    monkeypatch.setattr(ocr_cells, "_refill", lambda *a, **k: None)
     gray = np.full((50, 1000), 255, np.uint8)
-    cells = ocr_mod._row_cells(table, gray, lay, pn)
+    cells = ocr_cells._row_cells(table, gray, lay, pn)
     assert [c[0] for c in cells] == list(TABLE_FIELDS[table])
     assert all(c[1] == "" for c in cells)
-    assert ocr_mod._parse_error("") == "missing"
+    assert ocr_boxes._parse_error("") == "missing"
 
 
 @pytest.fixture(scope="module")
