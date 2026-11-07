@@ -348,9 +348,11 @@ def test_v2_correct_number_next_to_its_product_passes() -> None:
 
 
 def test_v2_binding_uses_nearest_preceding_mention_in_the_sentence() -> None:
-    assert bad("764A00 has 108 s. Meanwhile 108 s is common.") == ["108"]
-    # new sentence: no mention before the figure, so the global rule applies
-    assert bad("764A00 is fine. The other has 108 s.") == []
+    assert bad("764A00 has 108 s. Meanwhile 108 s is common.") == ["108", "108"]
+    # new sentence, one product in the whole answer: bound to it (D-51 addendum)
+    assert bad("764A00 is fine. The other has 108 s.") == ["108"]
+    # two products in the answer: no guessing, the global rule applies
+    assert bad("764A00 is fine, 765B00 too. The other has 108 s.") == []
 
 
 def test_v2_markdown_table_row_binding() -> None:

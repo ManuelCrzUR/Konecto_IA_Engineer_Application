@@ -17,12 +17,15 @@ Contract:
 - unverified_numbers(answer, trace, query, user_history="", *, referent=None) -> list[str]
     Product binding (D-44): a figure is bound to the nearest PRECEDING part-number
     mention in its sentence or line (a table row is one line); with no part number in
-    the whole answer it is bound to the referent. A bound figure must be a reading of
-    THAT product's values or notes (not another product's), or typed by the user, or a
-    count. Field binding (D-51): if a unit follows a bound figure directly (optional
-    single or non-breaking space), it must be a reading of that product's fields with
-    that unit (see units.py), or of its notes. Units outside the map (Hz, V, none) keep
-    the product rule. Unbound figures keep the global rule (anywhere in the trace).
+    the whole answer it is bound to the referent. If its own sentence names none but
+    the WHOLE answer mentions exactly one distinct traced product, it is bound to that
+    product (D-51 addendum); with two or more, such a figure keeps the global rule (no
+    guessing). A bound figure must be a reading of THAT product's values or notes (not
+    another product's), or typed by the user (even with a unit: documented trust,
+    D-40), or a count WITHOUT a unit from the D-51 map. Field binding (D-51): if a unit
+    follows a bound figure directly (units.py: spaces, markdown emphasis), it must be a
+    reading of that product's fields with that unit, or of its notes. Units outside the
+    map (Hz, V, none) keep the product rule. Unbound figures keep the global rule.
     Small talk (empty trace): every figure is unverified unless the user typed it.
 - unverified_part_numbers(answer, trace, query, user_history="") -> list[str]
     Normalized part-number-like tokens that are neither equal to nor a prefix of one
@@ -33,115 +36,54 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
 
 from app.agent import numbers
+from app.agent.guard_values import (
+    bound_values,
+    counts,
+    pn_tokens,
+    product_fields,
+    product_values,
+    readings,
+    unit_values,
+    user_numbers,
+    walk,
+)
 from app.agent.numbers import PN_RE as _PN
 from app.agent.numbers import token_values
-from app.agent.products import traced_products
 from app.agent.units import unit_key
 from app.domain.models import ToolTrace
 
 _SENTENCE_END = re.compile(r"(?<=[.!?])\s+|\n")
-_COUNTED_LISTS = ("matches", "candidates", "suggestions")
-_NOTES = "<notes>"  # pseudo field key: the table notes of a product
-_SP = r"[  ]?"
+_product_values = product_values  # response.py imports this name
 
 
 def extract_numbers(text: str) -> list[str]:
     return [f.token for f in numbers.figures(text)]
 
 
-def _walk(obj: Any) -> list[str]:
-    """Numeric tokens inside every value of a nested structure (bools ignored)."""
-    if isinstance(obj, bool) or obj is None:
-        return []
-    if isinstance(obj, int | float):
-        return [format(obj, "f")]
-    if isinstance(obj, str):
-        return numbers.tokens(obj)
-    if isinstance(obj, dict):
-        return [n for k, v in obj.items() for n in numbers.tokens(str(k)) + _walk(v)]
-    if isinstance(obj, list | tuple):
-        return [n for v in obj for n in _walk(v)]
-    return []
-
-
-def _readings(tokens: list[str]) -> set[float]:
-    return {v for tok in tokens for v in token_values(tok)}
-
-
-def _user_numbers(query: str, user_history: str) -> set[float]:
-    return _readings(numbers.tokens(query) + numbers.tokens(user_history))
-
-
-def _pn_tokens(text: str) -> list[str]:
-    return [m.upper().rstrip("*").removesuffix("/A") for m in _PN.findall(text)]
-
-
-def _norm_pn(raw: dict[str, Any]) -> str:
-    return str(raw["part_number"]).upper().removesuffix("/A")
-
-
 def allowed_numbers(trace: list[ToolTrace], query: str, user_history: str = "") -> set[float]:
     toks: list[str] = []
     for t in trace:
-        toks += _walk(t.params) + _walk(t.result)
-    out = _user_numbers(query, user_history) | _readings(toks)
+        toks += walk(t.params) + walk(t.result)
+    out = user_numbers(query, user_history) | readings(toks)
     # A model size ("the 764") names a product a tool returned; it is not a figure.
     for t in trace:
-        for pn in _pn_tokens(f"{t.params} {t.result}"):
+        for pn in pn_tokens(f"{t.params} {t.result}"):
             out.add(float(pn[:3]))
-    return out | _counts(trace)
+    return out | counts(trace)
 
 
-def _counts(trace: list[ToolTrace]) -> set[float]:
-    """Counts of what the tools returned ("I found 3 options") come from the data, not memory."""
-    out = {float(len(_product_values(trace)))}
-    for t in trace:
-        if isinstance(t.result, dict):
-            for key in _COUNTED_LISTS:
-                if isinstance(t.result.get(key), list):
-                    out.add(float(len(t.result[key])))
-    return out
-
-
-def _product_values(trace: list[ToolTrace]) -> dict[str, set[float]]:
-    """Normalized part number -> every reading of that product's own values and notes."""
-    out: dict[str, set[float]] = {}
-    for raw, notes in traced_products(trace):
-        pn = _norm_pn(raw)
-        out.setdefault(pn, {float(pn[:3])}).update(_readings(_walk(raw) + _walk(notes)))
-    return out
-
-
-def _product_fields(trace: list[ToolTrace]) -> dict[str, dict[str, set[float]]]:
-    """Normalized part number -> field key -> readings of that field (notes under _NOTES)."""
-    out: dict[str, dict[str, set[float]]] = {}
-    for raw, notes in traced_products(trace):
-        fields = out.setdefault(_norm_pn(raw), {})
-        for k, v in raw.items():
-            fields.setdefault(k, set()).update(_readings(_walk(v)))
-        fields.setdefault(_NOTES, set()).update(_readings(_walk(notes)))
-    return out
-
-
-def _bound_values(by_pn: dict[str, set[float]], mention: str) -> set[float] | None:
-    """Values of the traced products a part-number mention names (None: no such product)."""
-    hits = [v for pn, v in by_pn.items() if pn.startswith(mention)]
-    return set().union(*hits) if hits else None
-
-
-def _unit_values(
-    by_fields: dict[str, dict[str, set[float]]], mention: str, text: str
-) -> set[float] | None:
-    """D-51: readings of the mentioned product's fields in the unit right after a figure
-    (plus its notes). None when no unit from the map follows or no such product."""
-    unit = unit_key(text)
-    hits = [f for pn, f in by_fields.items() if pn.startswith(mention)]
-    if unit is None or not hits:
-        return None
-    return {v for f in hits for key, vals in f.items() if key == _NOTES or unit(key) for v in vals}
+def _sole_product(mentions: list[re.Match[str]], by_pn: dict[str, set[float]]) -> str | None:
+    """The one traced product the whole answer mentions (None: none, several or untraced)."""
+    keys: set[str] = set()
+    for m in mentions:
+        mention = pn_tokens(m.group(0))[0]
+        hit = {pn for pn in by_pn if pn.startswith(mention)}
+        if not hit:
+            return None
+        keys |= hit
+    return next(iter(keys)) if len(keys) == 1 else None
 
 
 def unverified_numbers(
@@ -153,36 +95,46 @@ def unverified_numbers(
     referent: str | None = None,
 ) -> list[str]:
     allowed = allowed_numbers(trace, query, user_history)
-    user = _user_numbers(query, user_history)
-    by_pn = _product_values(trace)
-    by_fields = _product_fields(trace)
-    counts = _counts(trace)  # valid in any sentence, also next to a part number
+    user = user_numbers(query, user_history)
+    by_pn = product_values(trace)
+    by_fields = product_fields(trace)
+    cnt = counts(trace)  # valid in any sentence, also next to a part number
     mentions = list(_PN.finditer(answer))
     starts = [0] + [m.end() for m in _SENTENCE_END.finditer(answer)]
-    ref_pn = _pn_tokens(referent)[0] if referent and _pn_tokens(referent) else None
+    ref = pn_tokens(referent) if referent else []
+    sole = _sole_product(mentions, by_pn) if mentions else None
     bad: list[str] = []
     for f in numbers.figures(answer):
         vals = token_values(f.token)
-        if vals & user or vals & counts:
+        after = answer[f.end :]
+        if vals & user or (vals & cnt and unit_key(after) is None):
             continue
         seg = max(s for s in starts if s <= f.start)
         near = [m for m in mentions if m.start() >= seg and m.end() <= f.start]
-        pn = _pn_tokens(near[-1].group(0))[0] if near else None
+        pn = pn_tokens(near[-1].group(0))[0] if near else None
+        if pn is None:
+            sentence_has_pn = any(seg <= m.start() < _line_end(answer, f.end) for m in mentions)
+            pn = sole if not sentence_has_pn else None
         if pn is None and not mentions:
-            pn = ref_pn
-        bound = _bound_values(by_pn, pn) if pn else None
+            pn = ref[0] if ref else None
+        bound = bound_values(by_pn, pn) if pn else None
         if bound is not None and pn:
-            by_unit = _unit_values(by_fields, pn, answer[f.end :])
+            by_unit = unit_values(by_fields, pn, after)
             bound = bound if by_unit is None else by_unit
         if not vals & (allowed if bound is None else bound):
             bad.append(f.token)
     return bad
 
 
+def _line_end(text: str, pos: int) -> int:
+    m = _SENTENCE_END.search(text, pos)
+    return m.start() if m else len(text)
+
+
 def unverified_part_numbers(
     answer: str, trace: list[ToolTrace], query: str, user_history: str = ""
 ) -> list[str]:
-    known = _pn_tokens(query) + _pn_tokens(user_history)
+    known = pn_tokens(query) + pn_tokens(user_history)
     for t in trace:
-        known += _pn_tokens(json.dumps([t.params, t.result], default=str))
-    return [p for p in _pn_tokens(answer) if not any(k.startswith(p) for k in known)]
+        known += pn_tokens(json.dumps([t.params, t.result], default=str))
+    return [p for p in pn_tokens(answer) if not any(k.startswith(p) for k in known)]

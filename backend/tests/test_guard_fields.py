@@ -94,3 +94,32 @@ def test_figure_without_unit_unchanged() -> None:
 def test_unbound_figure_keeps_global_rule() -> None:
     assert bad("There are 108 s somewhere") == []  # no part number: anywhere in the trace
     assert bad("There are 9 s somewhere") == ["9"]
+
+
+def test_later_sentence_binds_to_sole_product() -> None:
+    ans = f"The {P764} is a good fit. Its FLA is 30 A."
+    assert bad(ans) == ["30"]  # 30 is its speed, not a current
+    assert bad(f"The {P764} is a good fit. Its FLA is 6.5 A.") == []
+    assert bad(f"{P764} fits.\nFLA 30 A") == ["30"]  # a new line is a new sentence too
+
+
+def test_later_sentence_with_two_products_keeps_global_rule() -> None:
+    ans = f"{P764} and {P765} both fit. Its FLA is 30 A."
+    assert bad(ans) == []  # 30 is in the trace: no guessing which product
+    assert bad(f"{P764} and {P765} both fit. Its FLA is 99 A.") == ["99"]
+
+
+def test_count_with_unit_is_flagged_and_without_unit_passes() -> None:
+    one = [found(A764)]
+    assert R.unverified_numbers(f"{P764}: FLA 1 A", one, "q") == ["1"]
+    assert R.unverified_numbers("I found 1 option.", one, "q") == []
+    assert R.unverified_numbers(f"{P764} is the only one of the 1 options.", one, "q") == []
+
+
+def test_user_typed_figure_passes_even_with_unit() -> None:
+    assert bad(f"{P764} gives 100 Nm", query="I need 100 Nm") == []
+
+
+@pytest.mark.parametrize("fmt", ["**30** A", "*30* Nm", "30 **A**", "30 A", "30 A", "**30** **A**"])
+def test_markdown_and_narrow_spaces_detect_units(fmt: str) -> None:
+    assert bad(f"{P764}: FLA {fmt}") == ["30"]  # 30 is a speed or torque-free value

@@ -4,7 +4,8 @@ Input:  the text right after a figure.
 Output: unit_key(text) -> predicate over actuator field keys, or None when no unit of
         the map follows (Hz, V, degrees and no unit are not in it).
 
-Map (one optional space or non-breaking space between figure and unit; case matters
+Map (one optional space, NBSP, narrow NBSP or thin space and markdown emphasis * or _
+between figure and unit, "**30** A", "30 **A**"; case matters
 for Nm, A and W):
   Nm, N·m, N.m -> keys ending _nm            in-lbs, in-lb, in lbs, lb-in, in·lbs -> _in_lbs
   A, amp(s), amperes, amperios -> fla_*, lra_*   W, watts, vatios -> motor_power_w
@@ -19,7 +20,8 @@ import re
 from collections.abc import Callable
 
 Key = Callable[[str], bool]
-_SP = r"[ \u00a0]?"
+# optional markdown emphasis and one space (plain, NBSP, narrow NBSP, thin) around the unit
+_SP = r"[*_]{0,3}[ \u00a0\u202f\u2009]?[*_]{0,3}"
 # (regex right after the figure, which field keys carry that unit). First match wins.
 _UNITS: list[tuple[re.Pattern[str], Key]] = [
     (re.compile(_SP + p), k)
