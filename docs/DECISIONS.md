@@ -622,6 +622,8 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Status.** Accepted (Sprint 8, wave 4). Supersedes the hook in D-10. Built: a mic button in the chat input (partial results typed into the field), runtime `RECORD_AUDIO` with explanations for denied and permanently denied, a speaker button on each assistant message, and the language picked from the text (`voice/SpeechLanguage.kt`). It works offline when the device has the offline language pack; otherwise the recognizer may need the network.
 
+**Status update (Sprint 9).** Speech-to-text is superseded by D-53 (OpenRouter transcription first, this on-device recognizer as fallback); text-to-speech stays as decided here.
+
 ## D-49 OCR in Docker, vision as the fallback (Sprint 8)
 
 **Context.** The evaluation found that re-extracting from the PDF without vision failed (T3 read 9 rows of 11, 78 flagged cells) and that the real vision call had never run.
@@ -663,14 +665,35 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Status.** Accepted (Sprint 9, wave 0).
 
+**Addendum (Sprint 9 gate).** Binding no longer stops at the sentence that names the part number: when a figure's own sentence or line names no part number and the whole answer mentions exactly one distinct traced product, the figure is bound to that product ("The 764A00 is a good fit. Its FLA is 30 A." now fails, because 30 is its speed). With two or more distinct products in the answer such a figure keeps the global rule, because guessing which one "Its" means would flag correct answers. The exemption for counts of tool results now applies only to figures without a unit from the map: "764A00: FLA 1 A" fails even when 1 is the product count. A figure the user typed still passes even with a unit (for example "gives 100 Nm" after "I need 100 Nm"), accepted trust (D-40) because the same sentence often restates the requirement. Unit detection also accepts markdown emphasis around the figure or unit ("**30** A", "30 **A**"), narrow no-break and thin spaces.
+
 ## D-52 Login attempt limit and no user id in the session list (Sprint 9)
 
 **Context.** The Sprint 8 auth audit accepted two risks: no rate limiting on `POST /api/auth/login`, and the test users' documented passwords. `GET /api/sessions` also returns `user_id`, which the app never reads.
 
-**Decision.** At most 5 failed logins per email (lowercased) in a 5-minute window. The 6th attempt answers 429 `too_many_attempts` with `Retry-After`, without checking the password, and the window resets on success. The limit applies to unknown emails too, so the answer never reveals whether an account exists. The counter lives in process memory (one API process). `user_id` is removed from the session list and message payloads.
+**Decision.** At most 5 login attempts per email (lowercased) and client address (the direct peer address; `X-Forwarded-For` is not trusted) in a sliding 5-minute window. The attempt is counted atomically before any hashing, so parallel requests cannot all pass the check. The 6th attempt answers 429 `too_many_attempts` with `Retry-After`, without checking the password, and a success clears the counter. The limit applies to unknown emails too, so the answer never reveals whether an account exists. The counter lives in process memory (one API process). `user_id` is removed from the session list and message payloads.
 
-**Alternatives.** A per-IP limit (it breaks behind a shared NAT and still allows slow guessing on one account), a counter in Postgres or Redis (needed only with several API processes), or account lockout (it lets anyone lock a known user out).
+**Alternatives.** A per-IP limit (it breaks behind a shared NAT and still allows slow guessing on one account), a counter in Postgres or Redis (needed only with several API processes), or account lockout keyed by email alone (it lets anyone who knows an email lock that user out; keying by email and address means an attacker elsewhere cannot).
 
-**Trade-off.** Simple, and it blocks online guessing against one account. The counter resets when the API restarts and is not shared between processes; both are documented.
+**Trade-off.** Simple, and it blocks online guessing against one account from one address. Users behind a shared NAT share one counter per email, and an attacker can still guess slowly from many addresses, which the documented test passwords make moot for a demo. The counter resets when the API restarts and is not shared between processes; both are documented.
 
-**Status.** Accepted (Sprint 9, wave 0).
+**Status.** Accepted (Sprint 9, wave 0). Revised in the Sprint 9 gate (key by email and client address, atomic sliding window).
+
+## D-53 Voice input through OpenRouter transcription, Android recognizer as fallback (Sprint 9)
+
+**Context.** D-48 put speech-to-text on the device (`SpeechRecognizer`). The tablet demo showed its weak spot: "764A00-11300000/A" was heard as "76 4a 00113 0000 raya a" (wrong digits and the word "raya"). The tool's not-found suggestions recovered the conversation, but dictating part numbers is the core use of voice here. OpenRouter now exposes a transcription endpoint (`POST /api/v1/audio/transcriptions`) with many speech-to-text models priced per second of audio (USD 0.0000033 to 0.0001 per second on 2026-11-07, so a 5-second question costs USD 0.00002 to 0.0005).
+
+**Decision.**
+- The app records the question (AAC in an `.m4a` container, at most 30 s) and sends it to a new backend route `POST /api/transcribe` (Bearer token required, multipart field `audio`, optional `language` `es`/`en`). The backend calls OpenRouter with the server key and `TRANSCRIBE_MODEL` (env var; the model is chosen by the wave V1 experiment and recorded here). The key never ships in the app.
+- The backend normalizes the transcript with deterministic rules before returning it: spoken separators ("guion", "raya", "dash" to `-`; "barra", "slash" to `/`) and digit or letter groups of a part number joined ("76 4a 00" to `764A00`). It never invents or snaps a part number to the catalog: a misheard digit still reaches `get_actuator`, whose not-found suggestions handle it.
+- Response: `{text, raw_text, model, seconds}`. Errors use the uniform body: 503 `transcription_not_configured` (no key or no `TRANSCRIBE_MODEL`), 503 `transcription_unavailable` (OpenRouter error or timeout), 413 `audio_too_large`, 415 `unsupported_audio`, 429 `too_many_transcriptions` (per-user limit in memory, like D-52).
+- Fallback: the app uses the Android recognizer of D-48 when the route answers 503, times out (15 s), or the device is offline. The app waits 15 s; the backend gives the provider 12 s, so the server answers 503 `transcription_unavailable` first. A small ASGI middleware (`app/api/body_limit.py`) rejects `POST /api/transcribe` before the body is read: no Content-Length 411 `length_required`, over 2 MB + 64 KB 413 `audio_too_large` (also while streaming), so an unauthenticated huge upload is never received. The user sees one line ("Using the device recognizer") and keeps talking; nothing else changes. Text-to-speech stays on the device (D-48).
+- Spend: every paid test runs inside `app.spend.budgeted`; the experiment and the demo have their own caps.
+
+**Alternatives.** Keep only the Android recognizer (free, partial results while speaking, but no control over accuracy). Whisper on the device with whisper.cpp (free and offline, but a 75-150 MB model in the APK and slow on a tablet). Whisper in the backend container (no per-call cost, but a much larger image and CPU load). An audio-capable chat model with the catalog in the prompt (biasing, but per-token cost and no dedicated endpoint contract).
+
+**Trade-off.** Better and controllable accuracy and the same text path for every device, for a few hundredths of a cent per question, a network round trip and no partial text while speaking. Without a key or network, voice still works through the fallback.
+
+**Model choice (wave V1).** Seven synthetic clips (macOS voices, Spanish and English, part numbers inside questions) through five models, `backend/scripts/stt_bench/REPORT.md`, USD 0.0092 in total. After normalization, `google/gemini-3.5-transcribe` and `openai/whisper-large-v3-turbo` both recovered 5 of 7 part numbers; Gemini wrote the cleanest text (the only exact `764A00-11300000/A`, `/A` instead of "barra oblicua") at about 2.5 s and USD 0.0007 per 5-second question, while Whisper turbo needed more normalization at USD 0.00002. No model wrote part numbers as printed without normalization. The user chose `google/gemini-3.5-transcribe` for transcript quality; the cost difference is negligible against the budget. The synthetic voice read "764X30" as "764 by 30", so the normalizer also maps "by", "por", "equis" or "x" between a model number and two digits to `X`.
+
+**Status.** Accepted (Sprint 9, waves V0 and V1).

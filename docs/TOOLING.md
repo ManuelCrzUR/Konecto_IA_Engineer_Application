@@ -7,7 +7,7 @@ The "Used for" column describes only what the repo or the docs show. Where a too
 
 | Tool | Source | Version / commit | Installed | Used for |
 |---|---|---|---|---|
-| LangChain skills (5 kept: `langchain-fundamentals`, `langchain-middleware`, `langchain-dependencies`, `ecosystem-primer`, `swarm`; pruned from the 22 upstream) | `langchain-ai/langchain-skills` via `npx skills add` | no commit recorded; per-skill `computedHash` in `skills-lock.json` | 2026-11-03 | `langchain-fundamentals`: the agent is built with `create_agent` (`backend/app/agent/agent.py`). `langchain-middleware`: `TraceRecorder(AgentMiddleware)` in the same file. `langchain-dependencies`: the pins in `backend/pyproject.toml`. `ecosystem-primer`: the framework choice in D-08 (`create_agent` over LangGraph and Deep Agents). `swarm`: not used so far; the eval runner is `backend/eval/run.py` with its own `ThreadPoolExecutor`. Kept for the Sprint 7 eval; remove it if it is not used there |
+| LangChain skills (5 kept: `langchain-fundamentals`, `langchain-middleware`, `langchain-dependencies`, `ecosystem-primer`, `swarm`; pruned from the 22 upstream) | `langchain-ai/langchain-skills` via `npx skills add` | no commit recorded; per-skill `computedHash` in `skills-lock.json` | 2026-11-03 | `langchain-fundamentals`: the agent is built with `create_agent` (`backend/app/agent/agent.py`). `langchain-middleware`: `TraceRecorder(AgentMiddleware)` in the same file. `langchain-dependencies`: the pins in `backend/pyproject.toml`. `ecosystem-primer`: the framework choice in D-08 (`create_agent` over LangGraph and Deep Agents). `swarm`: not used. The eval runner is `backend/eval/run.py` and has its own `ThreadPoolExecutor`. The skill stays only because it is part of the vendored LangChain skill set |
 | `supabase-postgres-best-practices` skill | `supabase/agent-skills` via `npx skills add` | hash in `skills-lock.json` | 2026-11-03 | Schema and query practices in `backend/app/db/` (typed columns, CHECK constraints, `ON CONFLICT` upsert, parameterized SQL, D-03, D-04). The docs do not record an explicit invocation |
 | `android-skills` plugin | `android/skills` marketplace, project scope (`.claude/settings.json`) | marketplace HEAD `6daa53ef27fa2aa87827d183a85c06cedceca833` at install time | 2026-11-03 | Enabled for the Compose app (`mobile/android`). The individual plugin skills are listed in the next table |
 | `android-development` skill | `github.com/dpconde/claude-android-skill` (copied, no `.git`) | `edfca5e36ceb7532708c28fd2fd5215a9f01d105` | 2026-11-03 | Feature-package layout and MVVM/Compose conventions for the Android app (`ARCHITECTURE.md` §5) |
@@ -35,6 +35,31 @@ These are not installed in the repo. They are available in the Claude Code envir
 | `run` | built-in | Gate demos: backend stack, CLI, eval and the Android app on the emulator |
 | MCP `mobile` | MCP server | Driving the emulator for E2E checks and screenshots (Gates 5 and 5.5) |
 
+### Sprints 8 and 9: skills per task
+
+Source: the "Skills per task" tables and the wave logs in `docs/plans/SPRINT-8.md` and `docs/plans/SPRINT-9.md`. The status column is the plan's status. Rows marked "planned" have not been done yet.
+
+| Sprint and wave | Task | Skill or built-in | What the plan records |
+|---|---|---|---|
+| 8, wave 1 | OCR fix (table T3) | `anthropic-skills:pdf` | Real vision run and OCR fix (D-49) |
+| 8, wave 1 | History window, small talk, follow-up referent | `langchain-fundamentals`, `langchain-middleware` | History window (D-45) and referent (D-47) |
+| 8, wave 1 | Schema, per-session lock, auth tables | `supabase-postgres-best-practices` | Lock (D-46) and auth tables |
+| 8, wave 2 | Login backend | `security-audit`, `supabase-postgres-best-practices` | Login (D-43) |
+| 8, wave 4 | Android: login screen and tests | `android-development`, `testing-setup` | Login (D-43) |
+| 8, wave 4 | Android: voice input permission | `android-permissions-security` | Microphone (`RECORD_AUDIO`) for voice (D-48) |
+| 8, wave 4 | Android: touch targets | `adaptive` | 48 dp touch targets |
+| 8, wave 5 | Gate | `simplify`, `code-review` (built-ins), `security-audit` | `/simplify` and `/code-review`; scoped audit of authentication and per-user isolation |
+| 9, wave 1 | 1A number guard (field binding) | `langchain-fundamentals` | D-51; black-box tests written by a Haiku subagent from the decision text |
+| 9, wave 1 | 1B OCR split | `anthropic-skills:pdf` | `ocr.py` split into `ocr_boxes`, `ocr_layout` and `ocr_cells`; no logic change |
+| 9, wave 1 | 1C login limit | `security-audit`, `supabase-postgres-best-practices` | Login attempt limit (D-52) |
+| 9, wave 1 | 1D eval cases | `langchain-fundamentals` | `tools_any` expectation and field-binding cases (52 cases in total) |
+| 9, wave 3 | Tablet screenshots | `android-development` (adb on the Lenovo Tab M11) | Done: sign in, voice dictation and answer, Debug; unused images removed |
+| 9, voice V2-A | Backend: `POST /api/transcribe`, OpenRouter client, per-user limiter, `python-multipart` (D-53) | `security-audit` | Built; 22 route and client tests |
+| 9, voice V2-B | Transcript normalizer (`backend/app/speech/normalize.py`, D-53) | `langchain-fundamentals`, plus black-box tests by a Haiku subagent | Built; 128 normalizer tests, 25 of them black-box |
+| 9, voice V2-C | Android: recording, cloud transcription and fallback (D-53) | `android-development`, `android-permissions-security` | Built; 153 JVM unit tests |
+| 9, extra | Login animation (`login/WelcomeSpin.kt`) | `android-development`, `jetpack-compose-performance` | Done: unit tests, lint, `LoginScreenTest` 3/3 on the emulator |
+| 9, wave 4 | Gate | `/simplify`, `/code-review` (built-ins) | Planned; pending in the plan |
+
 ## Reviewed, NOT installed
 
 | Candidate | Repo @ commit | Summary | Flags |
@@ -49,7 +74,7 @@ These are not installed in the repo. They are available in the Claude Code envir
 - Mentions of API keys in skills (`LANGSMITH_API_KEY`, etc.) are setup documentation with placeholders.
 - Skills that ship executable files: `swarm` (TypeScript), `android-development` (`generate_feature.py`). Grep found no network/subprocess calls in them; they are only run if explicitly invoked.
 - `security-audit` (2026-11-04): Markdown plus two local Node scripts (`validate-*.cjs`, only `fs`/`path`/`util`, no network or subprocess calls; read before copying). No install hooks. No OS sandbox is available, so the audit is source-only and never executes project code or calls OpenRouter.
-- Pruned on 2026-11-03 (out of scope: the agent uses `create_agent` with its own history in Postgres, no LangGraph graph, no RAG, Python backend): `deep-agents-*` (3), `deepagents-*-quickstart` (2), `langchain-python-quickstart`, `langchain-typescript-quickstart`, `langgraph-*` (8, incl. quickstarts), `managed-deep-agents`, `langchain-rag`, `eval-engineering`. `swarm` is kept for the Sprint 7 eval and is removed if it is not used there.
+- Pruned on 2026-11-03 (out of scope: the agent uses `create_agent` with its own history in Postgres, no LangGraph graph, no RAG, Python backend): `deep-agents-*` (3), `deepagents-*-quickstart` (2), `langchain-python-quickstart`, `langchain-typescript-quickstart`, `langgraph-*` (8, incl. quickstarts), `managed-deep-agents`, `langchain-rag`, `eval-engineering`. `swarm` was kept for a possible eval fan-out; it was never used (the eval runner has its own `ThreadPoolExecutor`) and stays only as part of the vendored set.
 
 ## Manual steps (not done by the agent)
 

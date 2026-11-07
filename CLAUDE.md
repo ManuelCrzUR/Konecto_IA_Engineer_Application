@@ -23,7 +23,7 @@ Idioma: conversación conmigo en español. Código, comentarios, commits y READM
 
 **Dentro:** extracción del PDF y su validación, base de datos de consulta, tools, agente, selección de LLM, casos borde, set de evaluación, `cli.py`, API FastAPI (`POST /api/conversation` y sesiones), conversaciones persistidas en Postgres, Docker Compose y app Android (Kotlin + Compose). El plan de entrega tiene 7 sprints más el 5.5 de rediseño (`docs/ARCHITECTURE.md` §11); el 6 es de seguridad (prompting incluido) y el 7 de entrega.
 
-**Opcionales (implementados en el Sprint 8):** login con email, contraseña y token opaco (D-43; usuarios de prueba sembrados, cada uno ve solo sus conversaciones, traza solo para el rol developer) y conversación por voz en el dispositivo (D-48: SpeechRecognizer + TextToSpeech, sin costo de key).
+**Opcionales (implementados en el Sprint 8):** login con email, contraseña y token opaco (D-43; usuarios de prueba sembrados, cada uno ve solo sus conversaciones, traza solo para el rol developer) y conversación por voz: desde el Sprint 9 se transcribe con OpenRouter (D-53, `google/gemini-3.5-transcribe`) y el reconocedor del dispositivo queda como respaldo (D-48); la respuesta se lee con TextToSpeech.
 
 El agente se invoca como `run_agent(query, history=[])`. La API le pasa el historial guardado en Postgres.
 
@@ -183,3 +183,4 @@ docker-compose.yml  Dockerfile  Makefile  .env.example  README.md
 - (Hecho, Sprint 8 ola 1) Llamada real a OpenRouter para el escalado: 4 tablas con visión, salida idéntica al JSON commiteado (D-49).
 - (Decidido 2026-11-06) No se prueba la regla de marcado con otros PDFs: el enunciado solo pide este PDF. Queda como limitación conocida en README y D-01.
 - Opcionales implementados en el Sprint 8: login (D-43, backend ola 2, app ola 4) y voz en el dispositivo (D-48, ola 4). Puerta final (ola 5) pasada.
+- Sprint 9 en curso (plan y log en `docs/plans/SPRINT-9.md`): guardia por campo D-51, límite de login D-52, división de módulos, eval 52/52, voz con transcripción por OpenRouter y reconocedor del dispositivo como respaldo (D-53), y demo en tablet pendiente (antes del 2026-11-09, vencimiento de la key).

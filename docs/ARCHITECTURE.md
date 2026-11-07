@@ -99,7 +99,7 @@ Conversations (same database, same `pgdata` volume):
 - `GET /api/sessions?q=&limit=` (`id, user_id, title, created_at, updated_at`; with `q`, only matching sessions, each with `match {where, snippet}`, D-37) and `GET /api/sessions/{id}/messages` (includes `products` and `trace`). The search is `db/sessions_search.py` (case-insensitive `ILIKE` over titles and message contents, one query, `LIKE` wildcards escaped); the snippet is built by the pure function `db/snippet.py`. The route is in `api/routes_sessions.py`.
 - An unknown `session_id` returns **404** with a clear message. Sessions are never created by accident. With no `session_id`, a session is created and returned.
 - Login (D-43): `POST /api/auth/login` returns an opaque token (7 days); `POST /api/auth/logout`, `GET /api/auth/me`. `deps.get_current_user` reads `Authorization: Bearer`, looks up the SHA-256 of the token in `auth_tokens` (short pooled borrow) and answers 401 `unauthorized` otherwise; every `/api` route except login depends on it, `/health` is public. `users` holds argon2id hashes (`app/auth/`); three test users are seeded at startup (`app/auth/seed.py`, `SEED_TEST_USERS`). Every `sessions_repo` call receives `user.id`, so another user's session answers 404. For role `user` the API returns `debug`/`trace` empty; only `developer` receives the tool trace.
-- Voice (D-48, implemented in the app): **transcription and speech on the device** (Android `SpeechRecognizer` and `TextToSpeech`). The text goes to the same endpoint. No budget cost and no backend change.
+- Voice (D-53, revising D-48): the app records the question and the backend transcribes it through OpenRouter (`POST /api/transcribe`, `TRANSCRIBE_MODEL`), then normalizes dictated part numbers; the transcript goes to `POST /api/conversation` like typed text. Without a key, on errors or offline, the app falls back to the on-device `SpeechRecognizer`. Answers are read aloud on the device (`TextToSpeech`).
 - Errors: a uniform JSON body `{error, detail}` (`api/errors.py`). A timeout or a dead LLM returns a generic 503, without internal detail and without losing the user's message, which is already saved (D-34).
 
 ## 5. Android app (`mobile/android`)
@@ -112,7 +112,7 @@ One Gradle module with packages by feature (KISS; the `android-development` skil
 - The chat never shows tool names or traces.
 - Login (Sprint 8, D-43): `login/LoginScreen.kt` and `login/LoginViewModel.kt` (email, password, show/hide, errors under the form). The token is stored in the `auth` DataStore (`data/SessionStore.kt`). `data/AuthInterceptor.kt` (OkHttp) adds `Authorization: Bearer` to every request. Any 401 outside the login call clears the session and returns to Login with the back stack cleared. Splash goes to Conversations when a session is stored, otherwise to Login. Sign out (Account menu, person icon) calls `POST /api/auth/logout` best-effort and always clears the local session.
 - Retry: a 409 `turn_in_progress` from `POST /api/conversation` is retryable (Retry banner), like the other transient failures.
-- Voice (Sprint 8, D-48): `voice/VoiceInput.kt` (`SpeechRecognizer`, partial results into the input field, `RECORD_AUDIO` requested at runtime), `voice/Speaker.kt` (`TextToSpeech`: only the answer text of a spoken message is read, plus a speaker button on each assistant message), `voice/SpeechLanguage.kt` (Spanish or English picked from the text). Everything runs on the device.
+- Voice (Sprint 8 and 9, D-48 and D-53): `voice/CloudVoiceInput.kt` records the question (`voice/AudioRecorder.kt`, AAC, 30 s cap) and sends it to `POST /api/transcribe`; on a server error, timeout or offline device, `voice/FallbackVoiceInput.kt` uses the on-device `SpeechRecognizer` (`voice/VoiceInput.kt`) for that tap and the next 5 minutes. `voice/Speaker.kt` reads answers aloud with `TextToSpeech` (only the answer text of a spoken message, plus a speaker button on each assistant message), and `voice/SpeechLanguage.kt` picks Spanish or English from the text.
 - Accessibility (Sprint 8, wave 4): content descriptions, 48 dp touch targets, TalkBack headings and live regions.
 - Redesign ("Axel", Sprint 5.5): dark, light or system theme, chosen from the header menu and stored with DataStore (`data/ThemePreferences.kt`); a splash screen; the Axel character and launcher icon; conversation search, which calls `GET /api/sessions?q=` and shows the matching snippet.
 - Design references: `mobile/android/DESIGN.md` is the contract (themes, motion, states); `docs/design/` holds the visual reference in dark and light.
@@ -125,12 +125,14 @@ backend/
 ├── pyproject.toml
 ├── app/
 │   ├── domain/{models.py,conversation.py,search.py}   # Actuator (single contract), Product, ToolTrace; conversation and search contracts
-│   ├── ingestion/{ocr,flags,escalate,normalize,validate,pipeline,store_json,crops,table_meta}.py
+│   ├── ingestion/{ocr,ocr_boxes,ocr_layout,ocr_cells,flags,escalate,normalize,validate,pipeline,store_json,crops,table_meta}.py
 │   ├── db/{schema.sql,connection.py,actuators_repo.py,search_sql.py,sessions_repo.py,sessions_search.py,snippet.py}
 │   ├── bootstrap.py                # ensure_data()
 │   ├── llm.py                      # get_llm(task) (D-19)
-│   ├── agent/{tools,prompts,agent,response}.py
-│   └── api/{main.py,schemas.py,deps.py,errors.py,routes_conversation.py,routes_sessions.py}
+│   ├── agent/{tools,prompts,agent,response,products,guard,units,template,persona}.py
+│   ├── auth/attempts.py            # login attempt limit (D-52)
+│   ├── speech/{client,normalize,limits}.py   # voice transcription (D-53)
+│   └── api/{main.py,schemas.py,deps.py,errors.py,routes_conversation.py,routes_sessions.py,routes_transcribe.py}
 ├── Dockerfile   pyproject.toml   cli.py   ingest.py
 ├── data/{raw/series_76_electric_data.pdf, processed/actuators.json}
 ├── eval/   tests/   docker/initdb/
@@ -154,7 +156,7 @@ No ORM (`psycopg` with parameterized SQL). No `DataSource` or `Extractor` interf
 
 - Unit tests per module, without a real LLM: `validate`, `flags`, `normalize`, repositories (test Postgres), tools, `response` (number guard), and the API with a simulated agent.
 - Self-recovery test (main acceptance criterion): (a) `docker compose down -v && make up` → 68 rows; (b) delete `actuators.json` → it is regenerated and validated; (c) delete rows in Postgres → the count is corrected; (d) corrupt JSON → detected and re-extracted; (e) restart the API → conversations still there.
-- `eval/`: 49 cases in `eval/cases.yaml`, by category: lookup 6, recommend 5, ambiguous 3, impossible 3, invalid_pn 3, na 2, out_of_subset 3, multi_turn 7, small_talk 5 (Sprint 8), and injection 12 (prompt-injection and persona cases, 38/38 with the development model, `docs/security/REPORT.md`). Deterministic assertions on the tool called, its status, the part numbers in `products`, the exact numbers in the answer, `answer_includes` (required phrases, used for the persona cases), and whether the number guard fired. Cheap model while iterating; the good model only in the final run (Sprint 7).
+- `eval/`: 52 cases in `eval/cases.yaml`, by category: lookup 8, recommend 5, ambiguous 3, impossible 3, invalid_pn 3, na 2, out_of_subset 3, multi_turn 8, small_talk 5 (Sprint 8), and injection 12 (prompt-injection and persona cases, 38/38 with the development model, `docs/security/REPORT.md`). Deterministic assertions on the tool called, its status, the part numbers in `products`, the exact numbers in the answer, `answer_includes` (required phrases, used for the persona cases), and whether the number guard fired. Cheap model while iterating; the good model only in the final runs: Sprint 7 (38/38) and Sprint 9 (52/52, `openai/gpt-6-luna`).
 - Final test from scratch on a clean machine, following only the README (mandatory requirement).
 
 ## 9. Build order and parallel tracks
@@ -162,7 +164,7 @@ No ORM (`psycopg` with parameterized SQL). No `DataSource` or `Extractor` interf
 - **Phase 0 (sequential)**: `domain/models.py`, `schema.sql`, signatures of `actuators_repo`, `sessions_repo` and the tools, the `ConversationResponse` schema, `pyproject.toml`, compose, `CLAUDE.md`.
 - **Tracks** (one folder each): A `ingestion/` + `bootstrap.py`; B `db/`; C `agent/tools.py`; D `agent/` (LLM, agent, response, eval); then E `api/`; F `mobile/android` (can start with a fake server that follows the contract in §4).
 - **Phase 2 (sequential)**: integrate, run `eval/` on real data, README, clean-machine test.
-- Optional features, done in Sprint 8: login (endpoint, `users`, dependency; D-43) and voice in the app (D-48).
+- Optional features, done in Sprint 8: login (endpoint, `users`, dependency; D-43) and voice in the app (D-48), revised in Sprint 9 with OpenRouter transcription (D-53).
 
 The active delivery plan is §11. This section describes the dependency structure behind it.
 
@@ -196,4 +198,5 @@ Eight sprints, in order (plus 5.5, the UI redesign). Each one ends at a human ga
 6. **Security**: a multi-phase audit with Cloudflare's `security-audit` skill (prompt injection, agent and tool abuse, API exposure, operator spend, mobile, supply chain), adversarial evaluation cases, remediation and a re-audit. Two runs; no confirmed vulnerability, three leads that need a deployment fact. The committed report is `docs/security/REPORT.md` (raw runs in `docs/security/runs/` are gitignored). Decisions: D-39 (persona, generic tool errors) and D-40 (accepted number-guard risk while single-user).
 7. **Integration and delivery**: final evaluation run with the good model, code review, README, decisions and tooling docs, clean-machine test, and a checklist of the brief.
 
-8. **Evaluation fixes and optional features**: an independent evaluation of the Sprint 7 delivery scored it about 81/100 and listed concrete risks. Sprint 8 closes them (OCR in Docker with vision as fallback, number guard v2, history window, per-session lock, follow-up referent, docs mismatches, conversational small talk) and adds the optional login and voice conversation. Wave 4 is the Android side: the login screen and token handling, Debug only for the `developer` role, on-device voice input and output, and an accessibility pass. Plan and status per wave: `docs/plans/SPRINT-8.md`. Decisions D-43 to D-49.
+8. **Evaluation fixes and optional features**: an independent evaluation of the Sprint 7 delivery scored it about 81/100 and listed concrete risks. Sprint 8 closes them (OCR in Docker with vision as fallback, number guard v2, history window, per-session lock, follow-up referent, docs mismatches, conversational small talk) and adds the optional login and voice conversation. Wave 4 is the Android side: the login screen and token handling, Debug only for the `developer` role, on-device voice input and output, and an accessibility pass. Plan and status per wave: `docs/plans/SPRINT-8.md`. Decisions D-43 to D-50.
+9. **Self-evaluation gaps**: a rubric re-run after Sprint 8 scored the project about 90/100 and listed the remaining gaps. Sprint 9 closes them: a field-bound number guard (D-51), a login attempt limit and no `user_id` in session payloads (D-52), `response.py` and `ocr.py` split into modules of about 190 lines or fewer, the eval at 52/52 with the final model, and new screenshots from a real tablet (sign in, voice, Debug). Also: voice transcription through OpenRouter with the on-device recognizer as fallback (D-53), and a login animation (Axel turns once after a successful sign-in). Plan and status per wave: `docs/plans/SPRINT-9.md`.

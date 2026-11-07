@@ -22,3 +22,9 @@ Notes (corrected by hand, Sprint 8 wave 3):
 | 2026-11-06T20:35:36+00:00 | eval | openai/gpt-6-luna | 49 | 0.011921 | 0.08 | ok |
 | 2026-11-06T20:41:07+00:00 | eval | openai/gpt-6-luna | 49 | 0.008063 | 0.06 | ok |
 | 2026-11-06T23:11:09+00:00 | demo-emulator | stealth/crouton-alpha | 2 | 0.000000 | 0.10 | ok |
+| 2026-11-07T04:23:18+00:00 | eval | openai/gpt-6-luna | 1 | 0.000270 | 0.01 | ok |
+| 2026-11-07T04:27:45+00:00 | eval | openai/gpt-6-luna | 52 | 0.011458 | 0.05 | ok |
+| 2026-11-07T05:23:24+00:00 | stt-bench | openai/whisper-large-v3-turbo | 1 | 0.000023 | 0.01 | ok |
+| 2026-11-07T05:26:39+00:00 | stt-bench | openai/whisper-large-v3-turbo,openai/whisper-large-v3,openai/gpt-4o-mini-transcribe,mistralai/voxtral-mini-transcribe-3-0,google/gemini-3.5-transcribe | 35 | 0.009110 | 0.03 | ok |
+| 2026-11-07T07:34:03+00:00 | demo-voice-tablet | google/gemini-3.5-transcribe + agent | 0 | 0.000000 | 0.05 | not run: tablet disconnected (usage re-read by hand, 0.330294 before and after) |
+| 2026-11-07T15:42:20+00:00 | transcribe-e2e (API, 2 clips) | google/gemini-3.5-transcribe | 2 | 0.001718 | 0.01 | ok |
