@@ -11,20 +11,26 @@ Case format (YAML list; see eval/cases.yaml):
                                history passed like the API would)
   expect:                     (all checks apply to the LAST turn's result)
     tools: [str]              each tool must appear in that turn's trace
-    status: str               optional; status of the last trace result whose
-                              tool is expect.tools[0] (found, found_no_data,
-                              ambiguous, not_found, ok, no_match)
+    tools_any: [str]          at least one of these must appear (either valid tool).
+                              A check on a tools_any tool runs only if that tool
+                              was called (status, out_of_catalog)
+    status: str               optional; status of the last trace result of
+                              expect.tools[0], or of search_actuators when tools is
+                              empty (found, found_no_data, ambiguous, not_found, ok,
+                              no_match)
     products: [str]           part numbers that must ALL be in products
     no_products: bool         products must be empty
     answer_numbers: [str]     numbers (as strings, e.g. "1,330") that must
                               appear in the answer — matched by token_values,
                               so "1330" and "1,330" are equal
-    out_of_catalog: bool      the last search result's no_match.out_of_catalog
+    out_of_catalog: bool      the last search_actuators result's no_match.out_of_catalog
+                              (skipped when search_actuators is a tools_any tool that
+                              was not called)
     guard_ok: bool            default true: guard_triggered must be False
 
 Contract:
 - CATEGORIES = ("lookup", "recommend", "invalid_pn", "na", "impossible",
-  "ambiguous", "out_of_subset", "multi_turn")
+  "ambiguous", "out_of_subset", "multi_turn", "injection", "small_talk")
 - load_cases(path) -> list[Case]  (pydantic, validates ids unique, category)
 - run_case(case, *, llm, conn_factory) -> CaseResult
     runs every turn with app.agent.agent.run_agent (looked up at call time);

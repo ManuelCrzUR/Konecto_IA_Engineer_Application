@@ -24,6 +24,7 @@ CATEGORIES = (
 
 class Expect(BaseModel):
     tools: list[str] = Field(default_factory=list)
+    tools_any: list[str] = Field(default_factory=list)  # at least one must be called
     status: str | None = None
     products: list[str] = Field(default_factory=list)
     no_products: bool = False
@@ -91,16 +92,24 @@ def _is_number(text: str) -> bool:
     return bool(extract_numbers(text)) and not any(c.isalpha() for c in text)
 
 
+def _check_applies(e: Expect, tool: str, used: list[str]) -> bool:
+    """A check on tool's result runs unless tool is a tools_any alternative that was not called."""
+    return tool in used or tool not in e.tools_any
+
+
 def check(case: Case, result: AgentResult) -> list[str]:
     e, bad = case.expect, []
     used = [t.tool for t in result.trace]
     for tool in e.tools:
         if tool not in used:
             bad.append(f"tool {tool} not called (called: {used})")
-    if e.status is not None and e.tools:
-        got = _field(_last_result(result, e.tools[0]), "status")
+    if e.tools_any and not any(t in used for t in e.tools_any):
+        bad.append(f"none of tools_any {e.tools_any} called (called: {used})")
+    status_tool = e.tools[0] if e.tools else "search_actuators"
+    if e.status is not None and _check_applies(e, status_tool, used):
+        got = _field(_last_result(result, status_tool), "status")
         if got != e.status:
-            bad.append(f"status of {e.tools[0]}: expected {e.status}, got {got}")
+            bad.append(f"status of {status_tool}: expected {e.status}, got {got}")
     shown = {p.part_number for p in result.products}
     missing = [p for p in e.products if p not in shown]
     if missing:
@@ -126,7 +135,7 @@ def check(case: Case, result: AgentResult) -> list[str]:
             hit = bad_text.lower() in result.answer.lower()
         if hit:
             bad.append(f"answer must not contain {bad_text!r}")
-    if e.out_of_catalog is not None:
+    if e.out_of_catalog is not None and _check_applies(e, "search_actuators", used):
         nm = _field(_last_result(result, "search_actuators"), "no_match")
         got = _field(nm, "out_of_catalog")
         if bool(got) != e.out_of_catalog:

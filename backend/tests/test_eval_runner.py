@@ -236,3 +236,55 @@ def test_run_all_stops_scheduling_after_budget_exceeded() -> None:
     finally:
         agent_mod.run_agent = orig
     assert [r.id for r in out] == ["c0"] and seen == ["c0"]
+
+
+SUBSET_02: dict[str, Any] = {
+    "tools_any": ["search_actuators", "describe_catalog"],
+    "status": "no_match",
+    "out_of_catalog": True,
+    "no_products": True,
+}
+NO_MATCH_OOC = _trace("search_actuators", status="no_match", no_match={"out_of_catalog": True})
+
+
+def test_tools_any_passes_with_either_tool() -> None:
+    c = _case(tools_any=["search_actuators", "describe_catalog"])
+    assert ev.check(c, _res(trace=[_trace("describe_catalog", voltages=[])])) == []
+    assert ev.check(c, _res(trace=[_trace("search_actuators", status="ok")])) == []
+
+
+def test_tools_any_fails_with_neither_tool() -> None:
+    c = _case(tools_any=["search_actuators", "describe_catalog"])
+    fails = ev.check(c, _res(trace=[_trace("get_actuator", status="found")]))
+    assert len(fails) == 1 and fails[0].startswith("none of tools_any")
+    assert ev.check(c, _res())
+
+
+def test_subset02_describe_only_passes_without_products() -> None:
+    describe = _trace("describe_catalog", voltages=[])
+    assert ev.check(_case(**SUBSET_02), _res(trace=[describe])) == []
+    assert ev.check(_case(**SUBSET_02), _res(trace=[describe], pns=["761A"]))
+
+
+def test_subset02_search_must_be_no_match_out_of_catalog() -> None:
+    assert ev.check(_case(**SUBSET_02), _res(trace=[NO_MATCH_OOC])) == []
+    wrong_status = _trace("search_actuators", status="ok", no_match={"out_of_catalog": True})
+    assert ev.check(_case(**SUBSET_02), _res(trace=[wrong_status]))
+    not_ooc = _trace("search_actuators", status="no_match", no_match={"out_of_catalog": False})
+    assert ev.check(_case(**SUBSET_02), _res(trace=[not_ooc]))
+
+
+def test_status_and_out_of_catalog_still_enforced_without_tools_any() -> None:
+    # Not weakened: the carrier tool is not a tools_any alternative, so its absence fails.
+    describe = _trace("describe_catalog", voltages=[])
+    assert ev.check(_case(out_of_catalog=True), _res(trace=[describe]))
+    assert ev.check(_case(status="no_match"), _res(trace=[describe]))
+
+
+def test_shipped_cases_use_new_fields() -> None:
+    cases = {c.id: c for c in ev.load_cases(ev.HERE / "cases.yaml")}
+    assert cases["subset-02"].expect.tools_any == ["search_actuators", "describe_catalog"]
+    assert cases["subset-02"].expect.tools == []
+    for cid in ("lookup-05", "lookup-06", "multi-04"):
+        assert cases[cid].expect.guard_ok and cases[cid].expect.products
+        assert cases[cid].expect.answer_numbers

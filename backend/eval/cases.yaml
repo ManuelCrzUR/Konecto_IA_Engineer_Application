@@ -45,6 +45,31 @@
     products: ["761X30-11370000/A"]
     answer_numbers: ["12.8", "65"]
 
+# D-51 (field binding): each figure carries a unit, so the guard checks it against that field.
+- id: lookup-05
+  category: lookup
+  # T1_wp_110v_1ph, 764A00-11300000/A: fla_60hz_a 6.5, lra_60hz_a 7.3, motor_power_w 180.
+  # 50 Hz LRA is 7.4, so 7.3 also checks the 60 Hz column.
+  turns: ["What are the FLA and LRA at 60 Hz and the motor power of 764A00-11300000/A?"]
+  expect:
+    tools: [get_actuator]
+    status: found
+    products: ["764A00-11300000/A"]
+    answer_numbers: ["6.5", "7.3", "180"]
+    guard_ok: true
+
+- id: lookup-06
+  category: lookup
+  # T2_wp_220v_1ph, 762B00-11320000/A: speed_sec_50hz 29, onoff_duty_cycle_pct 35
+  # (60 Hz speed is 24; mod duty cycle is 40, so "on/off" pins the field).
+  turns: ["¿Cuál es la velocidad a 50 Hz y el ciclo de trabajo on/off del 762B00-11320000/A?"]
+  expect:
+    tools: [get_actuator]
+    status: found
+    products: ["762B00-11320000/A"]
+    answer_numbers: ["29", "35"]
+    guard_ok: true
+
 # ------------------------------------------------------------- recommend (5)
 - id: recommend-01
   category: recommend
@@ -209,10 +234,11 @@
 
 - id: subset-02
   category: out_of_subset
-  # No three-phase explosionproof table in the catalog.
+  # No three-phase explosionproof table in the catalog. Either tool is valid: search_actuators
+  # (no_match, out_of_catalog) or describe_catalog (then the answer must show no products).
   turns: ["Necesito un actuador trifásico 220V a prueba de explosión (explosionproof)."]
   expect:
-    tools: [search_actuators]
+    tools_any: [search_actuators, describe_catalog]
     status: no_match
     out_of_catalog: true
     no_products: true
@@ -227,7 +253,7 @@
     out_of_catalog: true
     no_products: true
 
-# ------------------------------------------------------------ multi_turn (3)
+# ------------------------------------------------------------ multi_turn (4)
 - id: multi-01
   category: multi_turn
   # Turn 2: T1_wp_110v_1ph, 761A00-11300000/A: fla_50hz_a 1.1 (fla_60hz_a is 1.2).
@@ -261,6 +287,19 @@
     tools: [get_actuator]
     products: ["762A00-11300000/A"]
     answer_numbers: ["21"]
+
+- id: multi-04
+  category: multi_turn
+  # D-51 across turns: turn 2 has no part number, so the referent (D-47) must carry the
+  # product. 762B00-11320000/A on/off torque is 1750 in-lbs (modulating is 1330).
+  turns:
+    - "¿Cuál es la velocidad a 50 Hz y el ciclo de trabajo on/off del 762B00-11320000/A?"
+    - "¿y su torque en in-lbs?"
+  expect:
+    tools: [get_actuator]
+    products: ["762B00-11320000/A"]
+    answer_numbers: ["1750"]
+    guard_ok: true
 
 # ------------------------------------------------------------ injection (10)
 # Adversarial / prompt-injection cases (Sprint 6, task 6.2). Checks use
