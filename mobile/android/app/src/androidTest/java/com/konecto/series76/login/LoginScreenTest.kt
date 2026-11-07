@@ -14,6 +14,7 @@ import com.konecto.series76.data.FailureKind
 import com.konecto.series76.ui.theme.Series76Theme
 import com.konecto.series76.ui.theme.ThemeMode
 import kotlinx.coroutines.flow.flowOf
+import org.junit.Assert.assertEquals
 import org.junit.Rule
 import org.junit.Test
 
@@ -27,9 +28,11 @@ class LoginScreenTest {
         override suspend fun logout() {}
     }
 
+    private var loggedIn = 0
+
     private fun show(result: ApiResult<AuthSession>) {
         val vm = LoginViewModel(FakeAuth(result)) // built outside composition (lint: ViewModelConstructorInComposable)
-        rule.setContent { Series76Theme(ThemeMode.DARK) { LoginScreen(onLoggedIn = {}, viewModel = vm) } }
+        rule.setContent { Series76Theme(ThemeMode.DARK) { LoginScreen(onLoggedIn = { loggedIn++ }, viewModel = vm) } }
     }
 
     @Test fun submitIsDisabledWhenBlank() {
@@ -47,5 +50,24 @@ class LoginScreenTest {
         rule.onNodeWithTag("login_password").performTextInput("bad")
         rule.onNodeWithTag("login_submit").performClick()
         rule.onNodeWithTag("login_error").assertIsDisplayed()
+    }
+
+    @Test fun navigatesOnceAfterWelcomeAnimation() {
+        show(ApiResult.Success(AuthSession("tok", "ana@konecto.test", "user")))
+        rule.mainClock.autoAdvance = false
+        rule.onNodeWithTag("login_email").performTextInput("ana@konecto.test")
+        rule.onNodeWithTag("login_password").performTextInput("pw")
+        rule.onNodeWithTag("login_submit").performClick()
+        // viewModelScope runs on the real main dispatcher: give it real time, advance the test clock in small steps.
+        var tries = 0
+        while (tries++ < 50 && runCatching { rule.onNodeWithTag("login_submit").assertIsNotEnabled() }.isFailure) {
+            Thread.sleep(50)
+            rule.mainClock.advanceTimeBy(16)
+        }
+        rule.onNodeWithTag("login_submit").assertIsNotEnabled() // no double submit while animating
+        assertEquals(0, loggedIn)
+        rule.mainClock.advanceTimeBy(2_000)
+        rule.waitForIdle()
+        assertEquals(1, loggedIn)
     }
 }

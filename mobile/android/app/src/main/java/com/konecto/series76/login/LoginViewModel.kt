@@ -21,7 +21,7 @@ data class LoginUiState(
     /** True once signed in; the screen navigates on it. */
     val done: Boolean = false,
 ) {
-    val canSubmit: Boolean get() = email.isNotBlank() && password.isNotEmpty() && !loading
+    val canSubmit: Boolean get() = email.isNotBlank() && password.isNotEmpty() && !loading && !done
 }
 
 class LoginViewModel(private val auth: AuthRepository) : ViewModel() {

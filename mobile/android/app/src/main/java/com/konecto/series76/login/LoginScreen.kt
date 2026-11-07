@@ -27,11 +27,9 @@ import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -57,9 +55,8 @@ fun LoginScreen(
     viewModel: LoginViewModel = defaultViewModel(),
 ) {
     val state by viewModel.state.collectAsStateWithLifecycle()
-    val onLoggedInNow by rememberUpdatedState(onLoggedIn)
-    LaunchedEffect(state.done) { if (state.done) onLoggedInNow() }
-    LoginContent(state, viewModel::onEmail, viewModel::onPassword, viewModel::submit)
+    val spin = rememberWelcomeSpin(state.done, onLoggedIn)
+    LoginContent(state, spin, viewModel::onEmail, viewModel::onPassword, viewModel::submit)
 }
 
 @Composable
@@ -71,6 +68,7 @@ private fun defaultViewModel(): LoginViewModel {
 @Composable
 private fun LoginContent(
     state: LoginUiState,
+    spin: WelcomeSpin,
     onEmail: (String) -> Unit,
     onPassword: (String) -> Unit,
     onSubmit: () -> Unit,
@@ -82,10 +80,16 @@ private fun LoginContent(
         horizontalAlignment = Alignment.CenterHorizontally,
         verticalArrangement = Arrangement.spacedBy(12.dp, Alignment.CenterVertically),
     ) {
-        AxelAvatar(if (state.error != null) AxelState.PROBLEM else AxelState.IDLE, size = 96.dp)
-        Text("Sign in to Axel", Modifier.semantics { heading() }, style = AxelTheme.typography.title, color = MaterialTheme.colorScheme.onBackground)
+        val axel = when {
+            state.done -> AxelState.READY
+            state.error != null -> AxelState.PROBLEM
+            else -> AxelState.IDLE
+        }
+        with(spin) {
+        AxelAvatar(axel, Modifier.avatarMotion(), size = 96.dp)
+        Text("Sign in to Axel", Modifier.formFade().semantics { heading() }, style = AxelTheme.typography.title, color = MaterialTheme.colorScheme.onBackground)
         Text(
-            "Series 76 actuator assistant", style = MaterialTheme.typography.bodyMedium,
+            "Series 76 actuator assistant", modifier = Modifier.formFade(), style = MaterialTheme.typography.bodyMedium,
             color = MaterialTheme.colorScheme.onSurfaceVariant, textAlign = TextAlign.Center,
         )
         Spacer(Modifier.height(8.dp))
@@ -94,16 +98,16 @@ private fun LoginContent(
             onValueChange = onEmail,
             label = { Text("Email") },
             singleLine = true,
-            enabled = !state.loading,
+            enabled = !state.loading && !state.done,
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email, imeAction = ImeAction.Next),
-            modifier = Modifier.fillMaxWidth().testTag("login_email"),
+            modifier = Modifier.fillMaxWidth().formFade().testTag("login_email"),
         )
         OutlinedTextField(
             value = state.password,
             onValueChange = onPassword,
             label = { Text("Password") },
             singleLine = true,
-            enabled = !state.loading,
+            enabled = !state.loading && !state.done,
             visualTransformation = if (showPassword) VisualTransformation.None else PasswordVisualTransformation(),
             trailingIcon = {
                 TextButton(
@@ -116,20 +120,21 @@ private fun LoginContent(
             },
             keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password, imeAction = ImeAction.Done),
             keyboardActions = KeyboardActions(onDone = { onSubmit() }),
-            modifier = Modifier.fillMaxWidth().testTag("login_password"),
+            modifier = Modifier.fillMaxWidth().formFade().testTag("login_password"),
         )
         Button(
             onClick = onSubmit,
             enabled = state.canSubmit,
-            modifier = Modifier.fillMaxWidth().height(52.dp).testTag("login_submit"),
+            modifier = Modifier.fillMaxWidth().height(52.dp).formFade().testTag("login_submit"),
         ) {
             if (state.loading) CircularProgressIndicator(Modifier.size(22.dp), strokeWidth = 2.dp) else Text("Sign in")
         }
         state.error?.let {
             Text(
                 it, color = MaterialTheme.colorScheme.error, textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth().testTag("login_error").semantics { liveRegion = LiveRegionMode.Polite },
+                modifier = Modifier.fillMaxWidth().formFade().testTag("login_error").semantics { liveRegion = LiveRegionMode.Polite },
             )
+        }
         }
     }
 }
