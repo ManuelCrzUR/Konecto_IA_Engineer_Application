@@ -8,11 +8,19 @@ import com.konecto.series76.data.AssistantRepository
 import com.konecto.series76.data.AuthInterceptor
 import com.konecto.series76.data.AuthRepository
 import com.konecto.series76.data.HttpAuthRepository
+import com.konecto.series76.data.HttpTranscriber
 import com.konecto.series76.data.Repository
 import com.konecto.series76.data.SessionStore
 import com.konecto.series76.data.ThemePreferences
+import com.konecto.series76.voice.AndroidVoiceInput
+import com.konecto.series76.voice.CloudVoiceInput
+import com.konecto.series76.voice.FallbackMemory
+import com.konecto.series76.voice.FallbackVoiceInput
+import com.konecto.series76.voice.MediaAudioRecorder
+import com.konecto.series76.voice.VoiceInput
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.MainScope
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
 
@@ -25,7 +33,7 @@ private val Context.settingsStore by preferencesDataStore(name = "settings")
 private val Context.authStore by preferencesDataStore(name = "auth")
 
 class AppContainer(
-    context: Context,
+    private val context: Context,
     val baseUrl: String = BuildConfig.API_BASE_URL,
 ) {
     val themePreferences: ThemePreferences by lazy { ThemePreferences(context.settingsStore) }
@@ -45,6 +53,20 @@ class AppContainer(
 
     val repository: AssistantRepository by lazy { Repository(api) }
     val authRepository: AuthRepository by lazy { HttpAuthRepository(api, sessionStore) }
+
+    private val fallbackMemory = FallbackMemory()
+
+    /** Cloud transcription (D-53) with the device recognizer (D-48) as fallback; release() when the screen leaves. */
+    fun newVoiceInput(): VoiceInput {
+        val scope = MainScope()
+        return FallbackVoiceInput(
+            primary = CloudVoiceInput(MediaAudioRecorder(context), HttpTranscriber(api), scope),
+            fallback = AndroidVoiceInput(context),
+            scope = scope,
+            fallbackAvailable = { AndroidVoiceInput.isAvailable(context) },
+            memory = fallbackMemory,
+        )
+    }
 }
 
 class App : Application() {

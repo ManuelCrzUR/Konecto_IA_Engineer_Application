@@ -1,6 +1,8 @@
 package com.konecto.series76.chat
 
 import androidx.compose.ui.semantics.stateDescription
+import androidx.compose.ui.semantics.LiveRegionMode
+import androidx.compose.ui.semantics.liveRegion
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
@@ -72,7 +74,9 @@ fun ChatScreen(sessionId: String?, onBack: () -> Unit, onOpenDebug: (sessionId: 
 fun ChatRoute(vm: ChatViewModel, onBack: () -> Unit, onOpenDebug: (sessionId: String?) -> Unit) {
     val state by vm.state.collectAsStateWithLifecycle()
     val context = LocalContext.current
-    val voice = remember { AndroidVoiceInput(context) }
+    val voice = remember {
+        (context.applicationContext as? App)?.container?.newVoiceInput() ?: AndroidVoiceInput(context)
+    }
     val speaker = remember { AndroidSpeaker(context) }
     val speakingKey by speaker.speakingKey.collectAsStateWithLifecycle()
     DisposableEffect(Unit) {
@@ -89,6 +93,9 @@ fun ChatRoute(vm: ChatViewModel, onBack: () -> Unit, onOpenDebug: (sessionId: St
                 is VoiceEvent.Final -> vm.onVoiceFinal(e.text)
                 is VoiceEvent.Error -> vm.onVoiceError(e.message)
                 VoiceEvent.Ended -> vm.onVoiceEnded()
+                VoiceEvent.Transcribing -> vm.onVoiceTranscribing()
+                is VoiceEvent.Notice -> vm.onVoiceNotice(e.message)
+                is VoiceEvent.Unavailable -> vm.onVoiceEnded() // only reaches here without a fallback
             }
         }
     }
@@ -99,10 +106,6 @@ fun ChatRoute(vm: ChatViewModel, onBack: () -> Unit, onOpenDebug: (sessionId: St
     }
 
     fun startListening() {
-        if (!AndroidVoiceInput.isAvailable(context)) {
-            vm.onVoiceError("Voice input is not available on this device")
-            return
-        }
         speaker.stop()
         val lastAnswer = state.messages.lastOrNull { !it.isUser }?.text
         voice.start(lastAnswer?.let { speechLocale(it).toLanguageTag() })
@@ -130,6 +133,7 @@ fun ChatRoute(vm: ChatViewModel, onBack: () -> Unit, onOpenDebug: (sessionId: St
         onTitleTapsFired = { onOpenDebug(vm.state.value.sessionId) },
         onMic = {
             when {
+                state.transcribing -> Unit
                 state.listening -> voice.stop()
                 ContextCompat.checkSelfPermission(context, Manifest.permission.RECORD_AUDIO) ==
                     PackageManager.PERMISSION_GRANTED -> startListening()
@@ -226,9 +230,20 @@ private fun InputRow(state: ChatUiState, onDraftChange: (String) -> Unit, onSend
             value = state.draft,
             onValueChange = onDraftChange,
             modifier = Modifier.weight(1f).testTag("chat_input"),
-            placeholder = { Text(if (state.listening) "Listening\u2026" else "Message") },
+            placeholder = {
+                Text(
+                    when {
+                        state.transcribing -> "Transcribing\u2026"
+                        state.listening -> "Listening\u2026"
+                        else -> "Message"
+                    },
+                    Modifier.semantics { liveRegion = LiveRegionMode.Polite },
+                )
+            },
             supportingText = {
-                if (state.draft.length >= MAX_QUERY_CHARS - 200) {
+                if (state.notice != null) {
+                    Text(state.notice, Modifier.testTag("chat_voice_notice"))
+                } else if (state.draft.length >= MAX_QUERY_CHARS - 200) {
                     Text("${state.draft.length}/$MAX_QUERY_CHARS", Modifier.testTag("chat_counter"))
                 }
             },
@@ -237,12 +252,13 @@ private fun InputRow(state: ChatUiState, onDraftChange: (String) -> Unit, onSend
         )
         if (!state.sending && !state.loading) {
             IconButton(
-                onClick = onMic, modifier = Modifier.size(48.dp).testTag("chat_mic")
-                    .semantics { stateDescription = if (state.listening) "Listening" else "Not listening" },
+                onClick = onMic, enabled = !state.transcribing,
+                modifier = Modifier.size(48.dp).testTag("chat_mic")
+                    .semantics { stateDescription = if (state.listening) "Recording" else "Not recording" },
             ) {
                 Icon(
-                    VoiceIcons.Mic,
-                    contentDescription = if (state.listening) "Stop listening" else "Speak",
+                    if (state.listening) VoiceIcons.Stop else VoiceIcons.Mic,
+                    contentDescription = if (state.listening) "Stop recording" else "Speak",
                     tint = if (state.listening) MaterialTheme.colorScheme.primary else LocalContentColor.current,
                 )
             }

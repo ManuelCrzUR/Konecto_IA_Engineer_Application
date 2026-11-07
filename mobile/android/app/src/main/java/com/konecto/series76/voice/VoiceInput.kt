@@ -16,6 +16,15 @@ sealed interface VoiceEvent {
     data class Final(val text: String) : VoiceEvent
     data class Error(val message: String) : VoiceEvent
     data object Ended : VoiceEvent
+
+    /** Cloud input only: recording stopped and the audio is being uploaded. */
+    data object Transcribing : VoiceEvent
+
+    /** Cloud input only: the service cannot be used right now, so a fallback may take over. Not an error. */
+    data class Unavailable(val reason: String) : VoiceEvent
+
+    /** One informational line for the user (e.g. which recognizer is in use). */
+    data class Notice(val message: String) : VoiceEvent
 }
 
 /** Speech-to-text. Call every method from the main thread. */

@@ -294,4 +294,20 @@ class ChatViewModelTest {
         vm.onVoiceEnded()
         assertFalse(vm.state.value.listening)
     }
+
+    @Test fun transcribingStateClearsOnFinalErrorAndEnded() {
+        val vm = vm(FakeRepo(), null)
+        vm.onVoiceStart()
+        vm.onVoiceTranscribing()
+        assertTrue(vm.state.value.transcribing)
+        assertFalse(vm.state.value.listening)
+        vm.onVoiceNotice("Using the device recognizer")
+        assertEquals("Using the device recognizer", vm.state.value.notice)
+        vm.onVoiceEnded()
+        assertFalse(vm.state.value.transcribing)
+        assertEquals(null, vm.state.value.notice)
+        vm.onVoiceTranscribing()
+        vm.onVoiceError("Audio too large")
+        assertFalse(vm.state.value.transcribing)
+    }
 }

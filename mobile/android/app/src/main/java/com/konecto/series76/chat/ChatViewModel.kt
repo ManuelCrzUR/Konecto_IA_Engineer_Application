@@ -46,6 +46,10 @@ data class ChatUiState(
     val failedSpoken: Boolean = false,
     /** True while the speech recognizer is listening. */
     val listening: Boolean = false,
+    /** True while a recorded question is being transcribed by the backend. */
+    val transcribing: Boolean = false,
+    /** One informational voice line (e.g. the device recognizer is in use). */
+    val notice: String? = null,
     /** Key of the assistant item that must be read aloud once (cleared by [ChatViewModel.onAutoSpoken]). */
     val autoSpeakKey: String? = null,
 )
@@ -112,20 +116,24 @@ class ChatViewModel(
         dispatch(q, spoken)
     }
 
-    fun onVoiceStart() = _state.update { it.copy(listening = true, error = null, canRetry = false) }
+    fun onVoiceStart() = _state.update { it.copy(listening = true, transcribing = false, error = null, canRetry = false) }
+
+    fun onVoiceTranscribing() = _state.update { it.copy(listening = false, transcribing = true) }
+
+    fun onVoiceNotice(message: String) = _state.update { it.copy(notice = message) }
 
     fun onVoicePartial(text: String) = onDraftChange(text)
 
     fun onVoiceFinal(text: String) {
-        _state.update { it.copy(listening = false) }
+        _state.update { it.copy(listening = false, transcribing = false, notice = null) }
         send(text, spoken = true)
     }
 
     /** Shown in the error banner without Retry; the draft is kept so typing keeps working. */
     fun onVoiceError(message: String) =
-        _state.update { it.copy(listening = false, error = message, canRetry = false) }
+        _state.update { it.copy(listening = false, transcribing = false, notice = null, error = message, canRetry = false) }
 
-    fun onVoiceEnded() = _state.update { it.copy(listening = false) }
+    fun onVoiceEnded() = _state.update { it.copy(listening = false, transcribing = false, notice = null) }
 
     fun onAutoSpoken() = _state.update { it.copy(autoSpeakKey = null) }
 

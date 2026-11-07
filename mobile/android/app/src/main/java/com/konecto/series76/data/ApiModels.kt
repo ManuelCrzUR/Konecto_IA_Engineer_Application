@@ -73,3 +73,11 @@ data class ErrorOut(val error: String, val detail: String? = null)
 /** THE number rule: show the literal JSON text. Never convert or format. */
 fun displayValue(p: JsonPrimitive?): String =
     if (p == null || p is JsonNull) "—" else p.content
+
+@Serializable
+data class TranscribeResponse(
+    val text: String,
+    @SerialName("raw_text") val rawText: String? = null,
+    val model: String? = null,
+    val seconds: Double? = null,
+)

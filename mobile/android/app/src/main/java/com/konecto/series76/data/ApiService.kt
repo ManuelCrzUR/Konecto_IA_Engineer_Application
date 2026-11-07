@@ -1,6 +1,10 @@
 package com.konecto.series76.data
 
+import okhttp3.MultipartBody
+import okhttp3.RequestBody
 import retrofit2.Response
+import retrofit2.http.Multipart
+import retrofit2.http.Part
 import retrofit2.http.Body
 import retrofit2.http.GET
 import retrofit2.http.Header
@@ -20,6 +24,13 @@ interface ApiService {
 
     @GET("api/sessions/{id}/messages")
     suspend fun messages(@Path("id") sessionId: String): List<MessageOut>
+
+    @Multipart
+    @POST("api/transcribe")
+    suspend fun transcribe(
+        @Part audio: MultipartBody.Part,
+        @Part("language") language: RequestBody?,
+    ): TranscribeResponse
 
     @POST(LOGIN_PATH)
     suspend fun login(@Body request: LoginRequest): LoginResponse
