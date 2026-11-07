@@ -58,7 +58,7 @@ Source: the "Skills per task" tables and the wave logs in `docs/plans/SPRINT-8.m
 | 9, voice V2-B | Transcript normalizer (`backend/app/speech/normalize.py`, D-53) | `langchain-fundamentals`, plus black-box tests by a Haiku subagent | Built; 128 normalizer tests, 25 of them black-box |
 | 9, voice V2-C | Android: recording, cloud transcription and fallback (D-53) | `android-development`, `android-permissions-security` | Built; 153 JVM unit tests |
 | 9, extra | Login animation (`login/WelcomeSpin.kt`) | `android-development`, `jetpack-compose-performance` | Done: unit tests, lint, `LoginScreenTest` 3/3 on the emulator |
-| 9, wave 4 | Gate | `/simplify`, `/code-review` (built-ins) | Planned; pending in the plan |
+| 9, wave 4 | Gate | `/code-review` high (built-in) over the whole Sprint 9 diff; fixes by subagents with `langchain-fundamentals`, `security-audit` and `android-development` | Done: 10 issues found and fixed (normalizer false joins, overwritten ingestion tests restored, guard binding, login lockout and atomicity, upload size before parsing, timeouts, recorder race). `/simplify` not run separately: the review covered the same diff |
 
 ## Reviewed, NOT installed
 
