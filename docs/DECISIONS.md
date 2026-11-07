@@ -650,3 +650,27 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 **Trade-off.** A higher per-call ceiling, still bounded, in exchange for no empty answers; comparisons read slightly less fluent ("the 765A00 is higher") but every figure stays printed data.
 
 **Status.** Accepted (Sprint 8, wave 3).
+
+## D-51 Number guard binds a figure to its field, not only to its product (Sprint 9)
+
+**Context.** D-44 binds each figure to the product named before it in the same sentence, but not to the field. "764A00: FLA 9 A" passes when 9 is any value of that product (for example a speed of 9 s). The README listed this as a known limit, and the self-evaluation after Sprint 8 scored number fidelity 3.5/4 for it.
+
+**Decision.** When a figure is bound to a product (a preceding part number in the same sentence or line, or the referent of D-47) and a unit follows it directly, the figure must be a value of that product's fields with that unit. `Nm` maps to `*_nm`, `in-lbs` to `*_in_lbs`, `A` to `fla_*` and `lra_*`, `W` to `motor_power_w`, `%` to the duty cycle, `s` or `seconds` to the speeds, and `cycles/h` or `starts/h` to the counts (English and Spanish unit words). Table notes stay valid for every unit, because they hold the tolerances (±10%, ±5%). A figure without a unit, or with a unit outside this map (Hz, V), keeps the D-44 product rule. Unbound figures keep the global rule. Numbers the user typed and counts of tool results still pass as before.
+
+**Alternatives.** Bind by field name in the text ("FLA", "torque"), which is harder in two languages and with paraphrases. A second LLM pass to verify, which costs money and is not deterministic.
+
+**Trade-off.** It catches a value copied from the wrong column of the right product, at the price of more template answers if the model writes a unit the map does not expect. The final eval measures that rate.
+
+**Status.** Accepted (Sprint 9, wave 0).
+
+## D-52 Login attempt limit and no user id in the session list (Sprint 9)
+
+**Context.** The Sprint 8 auth audit accepted two risks: no rate limiting on `POST /api/auth/login`, and the test users' documented passwords. `GET /api/sessions` also returns `user_id`, which the app never reads.
+
+**Decision.** At most 5 failed logins per email (lowercased) in a 5-minute window. The 6th attempt answers 429 `too_many_attempts` with `Retry-After`, without checking the password, and the window resets on success. The limit applies to unknown emails too, so the answer never reveals whether an account exists. The counter lives in process memory (one API process). `user_id` is removed from the session list and message payloads.
+
+**Alternatives.** A per-IP limit (it breaks behind a shared NAT and still allows slow guessing on one account), a counter in Postgres or Redis (needed only with several API processes), or account lockout (it lets anyone lock a known user out).
+
+**Trade-off.** Simple, and it blocks online guessing against one account. The counter resets when the API restarts and is not shared between processes; both are documented.
+
+**Status.** Accepted (Sprint 9, wave 0).
