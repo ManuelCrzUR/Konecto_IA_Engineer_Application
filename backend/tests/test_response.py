@@ -447,3 +447,13 @@ def test_guard_without_data_asks_which_product_when_several_were_shown():
     assert en.answer.startswith("Which product do you mean")
     plain = R.build_result("It draws 40 W.", [], "and its power?")
     assert plain.answer == R._TEXT["en"]["none"]
+
+
+def test_which_template_only_for_follow_ups_without_catalog_or_search() -> None:
+    cands = ["764A00-11300000", "765A00-11300000"]
+    # The turn went to the catalog: the question was about something else.
+    assert "Which product" not in R.template_answer(
+        [DESCRIBE], "which voltages exist?", candidates=cands
+    )
+    # No tool at all on a follow-up over several products: ask which one.
+    assert "Which product" in R.template_answer([], "and the power?", candidates=cands)

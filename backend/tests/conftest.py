@@ -20,13 +20,18 @@ for _k, _v in dotenv_values(REPO_ENV).items():
         os.environ.setdefault(_k, _v)
 
 
-def get_test_db_url(db: str = "series76_test") -> str:
-    """The single source of the test DB URL: TEST_DATABASE_URL, else built from DB_PORT."""
+def get_test_db_url() -> str:
+    """The single source of the test DB URL: TEST_DATABASE_URL, else built from DB_PORT.
+
+    One database for every module (`series76_test`, created by `make test` and the initdb
+    script): modules that asked for their own name only worked when nothing created them
+    and were silently skipped on a clean clone without .env.
+    """
     explicit = os.environ.get("TEST_DATABASE_URL")
     if explicit:
         return explicit
     port = os.environ.get("DB_PORT", "5432")
-    return f"postgresql://series76:series76@localhost:{port}/{db}"
+    return f"postgresql://series76:series76@localhost:{port}/series76_test"
 
 
 # Evaluated after the .env load above; kept for modules that import the constant.
@@ -86,6 +91,11 @@ def _no_paid_network(monkeypatch, tmp_path):
     monkeypatch.setattr(spend, "_urllib_get", _blocked)
     monkeypatch.setattr(spend, "SPEND_LOG", tmp_path / "spend-log.md")
     monkeypatch.setattr(spend, "SETTLE_S", 0.0)
+    # importing app.api.main runs load_dotenv(), which copies the real .env (and its key)
+    # into os.environ. An empty value wins over load_dotenv(override=False), so any code
+    # path that reaches get_llm() without a fake fails as "not configured" instead of
+    # making a paid call. Tests that need a key set their own with monkeypatch.setenv.
+    monkeypatch.setenv("LLM_API_KEY", "")
 
 
 @pytest.fixture

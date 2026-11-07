@@ -29,10 +29,17 @@ TEST_USERS: tuple[tuple[str, str, str], ...] = (
 def seed_test_users(conn: psycopg.Connection) -> int:
     if os.environ.get("SEED_TEST_USERS", "").strip().lower() == "off":
         return 0
+    # Own tuple cursor: the API's pooled connections use dict_row, the tests' do not.
+    with conn.cursor(row_factory=tuple_row) as cur:
+        cur.execute(
+            "SELECT email FROM users WHERE email = ANY(%s)", ([e for e, _, _ in TEST_USERS],)
+        )
+        existing = {r[0] for r in cur.fetchall()}
     for email, password, role in TEST_USERS:
+        if email in existing:
+            continue  # argon2 is deliberately slow: hash only users that are missing
         role_: Role = "developer" if role == "developer" else "user"
         upsert_user(conn, email, password, role_)
-    # Own tuple cursor: the API's pooled connections use dict_row, the tests' do not.
     with conn.cursor(row_factory=tuple_row) as cur:
         cur.execute("SELECT count(*) FROM users")
         row = cur.fetchone()

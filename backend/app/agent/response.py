@@ -191,13 +191,17 @@ def allowed_numbers(trace: list[ToolTrace], query: str, user_history: str = "") 
     for t in trace:
         for pn in _pn_tokens(f"{t.params} {t.result}"):
             out.add(float(pn[:3]))
-    # Counts of what the tools returned ("I found 3 options") come from the data, not memory.
+    return out | _counts(trace)
+
+
+def _counts(trace: list[ToolTrace]) -> set[float]:
+    """Counts of what the tools returned ("I found 3 options") come from the data, not memory."""
+    out = {float(len(_product_values(trace)))}
     for t in trace:
         if isinstance(t.result, dict):
             for key in _COUNTED_LISTS:
                 if isinstance(t.result.get(key), list):
                     out.add(float(len(t.result[key])))
-    out.add(float(len(_product_values(trace))))
     return out
 
 
@@ -240,6 +244,7 @@ def unverified_numbers(
     allowed = allowed_numbers(trace, query, user_history)
     user = _user_numbers(query, user_history)
     by_pn = _product_values(trace)
+    counts = _counts(trace)  # valid in any sentence, also next to a part number
     mentions = list(_PN.finditer(answer))
     starts = [0] + [m.end() for m in _SENTENCE_END.finditer(answer)]
     ref = (
@@ -248,7 +253,7 @@ def unverified_numbers(
     bad: list[str] = []
     for f in numbers.figures(answer):
         vals = token_values(f.token)
-        if vals & user:
+        if vals & user or vals & counts:
             continue
         seg = max(s for s in starts if s <= f.start)
         near = [m for m in mentions if m.start() >= seg and m.end() <= f.start]
@@ -319,7 +324,9 @@ def template_answer(
             return tx["notfound"] + (" " + tx["closest"].format(x=sug) if sug else "")
         if r.get("status") == "ambiguous":
             return tx["ambig"].format(x=", ".join(c["part_number"] for c in r["candidates"]))
-    if candidates:  # a follow-up over several products shown before (D-47): ask which one
+    # A follow-up over several products shown before (D-47): ask which one, but only when
+    # the turn did not go to the catalog or a search (then the question was about something else).
+    if candidates and not any(t.tool in ("describe_catalog", "search_actuators") for t in trace):
         return tx["which"].format(x=", ".join(candidates))
     return tx["none"]
 

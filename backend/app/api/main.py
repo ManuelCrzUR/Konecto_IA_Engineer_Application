@@ -102,6 +102,9 @@ def _open_pool(url: str) -> ConnectionPool:
         min_size=1,
         max_size=POOL_MAX,
         kwargs={"autocommit": True, "row_factory": dict_row},
+        # Test each connection before handing it out: after a long LLM turn an idle
+        # connection may have been dropped, and every repo call would hit it.
+        check=ConnectionPool.check_connection,
         open=False,
     )
     try:

@@ -21,3 +21,4 @@ Notes (corrected by hand, Sprint 8 wave 3):
 | 2026-11-06T20:30:05+00:00 | guard probe (guard-compare-01) x2 | openai/gpt-6-luna | 2 | 0.000196 | 0.01 | ok |
 | 2026-11-06T20:35:36+00:00 | eval | openai/gpt-6-luna | 49 | 0.011921 | 0.08 | ok |
 | 2026-11-06T20:41:07+00:00 | eval | openai/gpt-6-luna | 49 | 0.008063 | 0.06 | ok |
+| 2026-11-06T23:11:09+00:00 | demo-emulator | stealth/crouton-alpha | 2 | 0.000000 | 0.10 | ok |

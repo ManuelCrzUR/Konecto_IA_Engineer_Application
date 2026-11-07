@@ -19,7 +19,7 @@ from app.domain.models import Actuator, Product, ToolTrace
 from app.llm import LLMConfigError
 from tests.conftest import act_as, get_test_db_url
 
-DB_URL = get_test_db_url("series76_t_api_d")
+DB_URL = get_test_db_url()
 
 PRODUCT_KEYS = {
     "part_number", "enclosure", "voltage", "phase", "service",

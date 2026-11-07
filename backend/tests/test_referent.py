@@ -38,3 +38,11 @@ def test_empty_history() -> None:
 def test_uses_most_recent_assistant_turn_with_products() -> None:
     h = [turn("assistant", ["A", "B"]), turn("assistant", ["C"]), turn("assistant")]
     assert resolve_referent("power?", h) == "C"
+
+
+def test_partial_part_number_is_not_a_follow_up() -> None:
+    # "765A" or "the 767" names another product: never bind it to the one shown before.
+    h = [turn("user"), turn("assistant", ["764A00-11300000/A"])]
+    assert resolve_referent("what about 765A?", h) is None
+    assert resolve_referent("and the 767?", h) is None
+    assert resolve_referent("¿y la potencia?", h) == "764A00-11300000/A"

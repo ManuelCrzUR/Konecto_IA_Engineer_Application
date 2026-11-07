@@ -159,3 +159,15 @@ The two leads are independent missing controls (request-rate/spend bound vs. agg
   - No OS-enforced sandbox is available, so no bounded local execution was done. All checks were source-only.
 - **Bounded local next step:** With a fake chat model that records the length of the message list and a test DB, seed a session with N turns and assert the prompt size passed to the model grows linearly with N with no truncation. Confirm list_messages has no LIMIT. Run it only inside an approved sandbox, with no real LLM calls.
 - **Owner-observed deployment check:** Owner checks the AGENT_MODEL context length and price, the OpenRouter key limit, and whether API_BIND or a fronting proxy exposes the API beyond localhost. If it is exposed, add a per-session turn or token cap with history windowing, and return a clear 4xx instead of a permanent 503 when the cap is reached.
+
+## Sprint 8: focused audit of login and per-user isolation (2026-11-06)
+
+Scope: `backend/app/auth/`, `backend/app/api/{deps,routes_auth,routes_conversation,routes_sessions,errors,main}.py`, `backend/app/db/{schema.sql,sessions_repo.py}`, and the Android auth client (`SessionStore`, `AuthInterceptor`, `AuthRepository`, manifest, network config). Method: code reading plus live requests against the local stack with the seeded test users only (no paid conversation turns).
+
+Result: **no Critical, High or Medium findings.**
+
+Verified: argon2id hashes (pwdlib defaults); unknown email and wrong password give the same 401 body and the same timing (dummy hash); tokens are `secrets.token_urlsafe(32)` (256 bits) stored only as SHA-256, expiry enforced in SQL, logout revokes that token only; malformed `Authorization` headers all return 401 with `WWW-Authenticate: Bearer`; every `/api` route except login requires the token, and auth runs before body validation and before the agent (a rejected request costs nothing); another user's or a missing session id returns the same 404; search is scoped to the user with escaped `LIKE`; the trace is blanked for the `user` role in both the conversation response and the messages listing; all SQL is parameterized; error bodies carry no stack traces; no CORS (native app); API and DB bind to `127.0.0.1`. Android: `allowBackup=false`, cleartext only to `localhost`/`10.0.2.2`, HTTP logging at BASIC (no headers) and only in debug builds.
+
+Fixed after the audit (Low): expired tokens are now deleted when a new one is issued.
+
+Accepted risks (documented in the README): no rate limiting or lockout; seeded test users with documented passwords (`SEED_TEST_USERS=off` for anything beyond a demo); token stored unencrypted in DataStore on the device; `/docs` and `/openapi.json` public; `user_id` (the caller's own id) is still part of `SessionOut`; the release APK is signed with the debug key for local installs.

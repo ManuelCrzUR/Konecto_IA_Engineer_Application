@@ -12,7 +12,7 @@ from app.domain.conversation import AgentResult
 from app.domain.models import Product, ToolTrace
 from tests.conftest import get_test_db_url
 
-DB_URL = get_test_db_url("series76_t_api_b")
+DB_URL = get_test_db_url()
 PRODUCT = Product(
     part_number="761C",
     enclosure="weatherproof",

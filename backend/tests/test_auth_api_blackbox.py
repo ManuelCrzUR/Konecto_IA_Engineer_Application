@@ -18,7 +18,7 @@ from app.domain.conversation import AgentResult
 from app.domain.models import ToolTrace
 from tests.conftest import get_test_db_url
 
-DB_URL = get_test_db_url("series76_t_api_a")
+DB_URL = get_test_db_url()
 
 ANA = ("ana@konecto.test", "ana-series76", "user")
 BEN = ("ben@konecto.test", "ben-series76", "user")

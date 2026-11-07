@@ -34,7 +34,7 @@ We also found, by using the app, that small talk felt robotic: the agent re-intr
 | 2 | Login backend: argon2 hashes, opaque tokens, 401 on every `/api` route, per-user isolation, trace only for `developer`, seeded test users | D-43 | Done |
 | 3 | Real eval with the final model ($), new cases (number words, wrong-product numbers, follow-ups with 1 and 3 products, 30-turn session, small talk) | D-50 | Done |
 | 4 | Android: login screen and token, Debug only for `developer`, voice input (`SpeechRecognizer`), voice output (`TextToSpeech`), accessibility | D-48 | Done |
-| 5 | Gate: full suites, brief checklist, `/simplify`, `/code-review`, scoped security audit of auth, real demo ($), README, clean-clone test | — | Pending |
+| 5 | Gate: full suites, brief checklist, `/simplify`, `/code-review`, scoped security audit of auth, real demo ($), README, clean-clone test | — | Done |
 
 ## Skills per task
 
@@ -120,3 +120,17 @@ Tests: 132 Android unit tests pass (`./gradlew testDebugUnitTest`), `lintDebug` 
 Emulator smoke test (no OpenRouter calls): wrong password shows "Wrong email or password"; ana signs in and sees only her own (empty) list; the session survives a force-stop; five taps on the title do nothing for ana; the mic asks for `RECORD_AUDIO`, a denial shows "Microphone permission needed — you can still type", and after granting it the recognizer starts (no audio on the emulator, so it reports "Didn't catch that, try again"); Sign out returns to Login and Back leaves the app instead of reopening ana's list. Spoken answers read aloud need a real turn, so they move to the wave 5 demo.
 
 Spend in this wave: USD 0 (no OpenRouter calls). Sprint spend stays at about USD 0.18 of the USD 1.00 cap.
+
+### Wave 5: final gate
+
+| Step | Result |
+|---|---|
+| Full suites | Backend 1499 passed (+8 slow OCR tests), ruff, format and mypy clean. Android 138 unit tests, lint with no errors and no accessibility warnings, 35 instrumented tests on the API 37 emulator. |
+| Brief checklist (verifier) | 11 of 12 points PASS; reproducibility PARTIAL on README details, all fixed: case count 38 -> 49, `make ingest` needs uv and Postgres, a bare `POST /api/conversation` now returns 401 by design (D-43), full path of `SpeechLanguage.kt`, the D-26 note "small integers always pass" marked as superseded by D-44. One report item was wrong (the final eval cost is USD 0.008, the third of three runs). |
+| `/simplify` (4 reviewers) | Applied: one part-number regex (`referent.py` reuses `numbers.PN_RE`); the pool checks each connection (`ConnectionPool.check_connection`); seeding hashes only missing users; dead `ApiService.me()` removed; the login path is one shared constant; sign-out clears locally first and revokes with an explicit header (never waits on the network); the 401 handler fires only when signed in; splash reads the session in parallel with its wait; `failedSpoken` moved into `ChatUiState`; `Speaker.release()` reuses `stop()`. Skipped (working, tested, small gain): removing `VoiceEvent.Ended`, turning `autoSpeakKey` into an event flow, merging `SessionStore`'s flow and in-memory copy, a structured-claims guard, a `list_history` query with `LIMIT`. |
+| `/code-review high` | Fixed: turn lock with an owner token and a safe unlock (D-46); Android reads the stored token after process death (D-43); partial part numbers are not follow-ups and the "which product" template only fires on real follow-ups (D-47); counts valid next to a part number (D-44); a failed TextToSpeech init no longer leaves the speaker stuck; tests always blank `LLM_API_KEY`; one test database for every module (the clean clone skipped 87 API tests before this fix). Accepted, documented: `--max-usd` reads a usage figure OpenRouter books late (the settle step logs the real total); `STARTUP_ESCALATION=auto` can call vision at startup only when the committed JSON is missing or invalid, capped by `VISION_MAX_CALLS=7`; `_na_rows` could absorb a fully unread row next to the N/A block (the real run matched the golden file byte for byte). |
+| Security audit (auth) | No Critical, High or Medium findings; expired tokens are now purged. Details: `docs/security/REPORT.md` (Sprint 8 section). |
+| Emulator demo | ana signs in, asks for the torque of 764A00-11300000/A (card 750 Nm / 6650 in-lbs, as printed), the speaker button reads the answer through `com.google.android.tts`; the conversation survives an API restart; ben signs in and sees no conversations; dev opens Debug with five taps and sees the `describe_catalog` trace. Spoken input could not be checked on the emulator (no host microphone access), so the voice-to-auto-speak path rests on its unit tests. Cost: USD 0 (`stealth/crouton-alpha` from the local `.env`, 2 turns, logged in `docs/spend-log.md`). |
+| Clean clone | `git clone` + this working tree, no `.env`, no key: `make up` healthy with 68 rows, login works, a bare request returns 401, a signed-in turn returns 503 `llm_not_configured` with the user message saved, `make test` 1499 passed and 0 skipped. Ports 8010/5442 because 8000/5432 are taken on this machine. |
+
+Spend in this wave: USD 0. Sprint 8 total: about USD 0.18 of the USD 1.00 cap (key usage 0.309434 against a 0.127760 baseline).

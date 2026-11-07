@@ -66,6 +66,8 @@ def authenticate(conn: psycopg.Connection, email: str, password: str) -> Current
 
 def issue_token(conn: psycopg.Connection, user_id: str) -> str:
     token = new_token()
+    # Housekeeping: expired tokens are already rejected, this only keeps the table small.
+    conn.execute("DELETE FROM auth_tokens WHERE expires_at < now()")
     conn.execute(
         "INSERT INTO auth_tokens (token_hash, user_id, expires_at) VALUES (%s, %s, now() + %s)",
         (hash_token(token), user_id, TOKEN_TTL),

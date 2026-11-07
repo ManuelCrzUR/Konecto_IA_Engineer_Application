@@ -24,6 +24,8 @@ curl -sf -X POST localhost:${API_PORT}/api/conversation \
   -d '{"query": "What is the torque of 764X30-11320000/A?"}'
 ```
 
+Every `/api` route except `/api/auth/login` needs that Bearer token (D-43): a bare `POST /api/conversation` returns 401 `unauthorized` by design.
+
 Expected: `/health` returns `{"status":"ok","actuators":68}`. The first start loads the 68 catalog rows from the committed `backend/data/processed/actuators.json` (no OCR, no key, no internet needed for the data).
 
 **Variables to fill in `.env`** (never commit it; it is git-ignored):
@@ -97,7 +99,7 @@ Tests use a separate `series76_test` database on the same container (`make db` a
 
 ```bash
 make db
-make eval                                   # all 38 cases, writes backend/eval/report.md
+make eval                                   # all 49 cases, writes backend/eval/report.md
 cd backend && uv run python -m eval.run --only lookup-01,na-02 --workers 2   # a subset
 ```
 
@@ -122,6 +124,7 @@ Facts about `backend/data/raw/series_76_electric_data.pdf` (source of truth for 
 **Hybrid extractor (D-01).** RapidOCR scored 99.45% on the benchmark, vision per table 100%. The hybrid flags a cell when OCR confidence is below 0.9, the raw text has a leading zero, or a validator fails, and sends those whole tables to vision. Validations: row count per table, numeric parsing, in-lbs/Nm ratio about 8.85 (5%), FLA <= LRA, 60 Hz speed <= 50 Hz (warning), duty 0-100, part-number regex. Values are stored as printed (no conversion, no "fixing"). The committed JSON is the verified result, so the normal path needs no key. `actuators.json` is never overwritten without `--force`.
 
 ```bash
+# make ingest runs on the host: it needs uv and Postgres up (make db or make up)
 make ingest                                  # runs ensure_data (no-op when 68 rows are loaded)
 make ingest ARGS=--reset                     # empty the tables, then reload
 make ingest ARGS="--from-pdf --force --no-escalation"   # offline OCR run (see below)
@@ -186,7 +189,7 @@ Usage: Conversations screen (list, new conversation, **search** by title or mess
 
 **Sign in.** Without a stored session the app opens on the Login screen; with one, it opens on Conversations. Enter the email and password of a test user (section 8). The password field has a show/hide toggle, and wrong credentials or network errors appear under the form. The token is kept in the app's `auth` DataStore and sent as `Authorization: Bearer` on every request. If the server answers 401 at any other time (for example, an expired token), the app clears the session and returns to Login with the back stack cleared. To sign out, open the Account menu (person icon) in the conversations header. The app calls `POST /api/auth/logout` on a best-effort basis and always clears the local session.
 
-**Voice conversation.** Tap the microphone button in the chat input and speak: partial results appear in the text field while you talk. The app asks for the microphone permission (`RECORD_AUDIO`) the first time you use it. If you deny it, the app explains why and typing keeps working; if you denied it permanently, the app tells you to enable it in the device Settings. If the device has no speech recognizer, the app says voice is unavailable. When a message was spoken, the app reads the answer aloud with the device text-to-speech. Only the answer text is read: product cards and tables are not. Every assistant message also has a speaker button to read it aloud or stop it. Spanish or English is picked from the text (a simple heuristic in `voice/SpeechLanguage.kt`), and numbers and part numbers are read exactly as printed. Everything runs on the device: the backend does not change and there is no OpenRouter cost. Recognition works offline when the device has the offline language pack for the language; otherwise the recognizer may need the network.
+**Voice conversation.** Tap the microphone button in the chat input and speak: partial results appear in the text field while you talk. The app asks for the microphone permission (`RECORD_AUDIO`) the first time you use it. If you deny it, the app explains why and typing keeps working; if you denied it permanently, the app tells you to enable it in the device Settings. If the device has no speech recognizer, the app says voice is unavailable. When a message was spoken, the app reads the answer aloud with the device text-to-speech. Only the answer text is read: product cards and tables are not. Every assistant message also has a speaker button to read it aloud or stop it. Spanish or English is picked from the text (a simple heuristic in `mobile/android/app/src/main/java/com/konecto/series76/voice/SpeechLanguage.kt`), and numbers and part numbers are read exactly as printed. Everything runs on the device: the backend does not change and there is no OpenRouter cost. Recognition works offline when the device has the offline language pack for the language; otherwise the recognizer may need the network.
 
 **Debug screen (developer role + 5 taps on the title).** Tap the chat title (Axel) five times to open the Debug screen, which shows the tool calls and raw results of each turn. The gesture works only when the signed-in user has the `developer` role (`dev@konecto.test`, section 8). For a `user` account it does nothing, and the server sends no trace in any case (D-43).
 
@@ -201,7 +204,7 @@ Full list with alternatives in [`docs/DECISIONS.md`](docs/DECISIONS.md) (D-01 to
 - **Numbers come from the tables.** Product cards are built by code from tool results. A **number guard** checks that every figure in the answer, including numbers written as words, appears in the tool results; a figure written next to a part number must belong to that product, and a follow-up about the only product shown before is bound to it (D-44, D-47). There are no always-allowed numbers: only list ordinals, the 90° stroke and counts of what a tool returned pass without a value. If a figure is not verified, a deterministic template answer replaces it and the trace records it. Known limits: binding is per product, not per field, and earlier user turns are trusted (D-40).
 - **Own history in Postgres, plain `create_agent` (D-07, D-08).** No LangGraph graph, no checkpointer. Follow-ups re-call the tools; the model does not remember figures (D-27). Only the last `HISTORY_TURNS` messages (default 10) are sent to the model; the product context still comes from the whole history (D-45).
 - **No pgvector.** Queries are numeric filters, not semantic search.
-- **Login with bearer tokens (D-43).** Passwords are argon2id hashes and tokens are stored as SHA-256 hashes. Each user sees only their own conversations, and the tool trace is returned only to the `developer` role. There is no rate limiting. Both ports bind to `127.0.0.1` by default (D-34); the container runs as a non-root user.
+- **Login with bearer tokens (D-43).** Passwords are argon2id hashes and tokens are stored as SHA-256 hashes. Each user sees only their own conversations, and the tool trace is returned only to the `developer` role. There is no rate limiting and the test users have documented passwords, so for anything beyond a local demo set `SEED_TEST_USERS=off` and create real users. `/docs` and `/openapi.json` stay public on purpose (they help evaluators read the API). Both ports bind to `127.0.0.1` by default (D-34); the container runs as a non-root user.
 - **`adb reverse` instead of `10.0.2.2` (D-35)**, because Colima's port forwarding never delivered emulator traffic.
 - **Conversation search with `ILIKE` (D-37)**, correct for part numbers and numbers; a sequential scan is fine for a single-user history.
 - **Persona "Axel" (D-39).** Prompt rule plus a code check that rewrites the underlying model's own name to "Axel"; generic tool errors (no DB text reaches the model or client).
@@ -236,7 +239,7 @@ Note: free "stealth" models are temporary and can disappear or be rate limited; 
 
 ## 7. Security
 
-Two runs of Cloudflare's `security-audit` skill (vendored in `.claude/skills/security-audit`) plus 12 prompt-injection eval cases: **0 confirmed vulnerabilities, 3 documented leads**, all about the unauthenticated, localhost-only API (paid-LLM spend with no rate limit, unbounded history resent to the model, number-guard trust of shared-session turns, D-40). They only matter if the API is exposed beyond `127.0.0.1`. Details: [`docs/security/REPORT.md`](docs/security/REPORT.md).
+Two runs of Cloudflare's `security-audit` skill (vendored in `.claude/skills/security-audit`) plus 12 prompt-injection eval cases: **0 confirmed vulnerabilities, 3 documented leads**, all about the unauthenticated, localhost-only API (paid-LLM spend with no rate limit, unbounded history resent to the model, number-guard trust of shared-session turns, D-40). They only matter if the API is exposed beyond `127.0.0.1`. Details: [`docs/security/REPORT.md`](docs/security/REPORT.md). Sprint 8 added login (D-43) and a history window (D-45), and a focused audit of authentication and per-user isolation found no Critical, High or Medium issues: same answer and timing for an unknown email and a wrong password, 256-bit tokens stored as hashes, every `/api` route behind the token, another user's session answered with 404, the trace hidden from the `user` role, and parameterized SQL everywhere. Accepted risks: no rate limiting, documented test passwords, and the token stored unencrypted on the device (`allowBackup=false`).
 
 ## 8. Optionals
 

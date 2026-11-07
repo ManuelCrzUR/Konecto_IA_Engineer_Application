@@ -7,6 +7,7 @@ import androidx.lifecycle.viewmodel.initializer
 import androidx.lifecycle.viewmodel.viewModelFactory
 import com.konecto.series76.data.AssistantRepository
 import com.konecto.series76.data.AuthRepository
+import kotlinx.coroutines.async
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
@@ -33,13 +34,14 @@ class SplashViewModel(
 
     init {
         viewModelScope.launch {
-            _signedIn.value = auth.restore() != null // local read, no network
+            val restored = async { auth.restore() } // local read, in parallel with the wait below
             // Health runs in parallel with the minimum wait; the timeout caps the total.
             withTimeoutOrNull(maxMs) {
                 val ping = launch { repo.health() } // result ignored: screens show offline themselves
                 delay(minMs)
                 ping.join()
             }
+            _signedIn.value = restored.await() != null
             _done.value = true
         }
     }

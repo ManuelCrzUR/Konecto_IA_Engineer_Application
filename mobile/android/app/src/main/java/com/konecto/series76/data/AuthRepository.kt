@@ -12,7 +12,7 @@ interface AuthRepository {
 
     suspend fun login(email: String, password: String): ApiResult<AuthSession>
 
-    /** Best-effort server call, then always clears the local session. */
+    /** Clears the local session at once, then revokes the token on the server best-effort. */
     suspend fun logout()
 }
 
@@ -40,7 +40,8 @@ class HttpAuthRepository(
         }
 
     override suspend fun logout() {
-        apiCall { api.logout() } // result ignored: the local session is cleared either way
-        store.clear()
+        val token = store.current?.token
+        store.clear() // first: sign-out never waits on the network (offline would block for the timeout)
+        if (token != null) apiCall { api.logout("Bearer $token") } // result ignored
     }
 }

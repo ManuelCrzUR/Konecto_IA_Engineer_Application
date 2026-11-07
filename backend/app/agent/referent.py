@@ -12,15 +12,17 @@ from __future__ import annotations
 
 import re
 
+from app.agent.numbers import PN_RE as _PN  # the same token the number guard uses
 from app.domain.conversation import HistoryTurn
 
-# Same pattern as response.py's part-number token (kept identical on purpose).
-PN_PATTERN = r"76\d[A-Z]\d{2}(?:-[0-9A-Z]{8}(?:/A)?)?\*?"
-_PN = re.compile(PN_PATTERN, re.IGNORECASE)
+# A partial or model-only mention ("765A", "the 767") also names a product: it is not a
+# follow-up about the one shown before, so it must not be bound to that one.
+_PARTIAL_PN = re.compile(r"\b76\d(?:[A-Z]\d{0,2})?\b", re.IGNORECASE)
 
 
 def query_names_part_number(query: str) -> bool:
-    return _PN.search(query or "") is not None
+    q = query or ""
+    return _PN.search(q) is not None or _PARTIAL_PN.search(q) is not None
 
 
 def referent_candidates(history: list[HistoryTurn] | None) -> list[str]:

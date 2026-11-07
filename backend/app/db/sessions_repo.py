@@ -10,7 +10,7 @@ Search lives in app.db.sessions_search (D-37).
 from __future__ import annotations
 
 import uuid
-from datetime import timedelta
+from datetime import datetime, timedelta
 
 import psycopg
 from psycopg.rows import dict_row
@@ -113,24 +113,37 @@ def try_lock_session(
     conn: psycopg.Connection,
     session_id: uuid.UUID,
     stale_after: timedelta = timedelta(minutes=2),
-) -> bool:
-    """Take the per-session turn lock (D-46); False if another turn holds a fresh one.
+) -> datetime | None:
+    """Take the per-session turn lock (D-46); None if another turn holds a fresh one.
 
     One atomic UPDATE: a lock older than `stale_after` (crashed worker) is retaken.
+    Returns the lock's own timestamp: pass it to unlock_session so a turn that ran
+    past `stale_after` cannot release a lock another turn has taken since.
     """
     with conn.cursor() as cur:
         cur.execute(
-            "UPDATE sessions SET busy_since = now() WHERE id = %s "
-            "AND (busy_since IS NULL OR busy_since < now() - %s) RETURNING id",
+            "UPDATE sessions SET busy_since = clock_timestamp() WHERE id = %s "
+            "AND (busy_since IS NULL OR busy_since < now() - %s) RETURNING busy_since",
             (session_id, stale_after),
         )
-        return cur.fetchone() is not None
+        row = cur.fetchone()
+    if row is None:
+        return None
+    return row["busy_since"] if isinstance(row, dict) else row[0]
 
 
-def unlock_session(conn: psycopg.Connection, session_id: uuid.UUID) -> None:
-    """Release the turn lock (idempotent)."""
+def unlock_session(
+    conn: psycopg.Connection, session_id: uuid.UUID, token: datetime | None = None
+) -> None:
+    """Release the turn lock (idempotent); with `token`, only if this turn still owns it."""
     with conn.cursor() as cur:
-        cur.execute("UPDATE sessions SET busy_since = NULL WHERE id = %s", (session_id,))
+        if token is None:
+            cur.execute("UPDATE sessions SET busy_since = NULL WHERE id = %s", (session_id,))
+        else:
+            cur.execute(
+                "UPDATE sessions SET busy_since = NULL WHERE id = %s AND busy_since = %s",
+                (session_id, token),
+            )
 
 
 def list_messages(conn: psycopg.Connection, session_id: uuid.UUID) -> list[StoredMessage]:

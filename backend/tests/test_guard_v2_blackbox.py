@@ -250,3 +250,26 @@ def test_number_from_user_history_is_a_source() -> None:
 def test_number_from_user_history_missing_still_triggers() -> None:
     res = build_result("Tu requisito de 500 Nm se cumple.", ONE_761, "y con ese?")
     assert res.guard_triggered is True
+
+
+# --- Counts stay valid next to a part number (code review, Sprint 8) ----------------
+
+
+def test_count_of_matches_next_to_a_part_number_passes() -> None:
+    trace = [search_trace([PN_761, PN_764, PN_766])]
+    r = build_result(
+        f"The {PN_761} is the smallest of the 3 options at 80 Nm.", trace, "need 10 Nm"
+    )
+    assert not r.guard_triggered
+
+
+def test_number_word_count_next_to_a_part_number_passes() -> None:
+    trace = [search_trace([PN_761, PN_764])]
+    r = build_result(f"Of the two, the {PN_764} gives 750 Nm.", trace, "need 10 Nm")
+    assert not r.guard_triggered
+
+
+def test_wrong_figure_next_to_a_part_number_still_fails() -> None:
+    trace = [search_trace([PN_761, PN_764, PN_766])]
+    r = build_result(f"The {PN_761} gives 750 Nm.", trace, "need 10 Nm")
+    assert r.guard_triggered

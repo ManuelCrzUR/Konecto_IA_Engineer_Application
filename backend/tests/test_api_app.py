@@ -20,7 +20,7 @@ from app.db.connection import SCHEMA_SQL
 from app.llm import LLMConfigError
 from tests.conftest import act_as, get_test_db_url
 
-DB_URL = get_test_db_url("series76_t_api_a")
+DB_URL = get_test_db_url()
 
 
 class Body(BaseModel):

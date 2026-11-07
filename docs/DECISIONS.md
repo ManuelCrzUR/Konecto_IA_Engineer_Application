@@ -278,7 +278,7 @@ Numbers and part numbers typed by the user in earlier turns of the session also 
 
 **Alternatives.** No guard (trust the prompt). Ask the LLM to self-check. Use a structured-output answer with numbers as references.
 
-**Trade-off.** It is cheap, deterministic and testable, and it turns "the LLM never invents numbers" into a code guarantee. The guard is lenient by design: a correct number used in the wrong place, such as quoting an FLA as the torque, passes, and small integers always pass. Black-box tests showed why keys must count: without them, a correct "FLA at 50 Hz" answer was rejected. The first real eval run (24/26) showed that the family name "Series 76" also has to be stripped like part numbers; after that fix it scored 26/26.
+**Trade-off.** It is cheap, deterministic and testable, and it turns "the LLM never invents numbers" into a code guarantee. The guard is lenient by design: a correct number used in the wrong place, such as quoting an FLA as the torque, passes, and small integers always pass (superseded by D-44, which removed the always-allowed integers). Black-box tests showed why keys must count: without them, a correct "FLA at 50 Hz" answer was rejected. The first real eval run (24/26) showed that the family name "Series 76" also has to be stripped like part numbers; after that fix it scored 26/26.
 
 **Status.** Accepted (Sprint 3).
 
@@ -566,7 +566,7 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** One indexed lookup per request, in exchange for instant logout and no secret to manage. Sessions created before login (`user_id` NULL) become invisible to everyone.
 
-**Status.** Accepted (Sprint 8, wave 2). Supersedes the hook in D-11. Verified on the Docker stack: 401 with `WWW-Authenticate: Bearer` without a token, the same 401 body for a wrong password and an unknown email, logout revokes the token, passwords stored as `$argon2id$`.
+**Status.** Accepted (Sprint 8, wave 2). Supersedes the hook in D-11. Verified on the Docker stack: 401 with `WWW-Authenticate: Bearer` without a token, the same 401 body for a wrong password and an unknown email, logout revokes the token, passwords stored as `$argon2id$`. Wave 5 (code review): after process death Android restores the screen without the splash, so the interceptor reads the stored token from DataStore on first use (`SessionStore.token()`) instead of sending requests without one; sign-out clears the local session first and then revokes the token with an explicit header, so it never waits on the network; expired tokens are deleted when a new one is issued; seeding hashes only missing users (argon2 is slow on purpose).
 
 **Android client (Sprint 8, wave 4).** The app stores the token in the `auth` DataStore (`data/SessionStore.kt`) and sends it as `Authorization: Bearer` through an OkHttp interceptor (`data/AuthInterceptor.kt`). Any 401 outside the login call clears the session and returns to Login.
 
@@ -580,7 +580,7 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** Fewer silent errors, at the cost of more template answers if the model writes harmless numbers; the eval measures this.
 
-**Status.** Accepted (Sprint 8, wave 1).
+**Status.** Accepted (Sprint 8, wave 1). Wave 5 (code review): counts of what the tools returned ("3 options", "of the two") are valid in any sentence, also right after a part number; before, the per-product binding rejected them and a correct answer fell back to the template.
 
 ## D-45 History window (Sprint 8)
 
@@ -600,7 +600,7 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** No interleaved histories and no held connections, at the price of a 409 the app must show ("still answering").
 
-**Status.** Accepted (Sprint 8, wave 1).
+**Status.** Accepted (Sprint 8, wave 1). Wave 5 (code review): the lock carries its own timestamp as an owner token. A turn that ran past the 2-minute stale window can no longer release a lock a newer turn took after it, and a failed unlock is logged instead of replacing the real outcome (an answer already saved, or the agent's own error). The pool also checks each connection before handing it out (`ConnectionPool.check_connection`), so a connection dropped during a long LLM turn is replaced for every repository call, not only the answer write.
 
 ## D-47 Follow-up referent resolved in code (Sprint 8)
 
@@ -610,7 +610,7 @@ The development model `stealth/crouton-alpha` (free) also scored 38/38 but is te
 
 **Trade-off.** Deterministic follow-ups for the common case; a small heuristic to maintain.
 
-**Status.** Accepted (Sprint 8, wave 1).
+**Status.** Accepted (Sprint 8, wave 1). Wave 5 (code review): a partial or model-only mention ("765A", "the 767") counts as naming a product, so it is never bound to the one shown before; the "which product do you mean" template is used only when the turn did not call `describe_catalog` or `search_actuators` (then the question was about something else).
 
 ## D-48 Voice conversation on the device: speech-to-text and text-to-speech (Sprint 8)
 

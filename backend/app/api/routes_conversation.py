@@ -3,7 +3,7 @@
 Contract (router = APIRouter(); path "/conversation", mounted under "/api"):
   Request  ConversationRequest {session_id?: uuid, query: str (1..2000, stripped)}
   Response ConversationResponse {session_id, answer, products[], debug[]}
-           (debug = the AgentResult trace, ALWAYS present; the app hides it).
+           (debug = the AgentResult trace for role developer, [] for role user; D-43).
 Steps (sync `def` endpoint; FastAPI runs it in its threadpool). DB steps use
 short `with conn_factory() as conn:` blocks (1-3, then 5, then the unlock); no connection is
 held while the agent runs, because its tools borrow from the same pool.
@@ -14,10 +14,12 @@ held while the agent runs, because its tools borrow from the same pool.
      the repo).
   2. history = to_history(list_messages(conn, session_id))  — BEFORE saving the
      new message.
-  2b. sessions_repo.try_lock_session(conn, id) (D-46) BEFORE saving anything; False
-     -> ApiError(409, "turn_in_progress", ...) with the X-Session-Id header and
-     nothing written. The lock is released in `finally` (own short borrow) on
-     every path after it was taken; a stale lock (>2 min) is retaken.
+  2b. lock = sessions_repo.try_lock_session(conn, id) (D-46) BEFORE saving anything;
+     None -> ApiError(409, "turn_in_progress", ...) with the X-Session-Id header and
+     nothing written. The lock is released in `finally` (own short borrow, with its
+     own token so a turn that ran past 2 min cannot free a newer turn's lock) on every
+     path after it was taken; a failed unlock is logged, never raised. A stale lock
+     (>2 min) is retaken.
   3. add_message(conn, session_id, "user", query)  — committed now (autocommit
      pool), so a later agent failure does not lose it.
   4. result = agent(query, history, conn_factory=<get_conn_factory>).
@@ -41,6 +43,7 @@ held while the agent runs, because its tools borrow from the same pool.
 
 from __future__ import annotations
 
+import logging
 import uuid
 from typing import Annotated
 
@@ -55,6 +58,7 @@ from app.db.connection import ConnFactory
 from app.domain.conversation import AgentResult, HistoryTurn, StoredMessage
 from app.domain.models import ConversationRequest, ConversationResponse
 
+log = logging.getLogger(__name__)
 router = APIRouter()
 
 
@@ -103,7 +107,8 @@ def post_conversation(
                 )
         else:
             session = sessions_repo.create_session(conn, body.query, user.id)
-        if not sessions_repo.try_lock_session(conn, session.id):
+        lock = sessions_repo.try_lock_session(conn, session.id)
+        if lock is None:
             busy = ApiError(
                 409, "turn_in_progress", "This conversation is still answering the previous message"
             )
@@ -121,8 +126,13 @@ def post_conversation(
         exc.session_id = session.id  # type: ignore[attr-defined]  # read by errors.py
         raise
     finally:
-        with conn_factory() as conn:
-            sessions_repo.unlock_session(conn, session.id)
+        # Never let a failed unlock replace the real outcome (an answer already saved, or
+        # the agent's own error): the lock goes stale after 2 minutes anyway.
+        try:
+            with conn_factory() as conn:
+                sessions_repo.unlock_session(conn, session.id, lock)
+        except Exception:
+            log.warning("could not release the turn lock of session %s", session.id, exc_info=True)
     response.headers["X-Session-Id"] = str(session.id)
     return ConversationResponse(
         session_id=session.id,

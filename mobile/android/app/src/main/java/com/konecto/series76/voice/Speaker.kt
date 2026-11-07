@@ -39,7 +39,15 @@ class AndroidSpeaker(private val context: Context) : Speaker {
         ready = status == TextToSpeech.SUCCESS
         val p = pending
         pending = null
-        if (ready && p != null) speakNow(p.first, p.second) else if (!ready) _speakingKey.value = null
+        if (ready && p != null) {
+            speakNow(p.first, p.second)
+        } else if (!ready) {
+            // Init failed: drop this engine so the next speak() tries a fresh one instead of
+            // queueing forever on an engine whose init callback will never run again.
+            tts?.shutdown()
+            tts = null
+            _speakingKey.value = null
+        }
     }.also {
         it.setOnUtteranceProgressListener(progress)
         tts = it
@@ -67,11 +75,9 @@ class AndroidSpeaker(private val context: Context) : Speaker {
     }
 
     override fun release() {
-        pending = null
-        tts?.stop()
+        stop()
         tts?.shutdown()
         tts = null
         ready = false
-        _speakingKey.value = null
     }
 }

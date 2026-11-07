@@ -36,8 +36,9 @@ class AppContainer(
     // One shared API: the interceptor adds the token and clears the session on any 401 (except login).
     private val api by lazy {
         val auth = AuthInterceptor(
-            tokenProvider = { sessionStore.current?.token },
-            onUnauthorized = { scope.launch { sessionStore.clear() } },
+            tokenProvider = { sessionStore.token() },
+            // Only when signed in: dedupes parallel 401s and skips a 401 after sign-out.
+            onUnauthorized = { if (sessionStore.current != null) scope.launch { sessionStore.clear() } },
         )
         ApiClient.create(baseUrl, interceptor = auth)
     }

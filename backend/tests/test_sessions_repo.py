@@ -182,13 +182,28 @@ def _busy(pg, sid):
 
 def test_lock_unlock_and_stale_retake(pg):
     sid = repo.create_session(pg, "t").id
-    assert repo.try_lock_session(pg, sid) is True
-    assert repo.try_lock_session(pg, sid) is False
+    assert repo.try_lock_session(pg, sid) is not None
+    assert repo.try_lock_session(pg, sid) is None
     repo.unlock_session(pg, sid)
-    assert repo.try_lock_session(pg, sid) is True
+    assert repo.try_lock_session(pg, sid) is not None
     pg.execute(
         "UPDATE sessions SET busy_since = now() - interval '3 minutes' WHERE id = %s", (sid,)
     )
-    assert repo.try_lock_session(pg, sid) is True  # stale lock retaken
+    assert repo.try_lock_session(pg, sid) is not None  # stale lock retaken
     repo.unlock_session(pg, sid)
-    assert repo.try_lock_session(pg, uuid.uuid4()) is False  # unknown session
+    assert repo.try_lock_session(pg, uuid.uuid4()) is None  # unknown session
+
+
+def test_slow_turn_cannot_release_a_lock_taken_after_it_went_stale(pg):
+    sid = repo.create_session(pg, "t").id
+    old = repo.try_lock_session(pg, sid)
+    pg.execute(
+        "UPDATE sessions SET busy_since = busy_since - interval '3 minutes' WHERE id = %s", (sid,)
+    )
+    stale = _busy(pg, sid)[0]
+    new = repo.try_lock_session(pg, sid)  # turn B retakes the stale lock
+    assert old is not None and new is not None and new != stale
+    repo.unlock_session(pg, sid, stale)  # turn A finishes late with its old token
+    assert _busy(pg, sid)[0] is not None  # B still holds it
+    repo.unlock_session(pg, sid, new)
+    assert _busy(pg, sid)[0] is None

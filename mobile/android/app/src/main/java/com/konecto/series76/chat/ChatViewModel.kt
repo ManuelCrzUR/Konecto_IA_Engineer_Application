@@ -42,6 +42,8 @@ data class ChatUiState(
     val draft: String = "",
     /** Text of the last send that failed; kept so Retry can resend it. */
     val failedText: String? = null,
+    /** Whether [failedText] was spoken, so Retry keeps reading the answer aloud. */
+    val failedSpoken: Boolean = false,
     /** True while the speech recognizer is listening. */
     val listening: Boolean = false,
     /** Key of the assistant item that must be read aloud once (cleared by [ChatViewModel.onAutoSpoken]). */
@@ -63,9 +65,6 @@ class ChatViewModel(
     val state: StateFlow<ChatUiState> = _state.asStateFlow()
 
     private var localCounter = 0L
-
-    /** Whether the failed text was spoken, so Retry keeps reading the answer aloud. */
-    private var failedSpoken = false
 
     init {
         if (initialSessionId != null) load(initialSessionId)
@@ -140,7 +139,7 @@ class ChatViewModel(
                 // The restored draft is the same text; clear it so it is not sent twice.
                 it.copy(error = null, canRetry = false, failedText = null, draft = if (it.draft == failed) "" else it.draft)
             }
-            dispatch(failed, failedSpoken)
+            dispatch(failed, s.failedSpoken)
         } else if (s.sessionId != null && s.messages.isEmpty()) {
             load(s.sessionId)
         } else {
@@ -155,7 +154,6 @@ class ChatViewModel(
                 is ApiResult.Success -> {
                     adoptSession(r.value.sessionId)
                     val item = ChatItem("l${localCounter++}", "assistant", r.value.answer, r.value.products)
-                    failedSpoken = false
                     _state.update {
                         it.copy(
                             sending = false,
@@ -167,11 +165,13 @@ class ChatViewModel(
                 is ApiResult.Failure -> {
                     // Adopt the session the server already created so Retry does not open a second one.
                     adoptSession(r.sessionId)
-                    failedSpoken = spoken
                     _state.update {
                         val restoredDraft = if (it.draft.isBlank()) q else it.draft
                         if (r.retryable) {
-                            it.copy(sending = false, error = r.message, canRetry = true, failedText = q, draft = restoredDraft)
+                            it.copy(
+                                sending = false, error = r.message, canRetry = true,
+                                failedText = q, failedSpoken = spoken, draft = restoredDraft,
+                            )
                         } else {
                             // Not retryable: drop the optimistic bubble and give the text back for editing.
                             it.copy(

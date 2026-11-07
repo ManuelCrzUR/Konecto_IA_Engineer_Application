@@ -20,11 +20,7 @@ class AuthInterceptor(
             request
         }
         val response = chain.proceed(authed)
-        if (response.code == 401 && !request.url.encodedPath.endsWith(LOGIN_PATH)) onUnauthorized()
+        if (response.code == 401 && !request.url.encodedPath.endsWith(ApiService.LOGIN_PATH)) onUnauthorized()
         return response
-    }
-
-    private companion object {
-        const val LOGIN_PATH = "api/auth/login"
     }
 }
