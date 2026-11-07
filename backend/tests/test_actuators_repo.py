@@ -294,7 +294,8 @@ def test_diagnose_torque_too_high(db):
     assert report.blocking == ["min_torque"]
     assert report.out_of_catalog is False
     assert report.closest == {"min_torque": best}
-    assert str(best) in report.message
+    assert repo._num(best) in report.message
+    assert ".0 " not in report.message
 
 
 def test_diagnose_closest_respects_other_filters_and_unit(db):
@@ -377,3 +378,9 @@ def test_table_notes(db):
     assert any("IEC 60034-1" in n for n in got["T1_wp_110v_1ph"])
     assert repo.table_notes(db, ["nope"]) == {}
     assert repo.table_notes(db, []) == {}
+
+
+def test_num_prints_whole_numbers_without_decimal():
+    assert repo._num(9000.0) == "9000"
+    assert repo._num(17.0) == "17"
+    assert repo._num(6.5) == "6.5"

@@ -134,6 +134,11 @@ def _closest(conn: psycopg.Connection, f: SearchFilters, name: str) -> float | N
     return None if value is None else float(value)
 
 
+def _num(v: float | None) -> str:
+    """Whole numbers without ".0" (9000, not 9000.0); real decimals kept (6.5)."""
+    return "None" if v is None else str(int(v)) if float(v).is_integer() else str(v)
+
+
 def _message(f: SearchFilters, blocking: list[str], oob: bool, closest: dict[str, float]) -> str:
     if oob:
         return "No actuator in the catalog has this combination of voltage, phase, enclosure and service."
@@ -143,9 +148,9 @@ def _message(f: SearchFilters, blocking: list[str], oob: bool, closest: dict[str
         )
     unit = "Nm" if f.torque_unit == "nm" else "in-lbs"
     facts = {
-        "min_torque": f"max available torque {closest.get('min_torque')} {unit}",
-        "max_speed_sec": f"fastest available {closest.get('max_speed_sec')} s at {f.speed_hz} Hz",
-        "min_duty_cycle_pct": f"max available duty cycle {closest.get('min_duty_cycle_pct')}%",
+        "min_torque": f"max available torque {_num(closest.get('min_torque'))} {unit}",
+        "max_speed_sec": f"fastest available {_num(closest.get('max_speed_sec'))} s at {f.speed_hz} Hz",
+        "min_duty_cycle_pct": f"max available duty cycle {_num(closest.get('min_duty_cycle_pct'))}%",
     }
     detail = [facts[n] for n in blocking if n in closest]
     tail = f" ({'; '.join(detail)})" if detail else ""
