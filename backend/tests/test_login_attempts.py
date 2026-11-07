@@ -1,5 +1,9 @@
 """Login attempt limiter (D-52): unit tests with a fake clock, then API behaviour."""
 
+import threading
+
+from fastapi.testclient import TestClient
+
 from app.auth import attempts
 from tests import test_routes_auth as _routes
 from tests.test_routes_auth import ANA, BEN, login
@@ -8,44 +12,75 @@ from tests.test_routes_auth import ANA, BEN, login
 db = _routes.db
 client = _routes.client
 
-
-def test_blocks_on_fifth_failure_and_reports_wait():
-    for i in range(4):
-        attempts.record_failure("a@x.test", now=100.0 + i)
-        assert attempts.blocked("a@x.test", now=100.0 + i) is None
-    attempts.record_failure("a@x.test", now=104.0)
-    assert attempts.blocked("a@x.test", now=104.0) == 296  # window started at 100
+K = attempts.make_key("a@x.test", "1.1.1.1")
 
 
-def test_key_is_lowercased_and_stripped():
+def test_sixth_attempt_blocked_and_reports_wait():
+    for i in range(5):
+        assert attempts.try_begin(K, now=100.0 + i) is None
+    assert attempts.try_begin(K, now=104.0) == 296  # oldest attempt at 100
+
+
+def test_key_is_lowercased_and_stripped_and_split_by_address():
+    assert attempts.make_key("  A@X.test ", "1.1.1.1") == attempts.make_key("a@x.TEST", "1.1.1.1")
+    assert attempts.make_key("a@x.test", "1.1.1.1") != attempts.make_key("a@x.test", "2.2.2.2")
+
+
+def test_sliding_window_frees_slots_one_by_one():
+    for t in (0.0, 75.0, 150.0, 225.0, 299.0):
+        assert attempts.try_begin(K, now=t) is None
+    assert attempts.try_begin(K, now=299.5) is not None  # first not yet expired
+    assert attempts.try_begin(K, now=301.0) is None  # attempt at 0 expired, 6th allowed
+    assert attempts.try_begin(K, now=302.0) is not None  # 75 s attempt still inside
+
+
+def test_blocked_attempts_are_not_recorded():
     for _ in range(5):
-        attempts.record_failure("  A@X.test ", now=0.0)
-    assert attempts.blocked("a@x.TEST", now=1.0) is not None
+        attempts.try_begin(K, now=0.0)
+    for t in (10.0, 20.0, 299.0):
+        assert attempts.try_begin(K, now=t) is not None
+    assert attempts.try_begin(K, now=300.0) is None  # block ends with the first window
 
 
-def test_window_expiry_unblocks_and_restarts():
+def test_parallel_attempts_admit_exactly_max():
+    results: list[int | None] = []
+    barrier = threading.Barrier(40)
+
+    def hit() -> None:
+        barrier.wait()
+        results.append(attempts.try_begin(K))
+
+    threads = [threading.Thread(target=hit) for _ in range(40)]
+    for t in threads:
+        t.start()
+    for t in threads:
+        t.join()
+    assert results.count(None) == attempts.MAX_FAILURES == 5
+
+
+def test_succeed_clears_and_isolation_between_keys():
     for _ in range(5):
-        attempts.record_failure("a@x.test", now=0.0)
-    assert attempts.blocked("a@x.test", now=299.0) == 1
-    assert attempts.blocked("a@x.test", now=300.0) is None
-    attempts.record_failure("a@x.test", now=301.0)  # fresh window, one failure
-    assert attempts.blocked("a@x.test", now=301.0) is None
+        attempts.try_begin(K, now=0.0)
+    other = attempts.make_key("b@x.test", "1.1.1.1")
+    assert attempts.try_begin(other, now=0.0) is None
+    attempts.succeed(K)
+    assert attempts.try_begin(K, now=0.0) is None
 
 
-def test_reset_and_isolation_between_emails():
-    for _ in range(5):
-        attempts.record_failure("a@x.test", now=0.0)
-    assert attempts.blocked("b@x.test", now=0.0) is None
-    attempts.reset("a@x.test")
-    assert attempts.blocked("a@x.test", now=0.0) is None
-
-
-def test_tracked_emails_are_bounded(monkeypatch):
+def test_tracked_keys_are_bounded(monkeypatch):
     monkeypatch.setattr(attempts, "MAX_TRACKED", 3)
     for i in range(10):
-        attempts.record_failure(f"u{i}@x.test", now=float(i))
+        attempts.try_begin(f"u{i}", now=float(i))
     assert len(attempts._entries) == 3
-    assert "u9@x.test" in attempts._entries and "u0@x.test" not in attempts._entries
+    assert "u9" in attempts._entries and "u0" not in attempts._entries
+
+
+def test_expired_keys_are_evicted_before_oldest(monkeypatch):
+    monkeypatch.setattr(attempts, "MAX_TRACKED", 2)
+    attempts.try_begin("old", now=0.0)
+    attempts.try_begin("fresh", now=1000.0)
+    attempts.try_begin("new", now=1000.0)  # "old" expired, "fresh" kept
+    assert set(attempts._entries) == {"fresh", "new"}
 
 
 def _fail(client, email, n):
@@ -61,6 +96,23 @@ def test_sixth_attempt_is_429_even_with_right_password(client):
     assert body["error"] == "too_many_attempts"
     assert body["detail"].startswith("Too many failed sign-ins. Try again in ")
     assert 1 <= int(r.headers["Retry-After"]) <= 300
+
+
+def test_another_client_address_is_not_blocked(client):
+    _fail(client, ANA[0], 5)
+    assert login(client, *ANA).status_code == 429
+    other = TestClient(client.app, client=("9.9.9.9", 4321))
+    assert login(other, *ANA).status_code == 200
+
+
+def test_forwarded_for_is_ignored(client):
+    _fail(client, ANA[0], 5)
+    r = client.post(
+        "/api/auth/login",
+        json={"email": ANA[0], "password": ANA[1]},
+        headers={"X-Forwarded-For": "8.8.8.8"},
+    )
+    assert r.status_code == 429
 
 
 def test_success_resets_the_counter(client):

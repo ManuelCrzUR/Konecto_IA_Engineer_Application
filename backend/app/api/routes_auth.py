@@ -5,8 +5,8 @@ Contract (router = APIRouter(); sync `def` endpoints):
     -> 200 {token, user: {email, role}}  (auth_repo.authenticate + issue_token)
     -> 401 ApiError("invalid_credentials", "Wrong email or password") for an unknown
        email or a wrong password (same message: no user enumeration).
-    -> 429 "too_many_attempts" + Retry-After after 5 failures per email in 5 minutes
-       (D-52, app.auth.attempts); the password is not checked while blocked.
+    -> 429 "too_many_attempts" + Retry-After after 5 attempts per email and client address in
+       5 minutes, sliding window (D-52, app.auth.attempts); the password is not checked while blocked.
 - POST /auth/logout  (Bearer required) -> 204; revokes that token only.
 - GET  /auth/me      (Bearer required) -> 200 {email, role}.
 
@@ -22,7 +22,7 @@ from __future__ import annotations
 
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, Response
+from fastapi import APIRouter, Depends, Request, Response
 from pydantic import BaseModel, Field
 
 from app.api.deps import get_conn_factory, get_current_user, get_token
@@ -52,10 +52,14 @@ class LoginResponse(BaseModel):
 
 @router.post("/auth/login", response_model=LoginResponse)
 def login(
-    body: LoginRequest, conn_factory: Annotated[ConnFactory, Depends(get_conn_factory)]
+    body: LoginRequest,
+    request: Request,
+    conn_factory: Annotated[ConnFactory, Depends(get_conn_factory)],
 ) -> LoginResponse:
-    wait = attempts.blocked(body.email)
-    if wait is not None:  # checked before any password hashing
+    # Direct peer address only: X-Forwarded-For is client-controlled, so it is not trusted.
+    key = attempts.make_key(body.email, request.client.host if request.client else None)
+    wait = attempts.try_begin(key)  # counts this attempt before any DB or hash work
+    if wait is not None:
         raise ApiError(
             429,
             "too_many_attempts",
@@ -65,9 +69,8 @@ def login(
     with conn_factory() as conn:
         user = auth_repo.authenticate(conn, body.email, body.password)
         if user is None:
-            attempts.record_failure(body.email)
             raise ApiError(401, "invalid_credentials", "Wrong email or password")
-        attempts.reset(body.email)
+        attempts.succeed(key)
         token = auth_repo.issue_token(conn, user.id)
     return LoginResponse(token=token, user=UserOut(email=user.email, role=user.role))
 
