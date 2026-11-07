@@ -8,9 +8,12 @@ Errors always use ErrorOut {error, detail}.
 
 from __future__ import annotations
 
+import uuid
+from datetime import datetime
+
 from pydantic import BaseModel
 
-from app.domain.conversation import SearchHit, SessionInfo, StoredMessage
+from app.domain.conversation import SearchHit, StoredMessage
 from app.domain.models import ConversationRequest, ConversationResponse
 
 __all__ = [
@@ -27,7 +30,13 @@ class SearchMatch(SearchHit):
     """`match` of a search result: {where: "title"|"message", snippet}."""
 
 
-class SessionOut(SessionInfo):
+class SessionOut(BaseModel):
+    """Explicit field list: the owner's `user_id` is never part of the payload (D-52)."""
+
+    id: uuid.UUID
+    title: str
+    created_at: datetime
+    updated_at: datetime
     match: SearchMatch | None = None
 
 

@@ -139,3 +139,13 @@ def pytest_collection_modifyitems(items):
     for item in items:
         if {"pg", "pg_conn"} & set(getattr(item, "fixturenames", ())):
             item.add_marker(pytest.mark.integration)
+
+
+@pytest.fixture(autouse=True)
+def _reset_login_attempts():
+    """The login limiter is process-wide state (D-52): start every test clean."""
+    from app.auth import attempts
+
+    attempts.reset_all()
+    yield
+    attempts.reset_all()

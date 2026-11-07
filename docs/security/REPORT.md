@@ -170,4 +170,4 @@ Verified: argon2id hashes (pwdlib defaults); unknown email and wrong password gi
 
 Fixed after the audit (Low): expired tokens are now deleted when a new one is issued.
 
-Accepted risks (documented in the README): no rate limiting or lockout; seeded test users with documented passwords (`SEED_TEST_USERS=off` for anything beyond a demo); token stored unencrypted in DataStore on the device; `/docs` and `/openapi.json` public; `user_id` (the caller's own id) is still part of `SessionOut`; the release APK is signed with the debug key for local installs.
+Accepted risks (documented in the README): login rate limiting is now addressed by D-52 (5 failures per email per 5 minutes, in memory, per process; no account lockout); seeded test users with documented passwords (`SEED_TEST_USERS=off` for anything beyond a demo); token stored unencrypted in DataStore on the device; `/docs` and `/openapi.json` public; `user_id` was removed from `SessionOut` in D-52; the release APK is signed with the debug key for local installs.

@@ -5,6 +5,8 @@ Contract (router = APIRouter(); sync `def` endpoints):
     -> 200 {token, user: {email, role}}  (auth_repo.authenticate + issue_token)
     -> 401 ApiError("invalid_credentials", "Wrong email or password") for an unknown
        email or a wrong password (same message: no user enumeration).
+    -> 429 "too_many_attempts" + Retry-After after 5 failures per email in 5 minutes
+       (D-52, app.auth.attempts); the password is not checked while blocked.
 - POST /auth/logout  (Bearer required) -> 204; revokes that token only.
 - GET  /auth/me      (Bearer required) -> 200 {email, role}.
 
@@ -25,6 +27,7 @@ from pydantic import BaseModel, Field
 
 from app.api.deps import get_conn_factory, get_current_user, get_token
 from app.api.errors import ApiError
+from app.auth import attempts
 from app.auth import repo as auth_repo
 from app.auth.repo import CurrentUser, Role
 from app.db.connection import ConnFactory
@@ -51,10 +54,20 @@ class LoginResponse(BaseModel):
 def login(
     body: LoginRequest, conn_factory: Annotated[ConnFactory, Depends(get_conn_factory)]
 ) -> LoginResponse:
+    wait = attempts.blocked(body.email)
+    if wait is not None:  # checked before any password hashing
+        raise ApiError(
+            429,
+            "too_many_attempts",
+            f"Too many failed sign-ins. Try again in {wait} seconds.",
+            headers={"Retry-After": str(wait)},
+        )
     with conn_factory() as conn:
         user = auth_repo.authenticate(conn, body.email, body.password)
         if user is None:
+            attempts.record_failure(body.email)
             raise ApiError(401, "invalid_credentials", "Wrong email or password")
+        attempts.reset(body.email)
         token = auth_repo.issue_token(conn, user.id)
     return LoginResponse(token=token, user=UserOut(email=user.email, role=user.role))
 
