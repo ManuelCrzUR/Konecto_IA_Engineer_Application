@@ -19,6 +19,8 @@ data class ConversationResponse(
     val answer: String,
     val products: List<Product> = emptyList(),
     val debug: List<ToolTrace> = emptyList(),
+    /** "es" or "en": language of [answer]; null from older backends. */
+    val language: String? = null,
 )
 
 @Serializable
@@ -81,3 +83,6 @@ data class TranscribeResponse(
     val model: String? = null,
     val seconds: Double? = null,
 )
+
+@Serializable
+data class SpeechRequest(val text: String, val language: String? = null)

@@ -38,11 +38,12 @@ private const val DOT_CYCLE_MS = 1200
 private const val DOT_STAGGER_MS = 150
 
 @Composable
-fun ThinkingRow(modifier: Modifier = Modifier) {
+fun ThinkingRow(phase: ThinkingPhase, lang: String, modifier: Modifier = Modifier) {
     Row(
+        // Announced when the phase changes (the description is the phase's first label), not on rotation.
         modifier.testTag("typing_indicator").semantics {
             liveRegion = LiveRegionMode.Polite
-            contentDescription = "Axel is typing"
+            contentDescription = phaseDescription(phase, lang)
         },
         verticalAlignment = Alignment.Bottom,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
@@ -54,8 +55,8 @@ fun ThinkingRow(modifier: Modifier = Modifier) {
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(10.dp),
             ) {
-                Text("Looking up the tables…", style = MaterialTheme.typography.bodyLarge)
                 Row(horizontalArrangement = Arrangement.spacedBy(4.dp)) { repeat(3) { PulsingDot(it) } }
+                StatusLabel(phase, lang)
             }
         }
     }

@@ -11,6 +11,9 @@ import androidx.lifecycle.createSavedStateHandle
 import com.konecto.series76.data.ApiResult
 import com.konecto.series76.data.AssistantRepository
 import com.konecto.series76.data.Product
+import com.konecto.series76.voice.speechLocale
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -22,6 +25,8 @@ data class ChatItem(
     val role: String,
     val text: String,
     val products: List<Product> = emptyList(),
+    /** "es"/"en" as reported by the backend for this answer; null for history and user messages. */
+    val language: String? = null,
 ) {
     val isUser: Boolean get() = role == "user"
 }
@@ -52,7 +57,29 @@ data class ChatUiState(
     val notice: String? = null,
     /** Key of the assistant item that must be read aloud once (cleared by [ChatViewModel.onAutoSpoken]). */
     val autoSpeakKey: String? = null,
-)
+    /** Spoken answer that arrived but is not shown until its first audio is ready (synchronized voice). */
+    val held: ChatItem? = null,
+    /** "es" or "en": language of the last question, used for the status label. */
+    val statusLang: String = "en",
+) {
+    /** Something is in flight: the request, or the voice of a held answer. */
+    val busy: Boolean get() = sending || held != null
+
+    /** Phase shown by the loading indicator, or null when nothing is pending. */
+    val thinkingPhase: ThinkingPhase?
+        get() = when {
+            transcribing -> ThinkingPhase.Transcribing
+            held != null -> ThinkingPhase.Voice
+            sending -> ThinkingPhase.Waiting
+            else -> null
+        }
+}
+
+/** Counted from when the speaker starts preparing the held answer; the speaker's own deadline is 10 s. */
+const val REVEAL_BACKSTOP_MS = 12_000L
+
+/** Counted from when the answer arrives; only fires if no speaker ever starts preparing it. */
+const val SAFETY_BACKSTOP_MS = 30_000L
 
 /**
  * The current session id lives in [savedState] so it survives process death; the nav argument is only
@@ -61,7 +88,11 @@ data class ChatUiState(
 class ChatViewModel(
     private val repo: AssistantRepository,
     private val savedState: SavedStateHandle,
+    private val revealBackstopMs: Long = REVEAL_BACKSTOP_MS,
+    private val safetyBackstopMs: Long = SAFETY_BACKSTOP_MS,
 ) : ViewModel() {
+
+    private var revealJob: Job? = null
 
     private val initialSessionId: String? = savedState[SESSION_KEY]
 
@@ -103,10 +134,11 @@ class ChatViewModel(
     fun send(text: String, spoken: Boolean = false) {
         val q = text.trim()
         val s = _state.value
-        if (q.isEmpty() || q.length > MAX_QUERY_CHARS || s.sending || s.loading) return
+        if (q.isEmpty() || q.length > MAX_QUERY_CHARS || s.busy || s.loading) return
         _state.update {
             it.copy(
                 messages = it.messages + ChatItem("l${localCounter++}", "user", q),
+                statusLang = speechLocale(q).language,
                 draft = "",
                 error = null,
                 canRetry = false,
@@ -118,7 +150,10 @@ class ChatViewModel(
 
     fun onVoiceStart() = _state.update { it.copy(listening = true, transcribing = false, error = null, canRetry = false) }
 
-    fun onVoiceTranscribing() = _state.update { it.copy(listening = false, transcribing = true) }
+    fun onVoiceTranscribing() = _state.update {
+        val last = it.messages.lastOrNull()?.text
+        it.copy(listening = false, transcribing = true, statusLang = last?.let { t -> speechLocale(t).language } ?: it.statusLang)
+    }
 
     fun onVoiceNotice(message: String) = _state.update { it.copy(notice = message) }
 
@@ -137,10 +172,39 @@ class ChatViewModel(
 
     fun onAutoSpoken() = _state.update { it.copy(autoSpeakKey = null) }
 
+    /** First audio is ready (or the device voice took over): show the held answer. No-op for other keys. */
+    fun onVoiceReady(key: String) {
+        if (_state.value.held?.key != key) return
+        revealJob?.cancel()
+        _state.update {
+            val h = it.held
+            // Whatever path reveals it, the one-shot auto-speak flag goes with the held answer.
+            if (h == null || h.key != key) it
+            else it.copy(held = null, autoSpeakKey = null, messages = it.messages + h)
+        }
+    }
+
+    /**
+     * The speaker started preparing the held answer: restart the reveal backstop from now, so text and
+     * voice stay together even when speak() starts late (e.g. the app was in the background).
+     */
+    fun onVoicePreparing(key: String) {
+        if (_state.value.held?.key != key) return
+        startReveal(key, revealBackstopMs)
+    }
+
+    private fun startReveal(key: String, afterMs: Long) {
+        revealJob?.cancel()
+        revealJob = viewModelScope.launch {
+            delay(afterMs)
+            onVoiceReady(key)
+        }
+    }
+
     /** Resends the failed text without adding a second user bubble, or reloads history. */
     fun retry() {
         val s = _state.value
-        if (s.sending || s.loading) return
+        if (s.busy || s.loading) return
         val failed = s.failedText
         if (failed != null) {
             _state.update {
@@ -161,14 +225,15 @@ class ChatViewModel(
             when (val r = repo.sendMessage(_state.value.sessionId, q)) {
                 is ApiResult.Success -> {
                     adoptSession(r.value.sessionId)
-                    val item = ChatItem("l${localCounter++}", "assistant", r.value.answer, r.value.products)
+                    val item = ChatItem("l${localCounter++}", "assistant", r.value.answer, r.value.products, r.value.language)
                     _state.update {
-                        it.copy(
-                            sending = false,
-                            messages = it.messages + item,
-                            autoSpeakKey = if (spoken) item.key else null,
-                        )
+                        if (spoken) {
+                            it.copy(sending = false, held = item, autoSpeakKey = item.key)
+                        } else {
+                            it.copy(sending = false, messages = it.messages + item)
+                        }
                     }
+                    if (spoken) startReveal(item.key, safetyBackstopMs)
                 }
                 is ApiResult.Failure -> {
                     // Adopt the session the server already created so Retry does not open a second one.

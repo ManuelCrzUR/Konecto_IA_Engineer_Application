@@ -17,6 +17,14 @@ fun speechLocale(text: String): Locale {
     return if (spanish) Locale.forLanguageTag("es") else Locale.US
 }
 
+/** The backend's [language] ("es"/"en") when present, otherwise guessed from [text]. */
+fun resolveLocale(language: String?, text: String): Locale =
+    when (language) {
+        "es" -> Locale.forLanguageTag("es")
+        "en" -> Locale.US
+        else -> speechLocale(text)
+    }
+
 private val LIST_MARKER = Regex("^\\s*(?:[-*•]|\\d+[.)])\\s+")
 private val HEADING = Regex("^\\s*#+\\s*")
 

@@ -27,7 +27,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.dp
-import com.konecto.series76.voice.VoiceIcons
+import com.konecto.series76.voice.SpeakerButtonIcon
+import com.konecto.series76.voice.SpeakerButtonState
+import com.konecto.series76.voice.voiceButtonState
 import com.konecto.series76.ui.ComparisonTable
 import com.konecto.series76.ui.ProductCard
 import com.konecto.series76.ui.axel.AxelAvatar
@@ -66,9 +68,15 @@ fun MessageItem(
     onAnimated: () -> Unit,
     speakingKey: String? = null,
     onSpeak: (ChatItem) -> Unit = {},
+    preparingKey: String? = null,
 ) {
     AnimatedMessage(animate, onAnimated) {
-        if (item.isUser) UserBubble(item.text) else AssistantMessage(item, speakingKey == item.key, onSpeak, announce = animate)
+        if (item.isUser) {
+            UserBubble(item.text)
+        } else {
+            val state = voiceButtonState(item.key, speakingKey, preparingKey)
+            AssistantMessage(item, state, onSpeak, announce = animate)
+        }
     }
 }
 
@@ -89,7 +97,7 @@ private fun UserBubble(text: String) {
 }
 
 @Composable
-private fun AssistantMessage(item: ChatItem, speaking: Boolean, onSpeak: (ChatItem) -> Unit, announce: Boolean = false) {
+private fun AssistantMessage(item: ChatItem, voice: SpeakerButtonState, onSpeak: (ChatItem) -> Unit, announce: Boolean = false) {
     Column(Modifier.fillMaxWidth(), verticalArrangement = Arrangement.spacedBy(10.dp)) {
         Row(verticalAlignment = Alignment.Bottom, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             AxelAvatar(AxelState.IDLE, size = 28.dp)
@@ -105,14 +113,14 @@ private fun AssistantMessage(item: ChatItem, speaking: Boolean, onSpeak: (ChatIt
             IconButton(
                 onClick = { onSpeak(item) },
                 Modifier.size(48.dp).testTag("speak_${item.key}")
-                    .semantics { stateDescription = if (speaking) "Reading" else "Not reading" },
-            ) {
-                Icon(
-                    if (speaking) VoiceIcons.Stop else VoiceIcons.VolumeUp,
-                    contentDescription = if (speaking) "Stop reading" else "Read aloud",
-                    Modifier.size(20.dp),
-                )
-            }
+                    .semantics {
+                        stateDescription = when (voice) {
+                            SpeakerButtonState.Reading -> "Reading"
+                            SpeakerButtonState.Preparing -> "Preparing"
+                            SpeakerButtonState.Idle -> "Not reading"
+                        }
+                    },
+            ) { SpeakerButtonIcon(voice) }
         }
         item.products.forEach { ProductCard(it) }
         if (item.products.size >= 2) ComparisonTable(item.products)

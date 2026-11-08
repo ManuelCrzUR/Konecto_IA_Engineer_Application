@@ -48,7 +48,7 @@ import com.konecto.series76.voice.AndroidVoiceInput
 import com.konecto.series76.voice.VoiceEvent
 import com.konecto.series76.voice.VoiceIcons
 import com.konecto.series76.voice.speakableText
-import com.konecto.series76.voice.speechLocale
+import com.konecto.series76.voice.resolveLocale
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
@@ -77,8 +77,11 @@ fun ChatRoute(vm: ChatViewModel, onBack: () -> Unit, onOpenDebug: (sessionId: St
     val voice = remember {
         (context.applicationContext as? App)?.container?.newVoiceInput() ?: AndroidVoiceInput(context)
     }
-    val speaker = remember { AndroidSpeaker(context) }
+    val speaker = remember {
+        (context.applicationContext as? App)?.container?.newSpeaker() ?: AndroidSpeaker(context)
+    }
     val speakingKey by speaker.speakingKey.collectAsStateWithLifecycle()
+    val preparingKey by speaker.preparingKey.collectAsStateWithLifecycle()
     DisposableEffect(Unit) {
         onDispose {
             voice.release()
@@ -99,16 +102,23 @@ fun ChatRoute(vm: ChatViewModel, onBack: () -> Unit, onOpenDebug: (sessionId: St
             }
         }
     }
-    LaunchedEffect(state.autoSpeakKey) {
-        val key = state.autoSpeakKey ?: return@LaunchedEffect
-        state.messages.firstOrNull { it.key == key }?.let { speaker.speak(key, speakableText(it.text)) }
-        vm.onAutoSpoken()
+    // A spoken answer is held back: show it when its first audio is ready. If nobody is preparing it
+    // (screen recreated while waiting), show it now.
+    LaunchedEffect(state.held?.key) {
+        val h = state.held ?: return@LaunchedEffect
+        if (state.autoSpeakKey == h.key) {
+            vm.onAutoSpoken()
+            vm.onVoicePreparing(h.key)
+            speaker.speak(h.key, speakableText(h.text), h.language) { vm.onVoiceReady(h.key) }
+        } else {
+            vm.onVoiceReady(h.key)
+        }
     }
 
     fun startListening() {
         speaker.stop()
-        val lastAnswer = state.messages.lastOrNull { !it.isUser }?.text
-        voice.start(lastAnswer?.let { speechLocale(it).toLanguageTag() })
+        val last = state.messages.lastOrNull { !it.isUser }
+        voice.start(last?.let { resolveLocale(it.language, it.text).toLanguageTag() })
     }
     val permission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { granted ->
         if (granted) {
@@ -141,8 +151,10 @@ fun ChatRoute(vm: ChatViewModel, onBack: () -> Unit, onOpenDebug: (sessionId: St
             }
         },
         speakingKey = speakingKey,
+        preparingKey = preparingKey,
         onSpeak = { item ->
-            if (speakingKey == item.key) speaker.stop() else speaker.speak(item.key, speakableText(item.text))
+            if (speakingKey == item.key || preparingKey == item.key) speaker.stop()
+            else speaker.speak(item.key, speakableText(item.text), item.language)
         },
     )
 }
@@ -163,6 +175,7 @@ fun ChatContent(
     onTitleTapsFired: () -> Unit,
     onMic: () -> Unit = {},
     speakingKey: String? = null,
+    preparingKey: String? = null,
     onSpeak: (ChatItem) -> Unit = {},
 ) {
     // Scaffold's default contentWindowInsets = systemBars (status + nav bar, no IME): inner already clears
@@ -172,9 +185,9 @@ fun ChatContent(
             Box(Modifier.weight(1f).fillMaxWidth()) {
                 when {
                     state.loading -> CircularProgressIndicator(Modifier.align(Alignment.Center))
-                    state.messages.isEmpty() && !state.sending ->
+                    state.messages.isEmpty() && state.thinkingPhase == null ->
                         EmptyChat(onSend, Modifier.fillMaxSize())
-                    else -> MessageList(state, speakingKey, onSpeak)
+                    else -> MessageList(state, speakingKey, preparingKey, onSpeak)
                 }
             }
             if (state.error != null) ErrorBanner(state.error, state.canRetry, onRetry)
@@ -189,10 +202,11 @@ fun ChatContent(
  */
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-private fun MessageList(state: ChatUiState, speakingKey: String?, onSpeak: (ChatItem) -> Unit) {
+private fun MessageList(state: ChatUiState, speakingKey: String?, preparingKey: String?, onSpeak: (ChatItem) -> Unit) {
     val listState = rememberLazyListState()
     val reversed = remember(state.messages) { state.messages.asReversed() }
-    val count = state.messages.size + if (state.sending) 1 else 0
+    val phase = state.thinkingPhase
+    val count = state.messages.size + if (phase != null) 1 else 0
     // reverseLayout: index 0 is the newest item. Follow it only when already near it or after the user's own send.
     val nearNewest = { listState.firstVisibleItemIndex <= 1 }
     LaunchedEffect(count) {
@@ -214,11 +228,11 @@ private fun MessageList(state: ChatUiState, speakingKey: String?, onSpeak: (Chat
         contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(12.dp),
     ) {
-        if (state.sending) {
-            item(key = "typing", contentType = "typing") { ThinkingRow() }
+        if (phase != null) {
+            item(key = "typing", contentType = "typing") { ThinkingRow(phase, state.statusLang) }
         }
         items(reversed, key = { it.key }, contentType = { it.role }) { item ->
-            MessageItem(item, animate = item.key !in skip, onAnimated = { skip.add(item.key) }, speakingKey = speakingKey, onSpeak = onSpeak)
+            MessageItem(item, animate = item.key !in skip, onAnimated = { skip.add(item.key) }, speakingKey = speakingKey, onSpeak = onSpeak, preparingKey = preparingKey)
         }
     }
 }
@@ -233,7 +247,6 @@ private fun InputRow(state: ChatUiState, onDraftChange: (String) -> Unit, onSend
             placeholder = {
                 Text(
                     when {
-                        state.transcribing -> "Transcribing\u2026"
                         state.listening -> "Listening\u2026"
                         else -> "Message"
                     },
@@ -250,7 +263,7 @@ private fun InputRow(state: ChatUiState, onDraftChange: (String) -> Unit, onSend
             shape = RoundedCornerShape(24.dp),
             maxLines = 4,
         )
-        if (!state.sending && !state.loading) {
+        if (!state.busy && !state.loading) {
             IconButton(
                 onClick = onMic, enabled = !state.transcribing,
                 modifier = Modifier.size(48.dp).testTag("chat_mic")
@@ -265,7 +278,7 @@ private fun InputRow(state: ChatUiState, onDraftChange: (String) -> Unit, onSend
         }
         IconButton(
             onClick = { onSend(state.draft) },
-            enabled = !state.sending && !state.loading && state.draft.isNotBlank(),
+            enabled = !state.busy && !state.loading && state.draft.isNotBlank(),
             modifier = Modifier.size(48.dp).testTag("chat_send"),
         ) {
             Icon(Icons.AutoMirrored.Filled.Send, contentDescription = "Send")

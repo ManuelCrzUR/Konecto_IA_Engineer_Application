@@ -8,11 +8,17 @@ import com.konecto.series76.data.AssistantRepository
 import com.konecto.series76.data.AuthInterceptor
 import com.konecto.series76.data.AuthRepository
 import com.konecto.series76.data.HttpAuthRepository
+import com.konecto.series76.data.HttpSpeechSynthesizer
 import com.konecto.series76.data.HttpTranscriber
 import com.konecto.series76.data.Repository
 import com.konecto.series76.data.SessionStore
 import com.konecto.series76.data.ThemePreferences
+import com.konecto.series76.voice.AndroidSpeaker
 import com.konecto.series76.voice.AndroidVoiceInput
+import com.konecto.series76.voice.CloudSpeaker
+import com.konecto.series76.voice.FallbackSpeaker
+import com.konecto.series76.voice.MediaAudioPlayer
+import com.konecto.series76.voice.Speaker
 import com.konecto.series76.voice.CloudVoiceInput
 import com.konecto.series76.voice.FallbackMemory
 import com.konecto.series76.voice.FallbackVoiceInput
@@ -55,6 +61,22 @@ class AppContainer(
     val authRepository: AuthRepository by lazy { HttpAuthRepository(api, sessionStore) }
 
     private val fallbackMemory = FallbackMemory()
+
+    private val speakerMemory = FallbackMemory()
+
+    /** Cloud speech (D-54) with the device TextToSpeech (D-48) as fallback; release() when the screen leaves. */
+    fun newSpeaker(): Speaker {
+        // Empty parent only; each speaker creates its own scope that its release() cancels.
+        val scope = MainScope()
+        return FallbackSpeaker(
+            primary = CloudSpeaker(
+                HttpSpeechSynthesizer(api), MediaAudioPlayer(), java.io.File(context.cacheDir, "speech"), scope,
+            ),
+            fallback = AndroidSpeaker(context),
+            parentScope = scope,
+            memory = speakerMemory,
+        )
+    }
 
     /** Cloud transcription (D-53) with the device recognizer (D-48) as fallback; release() when the screen leaves. */
     fun newVoiceInput(): VoiceInput {

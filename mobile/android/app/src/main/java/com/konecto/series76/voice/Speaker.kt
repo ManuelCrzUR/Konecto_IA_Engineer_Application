@@ -7,10 +7,18 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
-/** Text-to-speech. [speakingKey] is the key of the message being read, or null. Main thread only. */
+private val NoKey: StateFlow<String?> = MutableStateFlow(null)
+
+/**
+ * Text-to-speech. [speakingKey] is the key of the message being read, or null; [preparingKey] is the
+ * message whose audio is being prepared and has not started yet. [language] ("es"/"en") wins over
+ * guessing from the text. [speak] calls `onFirstAudio` once, when the voice is about to be heard.
+ * Main thread only.
+ */
 interface Speaker {
     val speakingKey: StateFlow<String?>
-    fun speak(key: String, text: String)
+    val preparingKey: StateFlow<String?> get() = NoKey
+    fun speak(key: String, text: String, language: String? = null, onFirstAudio: () -> Unit = {})
     fun stop()
     fun release()
 }
@@ -21,7 +29,7 @@ class AndroidSpeaker(private val context: Context) : Speaker {
 
     private var tts: TextToSpeech? = null
     private var ready = false
-    private var pending: Pair<String, String>? = null
+    private var pending: Triple<String, String, String?>? = null
 
     private val progress = object : UtteranceProgressListener() {
         override fun onStart(utteranceId: String?) {}
@@ -40,7 +48,7 @@ class AndroidSpeaker(private val context: Context) : Speaker {
         val p = pending
         pending = null
         if (ready && p != null) {
-            speakNow(p.first, p.second)
+            speakNow(p.first, p.second, p.third)
         } else if (!ready) {
             // Init failed: drop this engine so the next speak() tries a fresh one instead of
             // queueing forever on an engine whose init callback will never run again.
@@ -53,15 +61,16 @@ class AndroidSpeaker(private val context: Context) : Speaker {
         tts = it
     }
 
-    override fun speak(key: String, text: String) {
+    override fun speak(key: String, text: String, language: String?, onFirstAudio: () -> Unit) {
         engine()
         _speakingKey.value = key
-        if (ready) speakNow(key, text) else pending = key to text
+        if (ready) speakNow(key, text, language) else pending = Triple(key, text, language)
+        onFirstAudio()
     }
 
-    private fun speakNow(key: String, text: String) {
+    private fun speakNow(key: String, text: String, language: String?) {
         val e = tts ?: return
-        val result = e.setLanguage(speechLocale(text))
+        val result = e.setLanguage(resolveLocale(language, text))
         if (result == TextToSpeech.LANG_MISSING_DATA || result == TextToSpeech.LANG_NOT_SUPPORTED) {
             e.language = java.util.Locale.getDefault()
         }

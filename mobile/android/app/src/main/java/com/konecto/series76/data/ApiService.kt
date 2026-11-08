@@ -2,6 +2,7 @@ package com.konecto.series76.data
 
 import okhttp3.MultipartBody
 import okhttp3.RequestBody
+import okhttp3.ResponseBody
 import retrofit2.Response
 import retrofit2.http.Multipart
 import retrofit2.http.Part
@@ -31,6 +32,10 @@ interface ApiService {
         @Part audio: MultipartBody.Part,
         @Part("language") language: RequestBody?,
     ): TranscribeResponse
+
+    /** Raw audio bytes (audio/mpeg or audio/wav); a few hundred KB at most, so no @Streaming. */
+    @POST("api/speech")
+    suspend fun speech(@Body request: SpeechRequest): ResponseBody
 
     @POST(LOGIN_PATH)
     suspend fun login(@Body request: LoginRequest): LoginResponse

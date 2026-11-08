@@ -14,6 +14,7 @@ import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.advanceUntilIdle
 import kotlinx.coroutines.test.resetMain
+import kotlinx.coroutines.test.runCurrent
 import kotlinx.coroutines.test.runTest
 import kotlinx.coroutines.test.setMain
 import kotlinx.serialization.json.JsonPrimitive
@@ -249,11 +250,11 @@ class ChatViewModelTest {
         vm.onVoicePartial("need 600")
         assertEquals("need 600", vm.state.value.draft)
         vm.onVoiceFinal("need 600 Nm")
-        advanceUntilIdle()
+        testScheduler.runCurrent()
         val s = vm.state.value
         assertFalse(s.listening)
         assertEquals(listOf(null to "need 600 Nm"), repo.sent)
-        assertEquals(s.messages.last().key, s.autoSpeakKey)
+        assertEquals(s.held!!.key, s.autoSpeakKey)
         vm.onAutoSpoken()
         assertNull(vm.state.value.autoSpeakKey)
     }
@@ -276,7 +277,7 @@ class ChatViewModelTest {
         advanceUntilIdle()
         assertNull(vm.state.value.autoSpeakKey)
         vm.retry()
-        advanceUntilIdle()
+        runCurrent() // advanceUntilIdle would fire the reveal backstop, which now clears autoSpeakKey
         assertNotNull(vm.state.value.autoSpeakKey)
     }
 
