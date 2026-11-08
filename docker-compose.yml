@@ -35,6 +35,8 @@ services:
       # Overrides the localhost URL from .env: inside the network the host is "db"
       DATABASE_URL: postgresql://${POSTGRES_USER:-series76}:${POSTGRES_PASSWORD:-series76}@db:5432/${POSTGRES_DB:-series76}
       TRANSCRIBE_MODEL: ${TRANSCRIBE_MODEL:-google/gemini-3.5-transcribe}
+      SPEECH_MODEL: ${SPEECH_MODEL:-google/gemini-3.8-flash-lite-tts}
+      SPEECH_VOICE: ${SPEECH_VOICE:-Kore}
     depends_on:
       db:
         condition: service_healthy

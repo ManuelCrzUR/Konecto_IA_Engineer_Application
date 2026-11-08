@@ -2,7 +2,8 @@
 
 Contract (router = APIRouter(); path "/conversation", mounted under "/api"):
   Request  ConversationRequest {session_id?: uuid, query: str (1..2000, stripped)}
-  Response ConversationResponse {session_id, answer, products[], debug[]}
+  Response ConversationResponse {session_id, answer, language, products[], debug[]}
+           (language = detect_lang(answer), by code, "es" | "en"; the query only if the answer has no letters)
            (debug = the AgentResult trace for role developer, [] for role user; D-43).
 Steps (sync `def` endpoint; FastAPI runs it in its threadpool). DB steps use
 short `with conn_factory() as conn:` blocks (1-3, then 5, then the unlock); no connection is
@@ -44,12 +45,14 @@ held while the agent runs, because its tools borrow from the same pool.
 from __future__ import annotations
 
 import logging
+import re
 import uuid
-from typing import Annotated
+from typing import Annotated, Literal
 
 import psycopg
 from fastapi import APIRouter, Depends, Response
 
+from app.agent.template import detect_lang
 from app.api.deps import AgentRunner, get_agent, get_conn_factory, get_current_user
 from app.api.errors import ApiError
 from app.auth.repo import CurrentUser
@@ -59,6 +62,13 @@ from app.domain.conversation import AgentResult, HistoryTurn, StoredMessage
 from app.domain.models import ConversationRequest, ConversationResponse
 
 log = logging.getLogger(__name__)
+
+
+def _answer_language(answer: str, query: str) -> Literal["es", "en"]:
+    """Language of the text the user will hear: the answer; the query only if it has no letters."""
+    return detect_lang(answer if re.search(r"[^\W\d_]", answer) else query)
+
+
 router = APIRouter()
 
 
@@ -137,6 +147,7 @@ def post_conversation(
     return ConversationResponse(
         session_id=session.id,
         answer=result.answer,
+        language=_answer_language(result.answer, body.query),
         products=result.products,
         debug=result.trace if user.role == "developer" else [],
     )

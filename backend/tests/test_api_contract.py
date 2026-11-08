@@ -116,7 +116,8 @@ def test_response_snapshot(client):
     resp = ask(client, "what is 711A?")
     assert resp.status_code == 200
     body = resp.json()
-    assert set(body) == {"session_id", "answer", "products", "debug"}
+    assert set(body) == {"session_id", "answer", "language", "products", "debug"}
+    assert body["language"] == "en"
     uuid.UUID(body["session_id"])
     assert body["answer"] == "answer to what is 711A?"
     assert len(body["products"]) == 1

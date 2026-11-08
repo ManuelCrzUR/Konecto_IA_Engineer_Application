@@ -109,7 +109,7 @@ def test_round_trip_json(row: Actuator) -> None:
 def test_nested_conversation_response() -> None:
     row = next(r for r in ROWS if r.has_data)
     p = Product.from_actuator(row)
-    resp = ConversationResponse(session_id=uuid.uuid4(), answer="x", products=[p])
+    resp = ConversationResponse(session_id=uuid.uuid4(), answer="x", language="en", products=[p])
     expected = {f: getattr(row, f) for f in NUMERIC_FIELDS if getattr(row, f) is not None}
     _check_spelling(resp.model_dump(mode="json")["products"][0]["fields"], expected)
     text = resp.model_dump_json()

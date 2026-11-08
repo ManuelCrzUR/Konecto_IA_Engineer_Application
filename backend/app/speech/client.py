@@ -7,7 +7,7 @@ Contract:
      "temperature": 0, "language": <only when given>} and `Authorization: Bearer LLM_API_KEY`.
     Timeout 12 s (under the app's 15 s, so the server answers 503 first). Transcript {text, model, seconds}; seconds = usage.seconds when present.
 - `http` (tests): callable (url, headers, body: bytes, timeout: float) -> (status, body bytes).
-  Default uses urllib. It may raise OSError/TimeoutError, which become TranscriptionUnavailable.
+  Default uses urllib. It may raise OSError/TimeoutError/HTTPException, which become TranscriptionUnavailable.
 - TranscriptionNotConfigured: LLM_API_KEY or TRANSCRIBE_MODEL is empty (no network call).
 - TranscriptionUnavailable: network error, timeout, non-200, invalid JSON or no "text".
   Messages never include the key, the audio or the provider's body.
@@ -18,15 +18,18 @@ from __future__ import annotations
 import base64
 import json
 import os
-import urllib.error
-import urllib.request
 from collections.abc import Callable
+from http.client import HTTPException
 
 from pydantic import BaseModel
+
+from app.speech.post import post_bounded
 
 DEFAULT_BASE_URL = "https://openrouter.ai/api/v1"
 # Must stay below the Android client's 15 s so the server answers 503 before the app gives up.
 TIMEOUT_S = 12.0
+DEADLINE_S = 14.0
+MAX_RESPONSE_BYTES = 1024 * 1024
 
 Http = Callable[[str, dict[str, str], bytes, float], tuple[int, bytes]]
 
@@ -48,12 +51,10 @@ class Transcript(BaseModel):
 def _urllib_post(
     url: str, headers: dict[str, str], body: bytes, timeout: float
 ) -> tuple[int, bytes]:
-    req = urllib.request.Request(url, data=body, headers=headers, method="POST")
-    try:
-        with urllib.request.urlopen(req, timeout=timeout) as resp:
-            return resp.status, resp.read()
-    except urllib.error.HTTPError as exc:
-        return exc.code, b""
+    status, raw, _ctype, _retry = post_bounded(
+        url, headers, body, timeout, MAX_RESPONSE_BYTES, DEADLINE_S
+    )
+    return status, raw
 
 
 def transcribe(
@@ -79,7 +80,11 @@ def transcribe(
             json.dumps(payload).encode(),
             TIMEOUT_S,
         )
-    except (OSError, TimeoutError) as exc:  # URLError and socket timeouts are OSError
+    except (
+        OSError,
+        TimeoutError,
+        HTTPException,
+    ) as exc:  # URLError and socket timeouts are OSError
         raise TranscriptionUnavailable(
             f"Transcription request failed ({type(exc).__name__})"
         ) from None

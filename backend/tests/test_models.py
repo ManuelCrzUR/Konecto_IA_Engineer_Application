@@ -100,6 +100,7 @@ def test_response_roundtrip(golden: list[Actuator]) -> None:
     resp = ConversationResponse(
         session_id=uuid.uuid4(),
         answer="ok",
+        language="es",
         products=[Product.from_actuator(golden[0])],
         debug=[
             ToolTrace(
@@ -152,7 +153,9 @@ def test_product_json_roundtrips() -> None:
 
 
 def test_response_serializes_nested_product_fields_as_ints() -> None:
-    resp = ConversationResponse(session_id=uuid.uuid4(), answer="ok", products=[_row_764a()])
+    resp = ConversationResponse(
+        session_id=uuid.uuid4(), answer="ok", language="en", products=[_row_764a()]
+    )
     data = json.loads(resp.model_dump_json())
     assert data["products"][0]["fields"]["onoff_torque_nm"] == 750
     assert isinstance(data["products"][0]["fields"]["onoff_torque_nm"], int)

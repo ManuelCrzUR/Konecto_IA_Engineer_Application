@@ -79,3 +79,19 @@ def test_small_upload_passes(client):
 def test_other_paths_unaffected(client):
     r = client.post("/api/other", content=b"x" * (LIMIT * 5))
     assert r.status_code == 200
+
+
+def test_custom_path_and_error_body():
+    app = FastAPI()
+    app.add_middleware(
+        BodyLimitMiddleware, path="/api/speech", max_bytes=100, too_large=("text_too_long", "big")
+    )
+
+    @app.post("/api/speech")
+    async def s(request: Request):
+        return {"n": len(await request.body())}
+
+    c = TestClient(app)
+    assert c.post("/api/speech", content=b"x" * 100).status_code == 200
+    r = c.post("/api/speech", content=b"x" * 101)
+    assert r.status_code == 413 and r.json() == {"error": "text_too_long", "detail": "big"}

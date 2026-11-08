@@ -7,6 +7,8 @@ Contract:
   - Content-Length > max_bytes             -> 413 {error: audio_too_large}
   - body streamed past max_bytes anyway    -> 413 (a lying Content-Length cannot exceed the cap)
   Bodies are never buffered here; bytes are only counted as they stream to the route.
+  `too_large` = (error, detail) used in the 413 body (D-54: POST /api/speech uses a 16 KB cap
+  with text_too_long).
   max_bytes = 2 MB audio + 64 KB multipart overhead. Runs before auth, by design.
 """
 
@@ -25,9 +27,14 @@ class _TooLarge(Exception):
 
 class BodyLimitMiddleware:
     def __init__(
-        self, app: ASGIApp, path: str = "/api/transcribe", max_bytes: int = MAX_BODY_BYTES
+        self,
+        app: ASGIApp,
+        path: str = "/api/transcribe",
+        max_bytes: int = MAX_BODY_BYTES,
+        too_large: tuple[str, str] = ("audio_too_large", "Audio is larger than 2 MB"),
     ) -> None:
         self.app, self.path, self.max_bytes = app, path, max_bytes
+        self.too_large = too_large  # (error code, detail) of the 413 answer
 
     async def __call__(self, scope: Scope, receive: Receive, send: Send) -> None:
         if scope["type"] != "http" or scope["method"] != "POST" or scope["path"] != self.path:
@@ -38,7 +45,7 @@ class BodyLimitMiddleware:
             await self._reject(send, 411, "length_required", "Content-Length is required")
             return
         if not raw.isdigit() or int(raw) > self.max_bytes:
-            await self._reject(send, 413, "audio_too_large", "Audio is larger than 2 MB")
+            await self._reject(send, 413, *self.too_large)
             return
 
         seen = 0
@@ -62,7 +69,7 @@ class BodyLimitMiddleware:
             await self.app(scope, counting_receive, tracking_send)
         except _TooLarge:
             if not started:
-                await self._reject(send, 413, "audio_too_large", "Audio is larger than 2 MB")
+                await self._reject(send, 413, *self.too_large)
 
     @staticmethod
     async def _reject(send: Send, status: int, error: str, detail: str) -> None:

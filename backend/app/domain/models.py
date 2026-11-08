@@ -216,5 +216,6 @@ class ConversationRequest(BaseModel):
 class ConversationResponse(BaseModel):
     session_id: uuid.UUID
     answer: str
+    language: Literal["es", "en"]
     products: list[Product] = Field(default_factory=list)
     debug: list[ToolTrace] = Field(default_factory=list)
