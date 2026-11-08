@@ -29,3 +29,12 @@ Notes (corrected by hand, Sprint 8 wave 3):
 | 2026-11-07T07:34:03+00:00 | demo-voice-tablet | google/gemini-3.5-transcribe + agent | 0 | 0.000000 | 0.05 | not run: tablet disconnected (usage re-read by hand, 0.330294 before and after) |
 | 2026-11-07T15:42:20+00:00 | transcribe-e2e (API, 2 clips) | google/gemini-3.5-transcribe | 2 | 0.001718 | 0.01 | ok |
 | 2026-11-07T15:56:29+00:00 | eval | openai/gpt-6-luna | 52 | 0.011426 | 0.05 | ok |
+| 2026-11-07T23:07:48+00:00 | tts-bench | google/gemini-3.8-flash-tts,elevenlabs/eleven-flash-v2.5,elevenlabs/eleven-multilingual-v2 | 3 | 0.015397 | 0.03 | ok |
+| 2026-11-07T23:10:51+00:00 | tts-bench | google/gemini-3.8-flash-tts,elevenlabs/eleven-flash-v2.5,elevenlabs/eleven-multilingual-v2 | 12 | 0.089615 | 0.08 | ok |
+| 2026-11-07T23:19:55+00:00 | tts-bench | google/gemini-3.8-flash-tts | 2 | 0.010104 | 0.01 | ok |
+| 2026-11-07T23:22:20+00:00 | tts-bench | google/gemini-3.8-flash-lite-tts | 2 | 0.007308 | 0.01 | ok |
+| 2026-11-07T23:24:56+00:00 | tts-bench | google/gemini-3.8-flash-tts | 5 | 0.010942 | 0.01 | ok |
+| 2026-11-07T23:26:46+00:00 | demo-voice-tablet | google/gemini-3.5-transcribe + agent | 1 | 0.139985 | 0.05 | overlap: this 30-min window also contains the tts-bench rows above (0.133366); the demo itself (transcriptions + gpt-6-luna test turn) was about 0.0066 |
+| 2026-11-07T23:27:05+00:00 | tts-bench | elevenlabs/eleven-flash-v2.5 | 1 | 0.003800 | 0.01 | ok |
+| 2026-11-07T23:29:13+00:00 | tts-bench | elevenlabs/eleven-flash-v2.5 | 1 | 0.003800 | 0.01 | ok |
+| 2026-11-08T00:27:07+00:00 | demo-voice-tts-tablet | gemini-3.5-transcribe + gpt-6-luna + gemini-3.8-flash-lite-tts | 1 | 0.022950 | 0.05 | ok |

@@ -35,9 +35,9 @@ These are not installed in the repo. They are available in the Claude Code envir
 | `run` | built-in | Gate demos: backend stack, CLI, eval and the Android app on the emulator |
 | MCP `mobile` | MCP server | Driving the emulator for E2E checks and screenshots (Gates 5 and 5.5) |
 
-### Sprints 8 and 9: skills per task
+### Sprints 8 to 10: skills per task
 
-Source: the "Skills per task" tables and the wave logs in `docs/plans/SPRINT-8.md` and `docs/plans/SPRINT-9.md`. The status column is the plan's status. Rows marked "planned" have not been done yet.
+Source: the "Skills per task" tables and the wave logs in `docs/plans/SPRINT-8.md`, `docs/plans/SPRINT-9.md` and `docs/plans/SPRINT-10.md`. The status column is the plan's status. Rows marked "planned" have not been done yet.
 
 | Sprint and wave | Task | Skill or built-in | What the plan records |
 |---|---|---|---|
@@ -59,6 +59,12 @@ Source: the "Skills per task" tables and the wave logs in `docs/plans/SPRINT-8.m
 | 9, voice V2-C | Android: recording, cloud transcription and fallback (D-53) | `android-development`, `android-permissions-security` | Built; 153 JVM unit tests |
 | 9, extra | Login animation (`login/WelcomeSpin.kt`) | `android-development`, `jetpack-compose-performance` | Done: unit tests, lint, `LoginScreenTest` 3/3 on the emulator |
 | 9, wave 4 | Gate | `/code-review` high (built-in) over the whole Sprint 9 diff; fixes by subagents with `langchain-fundamentals`, `security-audit` and `android-development` | Done: 10 issues found and fixed (normalizer false joins, overwritten ingestion tests restored, guard binding, login lockout and atomicity, upload size before parsing, timeouts, recorder race). `/simplify` not run separately: the review covered the same diff |
+| 10, wave S1 | TTS bench script (`backend/scripts/tts_bench/run.py`) | `langchain-fundamentals` (Sonnet subagent; Opus ran it) | Two rounds, USD 0.141 in total; Gemini Kore chosen by ear (D-54) |
+| 10, wave S2-A | Backend: `POST /api/speech`, OpenRouter client, per-user limiter (D-54) | `security-audit` (Sonnet subagent) | Built; 84 tests in its run |
+| 10, wave S2-B | Android: `CloudSpeaker`, `FallbackSpeaker`, per-message cache | `android-development` (Sonnet subagent) | Built; 175 unit tests |
+| 10, wave S2.5-A | Android: sentence pipeline, synchronized reveal, phase labels, animated speaker button, 10 s safety net | `android-development`, `jetpack-compose-performance` (Sonnet subagent) | Built (plan: running at the time it was written) |
+| 10, wave S2.5-B | Backend: Flash Lite and Kore defaults, 120 requests per 10 minutes, `language` in the conversation response | `security-audit` (Sonnet subagent) | Built (plan: running at the time it was written) |
+| 10, wave S4 | Gate | `/code-review` (built-in) | Planned in `docs/plans/SPRINT-10.md`: code review, suites, emulator tests, clean copy |
 
 ## Reviewed, NOT installed
 

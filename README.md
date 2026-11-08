@@ -37,6 +37,8 @@ Expected: `/health` returns `{"status":"ok","actuators":68}`. The first start lo
 | `LLM_API_KEY` | Your OpenRouter key. |
 | `AGENT_MODEL` | An OpenRouter model id for the agent (see section 6). |
 | `TRANSCRIBE_MODEL` | Speech-to-text model for voice input. With Docker Compose it defaults to `google/gemini-3.5-transcribe` when unset or empty (`docker-compose.yml`), so voice uses OpenRouter whenever `LLM_API_KEY` is set. Running the backend outside Docker, an empty value disables `/api/transcribe` (503) and the app uses the device recognizer. |
+| `SPEECH_MODEL` | Text-to-speech model for spoken answers (`POST /api/speech`, D-54). With Docker Compose it defaults to `google/gemini-3.8-flash-lite-tts`. Running the backend outside Docker, an empty value disables `/api/speech` (503) and the app reads answers with the device voice. |
+| `SPEECH_VOICE` | Voice name sent with `SPEECH_MODEL` (default `Kore`). Empty disables `/api/speech` (503). |
 | `EXTRACT_LLM_MODEL` | Vision model used only if the PDF must be re-extracted (see section 3). Not needed for the quick start. |
 | `LLM_BASE_URL` | Leave as is (OpenRouter). Any OpenAI-compatible endpoint works. |
 | `API_PORT` | Host port of the API. **Default 8000.** If it is taken, set e.g. `API_PORT=8001` in `.env` (or prefix the command: `API_PORT=8001 make up`) and use that port in every URL below (the curl examples read `${API_PORT:-8000}`; export it in your shell or replace it by hand). |
@@ -51,6 +53,7 @@ Response shape (abridged):
 {
   "session_id": "uuid",
   "answer": "text written by the LLM",
+  "language": "es",
   "products": [{"part_number": "764X30-11320000/A", "enclosure": "explosionproof", "voltage": "220V",
                 "phase": 1, "service": "on_off_and_modulating", "csa_certified": true, "has_data": true,
                 "fields": {"onoff_torque_nm": 800, "onoff_torque_in_lbs": 6900, "...": "..."}, "notes": []}],
@@ -69,15 +72,16 @@ Other `make` targets: `make down` (stop, keep data), `make reset` (stop **and de
 | `POST /api/auth/login` | Body `{email, password}` -> `{token, user: {email, role}}`. Wrong email or password: 401 `invalid_credentials` (same answer for both). No token needed. |
 | `POST /api/auth/logout` | Revokes the presented token (204). |
 | `GET /api/auth/me` | `{email, role}` of the token's user. |
-| `POST /api/conversation` | Body `{session_id?, query}` -> `{session_id, answer, products, debug}`. No `session_id` creates a session; an unknown one returns 404 (D-09). The user message is saved before the agent runs, so a 503 never loses it. |
+| `POST /api/conversation` | Body `{session_id?, query}` -> `{session_id, answer, language, products, debug}`. `language` (`es` or `en`) is detected from the answer text by code, never by the LLM (from the query only if the answer has no letters); the app uses it to pick the voice language. No `session_id` creates a session; an unknown one returns 404 (D-09). The user message is saved before the agent runs, so a 503 never loses it. |
 | `POST /api/transcribe` | Multipart `audio` (m4a, aac, wav, mp3, ogg, webm or flac, at most 2 MB) plus optional `language` (`es` or `en`) -> `{text, raw_text, model, seconds}`. `text` has dictated part numbers normalized; `raw_text` is the model output (D-53). |
+| `POST /api/speech` | JSON `{text, language?}` (`text` 1 to 1,500 characters, `language` `es` or `en`) -> audio bytes (`audio/mpeg`, or `audio/wav` when the model returns PCM) with headers `X-Speech-Model` and `X-Speech-Voice`. `language` is only forwarded to ElevenLabs models; Gemini ignores it. Errors: 411 `length_required` (no Content-Length) and 413 `text_too_long` (body over 16 KB or text over 1,500 characters), 422 (empty text or bad language), 429 `too_many_speech_requests`, 503 `speech_not_configured` / `speech_unavailable`, 422 `speech_rejected` (the provider refused that text). Nothing is stored (D-54). |
 | `GET /api/sessions?q=&limit=` | Conversation list, newest first. With `q`, case-insensitive search over titles and messages; each hit has `match {where, snippet}` (D-37). |
 | `GET /api/sessions/{id}/messages` | Full history including `products` and `trace` (per-message tool trace). |
 | `GET /health` | `{"status":"ok","actuators":<row count>}`. Public. |
 
 Every `/api` route except login needs `Authorization: Bearer <token>`; without a valid token it answers 401 `unauthorized`. Each user sees and uses only their own conversations: another user's `session_id` answers 404, like an unknown one. `debug` and `trace` hold the tool calls only for the `developer` role; for `user` they are empty lists (D-43).
 
-Errors are `{error, detail}`: `llm_unavailable`, `llm_not_configured`, `database_unavailable`, `transcription_not_configured`, `transcription_unavailable` (all 503), `audio_too_large` (413), `unsupported_audio` (415), `too_many_transcriptions` (429: 20 per user per 10 minutes, with `Retry-After`, D-53), `turn_in_progress` (409: the same conversation is still answering the previous message, D-46), `unauthorized` / `invalid_credentials` (401), `too_many_attempts` (429: 5 sign-in attempts per email and client address in 5 minutes, with a `Retry-After` header, D-52), 404, 422. Conversations live in the same Postgres volume and survive restarts.
+Errors are `{error, detail}`: `llm_unavailable`, `llm_not_configured`, `database_unavailable`, `transcription_not_configured`, `transcription_unavailable` (all 503), `audio_too_large` (413), `unsupported_audio` (415), `length_required` (411: `/api/transcribe` and `/api/speech` need a Content-Length), `too_many_transcriptions` (429: 20 per user per 10 minutes, with `Retry-After`, D-53), `speech_not_configured`, `speech_unavailable` (503: network error, timeout, provider 5xx or server busy; the app then uses the device voice for 5 minutes), `speech_rejected` (422: the provider refused that text; the device voice reads that message only), `text_too_long` (413), `too_many_speech_requests` (429: 120 per user per 10 minutes, or the provider's own 429, the app sends one request per sentence, with `Retry-After`, D-54), `turn_in_progress` (409: the same conversation is still answering the previous message, D-46), `unauthorized` / `invalid_credentials` (401), `too_many_attempts` (429: 5 sign-in attempts per email and client address in 5 minutes, with a `Retry-After` header, D-52), 404, 422. Conversations live in the same Postgres volume and survive restarts.
 
 **CLI** (no API needed; needs `make db` and a key; install [uv](https://docs.astral.sh/uv/), Python 3.12 is picked automatically):
 
@@ -197,9 +201,13 @@ Usage: Conversations screen (list, new conversation, **search** by title or mess
 
 If the backend has no `LLM_API_KEY` (or, outside Docker, no `TRANSCRIBE_MODEL`), OpenRouter fails, the call takes longer than 15 seconds, or the device is offline, the app shows "Using the device recognizer" and uses Android's on-device recognizer for that tap and the next 5 minutes. That recognizer shows partial results while you speak, but it is weaker with part numbers (D-48, D-53).
 
-The app asks for the microphone permission (`RECORD_AUDIO`) the first time you use it. If you deny it, the app explains why and typing keeps working; if you denied it permanently, the app tells you to enable it in the device Settings. If the device has no speech recognizer, the app says voice is unavailable. When a message was spoken, the app reads the answer aloud with the device text-to-speech. Only the answer text is read: product cards and tables are not. Every assistant message also has a speaker button to read it aloud or stop it. Spanish or English is picked from the text (a simple heuristic in `mobile/android/app/src/main/java/com/konecto/series76/voice/SpeechLanguage.kt`), that choice is sent with the audio, and numbers and part numbers are read exactly as printed. Text-to-speech runs on the device.
+The app asks for the microphone permission (`RECORD_AUDIO`) the first time you use it. If you deny it, the app explains why and typing keeps working; if you denied it permanently, the app tells you to enable it in the device Settings. If the device has no speech recognizer, the app says voice is unavailable. Spanish or English for the recognizer and the phase labels is picked from the question text (a simple heuristic in `mobile/android/app/src/main/java/com/konecto/series76/voice/SpeechLanguage.kt`), and that choice is sent with the audio.
 
-Cost: with the default model, a 5-second question costs about USD 0.0007. The experiment behind the model choice (five speech-to-text models on seven synthetic clips) is in [`backend/scripts/stt_bench/REPORT.md`](backend/scripts/stt_bench/REPORT.md), and the decision is D-53.
+**Spoken answers (D-54).** A spoken question is answered in sync: the answer text and the voice appear together. While the app waits, the indicator shows the phase in the question's language: Transcribing, Thinking, Checking the catalog, Organizing the answer and Generating voice. The voice is Gemini Kore through `POST /api/speech` (`SPEECH_MODEL`, `SPEECH_VOICE`). The app splits the answer into sentences and synthesizes them in parallel (at most 4 requests at a time). It plays them in order, so only the first sentence's start-up time (about 4.5 s) is felt, and the text appears once that first audio is ready. Only the answer text is read: product cards and tables are not, and numbers and part numbers are read as printed. The language (`es` or `en`) comes from the `language` field of the conversation response, detected from the answer text.
+
+If the first audio is not ready in 10 seconds, or the cloud voice fails (no key, 5xx, timeout, offline device), the text appears and the device `TextToSpeech` reads it. After such a failure the app keeps using the device voice for 5 minutes. A typed question shows its answer at once and is not read aloud automatically. Every assistant message has a speaker button with three states: Read aloud, Preparing voice and Stop reading. Audio is cached per message, so reading it again does not make a second paid call. The device speech engine (D-48) now serves only as the fallback for spoken answers.
+
+Cost: with the default model, a 5-second question costs about USD 0.0007. A spoken answer of about 300 characters costs about USD 0.01 (see section 6). The experiment behind the model choice (five speech-to-text models on seven synthetic clips) is in [`backend/scripts/stt_bench/REPORT.md`](backend/scripts/stt_bench/REPORT.md), and the decision is D-53.
 
 **Debug screen (developer role + 5 taps on the title).** Tap the chat title (Axel) five times to open the Debug screen, which shows the tool calls and raw results of each turn. The gesture works only when the signed-in user has the `developer` role (`dev@konecto.test`, section 8). For a `user` account it does nothing, and the server sends no trace in any case (D-43).
 
@@ -207,7 +215,7 @@ Cost: with the default model, a 5-second question costs about USD 0.0007. The ex
 
 ## 5. Design and trade-offs
 
-Full list with alternatives in [`docs/DECISIONS.md`](docs/DECISIONS.md) (D-01 to D-50); architecture in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
+Full list with alternatives in [`docs/DECISIONS.md`](docs/DECISIONS.md) (D-01 to D-54); architecture in [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md).
 
 - **Typed columns, not a JSON blob (D-04, D-05).** Filtering by torque, voltage, phase, enclosure, service and duty is plain SQL. No ORM, plain `psycopg` (D-03).
 - **The LLM never writes SQL.** Three parameterized tools: `get_actuator` (found / found without data / not found with suggestions / ambiguous candidates), `search_actuators` (filters, tightest match first, says which constraint blocked an empty result), `describe_catalog` (for ambiguous questions). Torque and duty must be met in the same operating mode (D-22).
@@ -230,6 +238,7 @@ Models are configured only by environment variables (`get_llm(task)` in `backend
 | Chat agent (tool calling and short answers in the user's language) | `AGENT_MODEL` | Development: `stealth/crouton-alpha` (free on OpenRouter, USD 0 in all runs; 26/26 on the original 26-case set, 38/38 with the injection cases). Recommended: `openai/gpt-6-luna`; results below. |
 | PDF extraction, vision escalation of flagged tables | `EXTRACT_LLM_MODEL` | A vision-capable model; the design reference is Claude Sonnet (100% cell accuracy per table in the benchmark, D-01). Only used when the PDF is re-extracted with escalation on. Real run: 4 calls, about USD 0.12, output identical to the committed JSON (D-49). |
 | Speech-to-text for voice input (`POST /api/transcribe`) | `TRANSCRIBE_MODEL` | `google/gemini-3.5-transcribe`: the cleanest part-number transcripts in the five-model comparison ([`backend/scripts/stt_bench/REPORT.md`](backend/scripts/stt_bench/REPORT.md)), about USD 0.0007 per 5-second question. `openai/whisper-large-v3-turbo` is the cheap alternative at about USD 0.00002 per question, with more normalization needed (D-53). |
+| Text-to-speech for spoken answers (`POST /api/speech`) | `SPEECH_MODEL`, `SPEECH_VOICE` | `google/gemini-3.8-flash-lite-tts` with voice `Kore`, chosen by ear by the user after two bench rounds ([`backend/scripts/tts_bench/REPORT.md`](backend/scripts/tts_bench/REPORT.md) and the `REPORT-*.md` files next to it). ElevenLabs Flash v2.5 started in under 1 s, but no voice sounded right in Spanish, even with `language_code` set to `es`. Gemini Kore was preferred. About USD 0.01 per 300 characters. It needs about 4.5 s to start, which the synchronized reveal and parallel sentences absorb (D-54). |
 
 **Final evaluation (`openai/gpt-6-luna`, Sprint 9): 52/52 cases (100%), USD 0.011 for the whole run, with the field-bound number guard (D-51): no correct answer was replaced by the template.** Sprint 8 scored 48/49 on the earlier set; its one failure (`subset-02`) gave the right answer through `describe_catalog`, and the case now accepts either valid tool (`tools_any`). Report: [`backend/eval/report.md`](backend/eval/report.md). The Sprint 7 run on the previous 38 cases scored 38/38; the benchmark table below is from that run.
 
@@ -265,7 +274,7 @@ Note: free "stealth" models are temporary and can disappear or be rate limited; 
 
 ## 8. Optionals
 
-Both optional features are implemented: login (D-43, backend and Android app) and voice conversation (D-53 and D-48, backend and Android app).
+Both optional features are implemented: login (D-43, backend and Android app) and voice conversation (D-53 and D-54, with D-48 as the on-device fallback; backend and Android app).
 
 **Login (implemented, D-43).** Email and password return an opaque token, valid for 7 days, sent as `Authorization: Bearer <token>`. Passwords are stored as argon2id hashes and tokens as SHA-256 hashes, so neither can be read back from the database. Each user sees only their own conversations. The OpenRouter key stays on the server and is shared by all users. Test users, created at startup (`SEED_TEST_USERS=off` disables them):
 
@@ -277,13 +286,13 @@ Both optional features are implemented: login (D-43, backend and Android app) an
 
 Conversations created before login existed (no owner) are not shown to anyone.
 
-**Voice conversation (implemented, D-53 and D-48):** audio is transcribed by `POST /api/transcribe` with the OpenRouter model in `TRANSCRIBE_MODEL`; the device recognizer is the fallback, and answers are read aloud on the device. Details in section 4.
+**Voice conversation (implemented, D-53 and D-54):** audio is transcribed by `POST /api/transcribe` with the OpenRouter model in `TRANSCRIBE_MODEL` (D-53), and spoken questions are answered with a cloud voice from `POST /api/speech` (D-54). The Android recognizer and `TextToSpeech` (D-48) are the fallbacks. Details in section 4.
 
 ## 9. Repo layout and AI configuration
 
 ```
 backend/
-  app/{domain,ingestion,db,agent,api}/  bootstrap.py  llm.py
+  app/{domain,ingestion,db,agent,auth,speech,api}/  bootstrap.py  llm.py
   cli.py  ingest.py  Dockerfile  pyproject.toml  uv.lock
   data/{raw/series_76_electric_data.pdf, processed/actuators.json}
   eval/  tests/  docker/initdb/

@@ -23,7 +23,7 @@ Idioma: conversación conmigo en español. Código, comentarios, commits y READM
 
 **Dentro:** extracción del PDF y su validación, base de datos de consulta, tools, agente, selección de LLM, casos borde, set de evaluación, `cli.py`, API FastAPI (`POST /api/conversation` y sesiones), conversaciones persistidas en Postgres, Docker Compose y app Android (Kotlin + Compose). El plan de entrega tiene 7 sprints más el 5.5 de rediseño (`docs/ARCHITECTURE.md` §11); el 6 es de seguridad (prompting incluido) y el 7 de entrega.
 
-**Opcionales (implementados en el Sprint 8):** login con email, contraseña y token opaco (D-43; usuarios de prueba sembrados, cada uno ve solo sus conversaciones, traza solo para el rol developer) y conversación por voz: desde el Sprint 9 se transcribe con OpenRouter (D-53, `google/gemini-3.5-transcribe`) y el reconocedor del dispositivo queda como respaldo (D-48); la respuesta se lee con TextToSpeech.
+**Opcionales (implementados en el Sprint 8):** login con email, contraseña y token opaco (D-43; usuarios de prueba sembrados, cada uno ve solo sus conversaciones, traza solo para el rol developer) y conversación por voz: desde el Sprint 9 se transcribe con OpenRouter (D-53, `google/gemini-3.5-transcribe`) y el reconocedor del dispositivo queda como respaldo (D-48); desde el Sprint 10 la respuesta hablada usa una voz en la nube (D-54, Gemini Kore vía OpenRouter) y el TextToSpeech del dispositivo queda como respaldo.
 
 El agente se invoca como `run_agent(query, history=[])`. La API le pasa el historial guardado en Postgres.
 
@@ -183,4 +183,6 @@ docker-compose.yml  Dockerfile  Makefile  .env.example  README.md
 - (Hecho, Sprint 8 ola 1) Llamada real a OpenRouter para el escalado: 4 tablas con visión, salida idéntica al JSON commiteado (D-49).
 - (Decidido 2026-11-06) No se prueba la regla de marcado con otros PDFs: el enunciado solo pide este PDF. Queda como limitación conocida en README y D-01.
 - Opcionales implementados en el Sprint 8: login (D-43, backend ola 2, app ola 4) y voz en el dispositivo (D-48, ola 4). Puerta final (ola 5) pasada.
-- Sprint 9 en curso (plan y log en `docs/plans/SPRINT-9.md`): guardia por campo D-51, límite de login D-52, división de módulos, eval 52/52, voz con transcripción por OpenRouter y reconocedor del dispositivo como respaldo (D-53), y demo en tablet pendiente (antes del 2026-11-09, vencimiento de la key).
+- Sprint 9 en curso (plan y log en `docs/plans/SPRINT-9.md`): guardia por campo D-51, límite de login D-52, división de módulos, eval 52/52, voz con transcripción por OpenRouter y reconocedor del dispositivo como respaldo (D-53), y demo de voz hecha en la tablet.
+- Sprint 10 (plan y log en `docs/plans/SPRINT-10.md`): voz de respuesta con Gemini Kore a través de OpenRouter (D-54), con el TextToSpeech del dispositivo como respaldo.
+- La entrega queda lista tras la puerta del Sprint 10.
